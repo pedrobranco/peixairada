@@ -178,3 +178,16 @@ test('a row says its type and the colour its definition gives, none for a built-
     assert.deepEqual(rows.map(r => [r.id, r.type, r.color]).sort(), [['look', 'Explore', null], ['sec', 'security', 'red']]);
   } finally { await srv.stop(); p.kill(); }
 });
+
+test('every agent its claude ran, for Space: the rows a card shows are the last round, `agentAll` every round (2026-11-18, v9)', { timeout: 30_000 }, async () => {
+  const { p, fx, chat } = setup([
+    { id: 'spec', asked: 'Specify it', kind: 'specifier', ago: 30 * MIN, quiet: 25 * MIN, report: '## Spec ready', finished: true, tool: 'toolu_spec' },
+    { id: 'expl', asked: 'Explore it', kind: 'explorer', ago: 10 * MIN, steps: ['Grep the client'] },
+  ]);
+  const srv = await startTestServer({ claudeDir: fx.dir });
+  try {
+    const sum = await waitFor(async () => { const x = (await srv.api('api/sessions')).body.sessions.find(s => s.id === chat.id); return x?.agentAll?.length === 2 && x; }, { what: 'both rounds' });
+    assert.deepEqual(sum.agentRows.map(r => r.id), ['expl'], 'a card: the last round');
+    assert.deepEqual(sum.agentAll.map(r => [r.id, r.type]), [['spec', 'specifier'], ['expl', 'explorer']], 'Space: every round, each by its type');
+  } finally { await srv.stop(); p.kill(); }
+});

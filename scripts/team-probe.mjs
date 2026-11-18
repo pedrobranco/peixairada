@@ -23,7 +23,7 @@ for (const slug of ls(root)) for (const f of ls(join(root, slug)).filter(f => f.
   }
   const sub = join(root, slug, id, 'subagents'), metas = ls(sub).filter(n => n.endsWith('.meta.json')).map(n => {
     let m = {}; try { m = JSON.parse(readFileSync(join(sub, n), 'utf8')); } catch {}
-    return { file: n, name: short(m.name), agentType: short(m.agentType), taskKind: short(m.taskKind), keys: Object.keys(m) };
+    return { file: n, name: short(m.name), agentType: short(m.agentType), spawnedAgentType: short(m.spawnedAgentType), customAgentType: short(m.customAgentType), taskKind: short(m.taskKind), keys: Object.keys(m) };
   });
   if (!spawns.length && !metas.length) continue;
   console.log(`\n== chat ${id} (${slug})`);

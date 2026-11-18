@@ -163,7 +163,7 @@ export function teamFiles({ dir, lead, mates = [], roster = true, plain = false,
     writeFileSync(join(sub, `agent-${agentId}.jsonl`), ls.map(l => JSON.stringify({ ...base, agentId, uuid: randomUUID(), parentUuid: null, ...l })).join('\n') + '\n');
   };
   const said = (text, i) => ({ type: 'assistant', timestamp: ts(i), message: { model: 'fixture-1', id: 'msg_' + randomUUID().slice(0, 8), type: 'message', role: 'assistant', content: [{ type: 'text', text }], stop_reason: 'end_turn' } });
-  for (const m of mates) agent(m.name, { agentType: m.name, color: m.color || 'blue', description: m.summary, model: 'fixture-1', name: m.name, permissionMode: 'auto', planModeRequired: false,
+  for (const m of mates) agent(m.name, { agentType: m.name, ...m.spawnedType && { spawnedAgentType: m.spawnedType, customAgentType: m.spawnedType }, color: m.color || 'blue', description: m.summary, model: 'fixture-1', name: m.name, permissionMode: 'auto', planModeRequired: false,
     requestNonInteractive: false, requestShape: 'background', spawnDepth: 1, taskKind: 'in_process_teammate', teamName: team }, [
     { type: 'user', timestamp: ts(0), promptId: randomUUID(), message: { role: 'user', content: `<teammate-message teammate_id="team-lead" summary="${m.summary}">\n${m.ask || m.summary}\n</teammate-message>` } },
     m.work ? { type: 'assistant', timestamp: ts(1000), message: { model: 'fixture-1', id: 'msg_' + randomUUID().slice(0, 8), type: 'message', role: 'assistant',

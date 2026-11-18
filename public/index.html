@@ -2529,15 +2529,15 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   #space .spt { display: block; min-width: 0; padding: 0; border: 1px solid transparent; border-radius: var(--r-5); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   #space .spt:hover { background: var(--ctl); }
   #space .spt.on { background: var(--panel); border-color: var(--line); }
-  #space { --spw: 268px; --sph: 240px; }   /* a node's tile: its circle and a pod each side (spPods' SP_GEO) */
+  #space { --spw: 304px; --sph: 216px; }   /* a node's tile: its box and a pod each side (spPods' SP_GEO) */
   #space .spo { position: relative; display: block; width: var(--spw); height: var(--sph); margin: 0 auto; }
-  #space .spbox { position: absolute; left: 72px; top: 58px; width: 124px; height: 124px; box-sizing: border-box; padding: 0 18px; border-radius: 50%; border: 2px solid var(--c); background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; z-index: 1; }   /* a circle, its words in the middle (2026-11-18, v7) */
-  #space .spbox::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--c); opacity: 0; }
+  #space .spbox { position: absolute; left: 72px; top: 58px; width: 160px; height: 100px; box-sizing: border-box; padding: 6px 12px; border-radius: 16px; border: 2px solid var(--c); background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-align: center; z-index: 1; }   /* a rounded box, its words in the middle (2026-11-18, v9; a circle in v7 held too little) */
+  #space .spbox::after { content: ""; position: absolute; inset: -6px; border-radius: 20px; border: 2px solid var(--c); opacity: 0; }
   #space .spbox[data-st="ask"]::after { animation: spsonar 1.5s ease-out infinite; }
   #space .spbox[data-st="work"]::after { animation: spsonar 2.6s ease-out infinite; }
   #space .spbox[data-st="watch"]::after { animation: spsonar 4.2s ease-out infinite; }
   #space .spbox[data-st="done"] { filter: saturate(.4); }
-  #space .spbt { max-width: 100%; font-size: var(--fs-sm); font-weight: 650; line-height: 1.25; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  #space .spbt { max-width: 100%; font-size: var(--fs-sm); font-weight: 650; line-height: 1.25; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   #space .spra { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-2xs); font-weight: 700; color: oklch(.78 .12 var(--h)); }   /* the agent the chat runs as (2026-11-18, v8) */
   :root[data-theme="light"] #space .spra { color: oklch(.48 .13 var(--h)); }
   #space .spgrid .spa[data-ag]:not([data-st="joined"]) { cursor: pointer; }
@@ -6707,7 +6707,7 @@ const toolName = n => {
   function mxtShow() {
     const a = mxt.a, c = a?.isConnected && a.closest('#slist > .card'), head = a?.isConnected && a.closest('#shead'), inSpace = a?.isConnected && a.closest('#space');   // Space's marks name their chat (2026-11-18)
     const s = c ? state.sessions.get(c.dataset.id) : inSpace ? state.sessions.get(a.dataset.sid) : head && state.sessions.get(state.current);
-    const ag = a?.dataset.ag && s?.agentRows?.find(r => r.id === a.dataset.ag);   // a row of its agents': that one's card (2026-11-02)
+    const ag = a?.dataset.ag && (inSpace ? spRows(s) : s?.agentRows || []).find(r => r.id === a.dataset.ag);   // a row of its agents': that one's card (2026-11-02); Space's, any round's
     const pr = !ag && s?.prs?.find(p => p.url === a.dataset.url); if (!pr && !ag) return mxtHide();
     rpopHide(); restOff();
     const el = mxt.el ||= Object.assign(document.createElement('div'), { id: 'mxtip', role: 'tooltip' });
@@ -12331,7 +12331,7 @@ const toolName = n => {
   const spOff = () => Array.isArray(prefs.spOff) ? prefs.spOff : ['idle', 'done'];
   const spSt = r => agQuiet(r) ? 'quiet' : r.st;
   const spState = s => SP_OF[s.done ? 'done' : rankOf(s)] || 'ready';
-  const spRows = s => s?.alive ? s.agentRows || [] : [];
+  const spRows = s => s?.alive ? s.agentAll || s.agentRows || [] : [];   // every agent its claude has run, not the last round alone (2026-11-18, v9)
   const spCount = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   const spCut = t => { t = String(t || ''); return t.length > 60 ? t.slice(0, 60).trimEnd() + '…' : t; };
   // an agent by its type, a teammate by the category it was spawned as (the server's mateType) — never "teammate": its name is
@@ -12366,8 +12366,8 @@ const toolName = n => {
       + (now?.[1] ? `<dl class="agi spcw"><dt>${now[0]}</dt><dd>${now[1]}</dd></dl>` : '')
       + `<dl class="agi spcv">${kv.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
   }
-  // a node's circle in its tile (#space's --spw × --sph, .spbox's place): its centre and radius, a pod's thickness, a wire's length (2026-11-18, v7)
-  const SP_GEO = { cx: 134, cy: 120, r: 62, pt: 34, w: 8 }, SP_TILE = [268, 240];
+  // a node's box in its tile (#space's --spw × --sph, .spbox's place): its centre and half sizes, a pod's thickness, a wire's length (2026-11-18, v9)
+  const SP_GEO = { cx: 152, cy: 108, hw: 80, hh: 50, pt: 34, w: 8 }, SP_TILE = [304, 216];
   /** A chat's agents by type, the most first, each docked to its node on a side of its own: top, bottom, right, left. */
   function spPods(s) {
     const groups = [];
@@ -12378,9 +12378,9 @@ const toolName = n => {
       const hue = spHue(g.k, g.color), more = g.rows.length > SP_POD ? g.rows.length - (SP_POD - 1) : 0, rows = more ? g.rows.slice(0, SP_POD - 1) : g.rows;
       // top and bottom a row, the sides a column: x, y, width, height of the pod; of its wire; where its label is
       const n = rows.length + (more ? 1 : 0), len = n * 26 + (n - 1) * 5 + 12, side = ['top', 'bottom', 'right', 'left'][i];
-      const { cx, cy, r, pt, w } = SP_GEO, top = cy - r - w - pt, bot = cy + r + w, lft = cx - r - w - pt, rgt = cx + r + w;
-      const at = { top: [cx - len / 2, top, len, pt, cx - 1, cy - r - w, 2, w, cx, top - 14], bottom: [cx - len / 2, bot, len, pt, cx - 1, cy + r, 2, w, cx, bot + pt + 2],
-        right: [rgt, cy - len / 2, pt, len, cx + r, cy - 1, w, 2, rgt + pt / 2, cy + len / 2 + 3], left: [lft, cy - len / 2, pt, len, lft + pt, cy - 1, w, 2, lft + pt / 2, cy + len / 2 + 3] }[side];
+      const { cx, cy, hw, hh, pt, w } = SP_GEO, top = cy - hh - w - pt, bot = cy + hh + w, lft = cx - hw - w - pt, rgt = cx + hw + w;
+      const at = { top: [cx - len / 2, top, len, pt, cx - 1, cy - hh - w, 2, w, cx, top - 14], bottom: [cx - len / 2, bot, len, pt, cx - 1, cy + hh, 2, w, cx, bot + pt + 2],
+        right: [rgt, cy - len / 2, pt, len, cx + hw, cy - 1, w, 2, rgt + pt / 2, cy + len / 2 + 3], left: [lft, cy - len / 2, pt, len, lft + pt, cy - 1, w, 2, lft + pt / 2, cy + len / 2 + 3] }[side];
       const label = `${spCap(g.k)}${i === SP_PODS - 1 && left ? ` · +${left} more` : ''}`;
       return `<span class="spwire" style="--h:${hue};left:${at[4]}px;top:${at[5]}px;width:${at[6]}px;height:${at[7]}px"></span>`
         + `<span class="sppod${side === 'right' || side === 'left' ? ' col' : ''}" style="--h:${hue};left:${at[0]}px;top:${at[1]}px;width:${at[2]}px;height:${at[3]}px">${rows.map(r => spAgent(r, g.k, hue, s)).join('')}${more ? `<span class="spmore">+${more}</span>` : ''}</span>`

@@ -5,6 +5,31 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, v9 — every agent's category round the node, read from its own record; the node a box again
+
+Pedro, with `team-probe`'s output and a screenshot (an orchestrator chat whose node showed only an *Explorer* pod, the
+specifier that had just run gone): *"it is overriding the subagents subnode and not creating multiple agents categories
+around the main node in Space as the design tells. Here's the current team probe and a screen shot that shows the the
+specifier is not shown (it ran recently)"*; then *"make it again the main node a rounded rectangle to proper show the
+information."*
+
+* **What the probe showed**: a teammate's `.meta.json` carries `spawnedAgentType` and `customAgentType` — its category —
+  beside an `agentType` that is its own name; the spawns (`Agent`, `subagent_type`: specifier, explorer, developer,
+  evidence-reviewer, smart-rebase) run back days in a long chat, past what a restart reads of it.
+* **A teammate's category is its record's first** (`agentMetaOf`'s `spawned`; `mateType`: `spawnedAgentType` /
+  `customAgentType` unless it is the name, then the spawn call, then `agentType` unless the name, else `general-purpose`).
+  A sub-agent's too when it has one. No restart or tail can lose it now.
+* **Space shows every agent its claude ran, not the last round** (`s.agentAll` → the summary's `agentAll`, sent only when
+  there were rounds before the last; `spRows` reads it, the hover card finds its agent there): a round is the card's way
+  of saying what is at work now, and it dropped the specifier the moment the explorer started — Space's pods are the
+  chat's whole cast by category, round the node, four sides, the most first. The cards keep the last round.
+* **The node is a rounded box again** (`.spbox` 160 × 100, `border-radius: 16px`, the words still centred, the title three
+  lines; `SP_GEO` half sizes, the tile 304 × 216): the circle held too little of the title.
+* Checked here: `test/team.test.mjs` (the record's `spawnedAgentType` with no spawn in sight), `test/agent-rows.test.mjs`
+  (`agentAll` both rounds, `agentRows` the last), `space.mjs` (a specifier from a round before is its own pod, four pods
+  round the node; shots dark and light); `agent-rows`, `agent-tab`, `compositor-rules` pass. The probe prints the two new
+  fields too.
+
 ## Decisions of 2026-11-18, v8 — an agent clicked is its transcript; the node names the chat's agent
 
 Pedro, with a screenshot of a chat run as `@orchestrator` and one teammate, `sp-…`, in a *General-purpose* pod: *"When

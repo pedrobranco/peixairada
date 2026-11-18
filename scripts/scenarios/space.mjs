@@ -38,6 +38,7 @@ export default async function (ctx) {
     ]);
     const [infra, billing, store] = chats;
     agentFiles({ dir: ctx.fixture.dir, lead: infra, agents: [
+      { id: 'spec', kind: 'specifier', asked: 'Specify the VPC review', ago: 30 * MIN, steps: ['Read the plan'], report: 'Spec ready.', finished: true, tool: 'toolu_spec', quiet: 25 * MIN },   // a round before: still a pod (v9)
       { id: 'sec1', kind: 'security', asked: 'Look for open ingress', ago: 11 * MIN, steps: ['Grep 0.0.0.0/0 in modules/'] },
       { id: 'sec2', kind: 'security', asked: 'Look for wide IAM policies', ago: 11 * MIN, steps: ['Read iam.tf'] },
       { id: 'cost', kind: 'cost', asked: 'Price the NAT gateways', ago: 10 * MIN, steps: ['Read plan/staging.json'] },
@@ -51,7 +52,7 @@ export default async function (ctx) {
     agentFiles({ dir: ctx.fixture.dir, lead: store, agents: [
       { id: 'api', asked: 'Backoff in the payments client', ago: 18 * MIN, steps: ['Edit src/payments/retry.ts'] },
     ] });
-    await ctx.waitFor(`(peix.session('${infra.id}')?.agentRows || []).length === 4 && (peix.session('${billing.id}')?.agentRows || []).some(r => r.st === 'fail') && (peix.session('${store.id}')?.agentRows || []).length === 1`, { what: 'every chat’s agents', timeout: 20000 });
+    await ctx.waitFor(`(peix.session('${infra.id}')?.agentAll || []).length === 5 && (peix.session('${billing.id}')?.agentRows || []).some(r => r.st === 'fail') && (peix.session('${store.id}')?.agentRows || []).length === 1`, { what: 'every chat’s agents', timeout: 20000 });
     ctx.assert.equal(await ctx.evaluate(`peix.session('${infra.id}').agentRows.find(r => r.id === 'sec1').color`), 'red', 'a row carries its type’s colour, from its definition');
     ctx.assert.equal(await ctx.evaluate(`!!document.querySelector('#main.space') || !document.querySelector('#space').hidden`), false, 'off at first');
 
@@ -68,8 +69,8 @@ export default async function (ctx) {
     ctx.assert.match(by('Review the staging').folder, /infra$/, 'its folder under its name');
     ctx.assert.equal(by('Queue for invoice').st, 'ask', 'asking: its edge red');
     ctx.assert.deepEqual(by('Review the staging').pods.map(p => [p.label, p.h, p.marks]), [
-      ['Security', '25', 'SE:run SE:run'], ['Cost', '150', 'CO:run'], ['Explore', by('Review the staging').pods[2].h, 'EX:quiet'],
-    ], 'a pod per type, the most first, named by its type capitalised; its letters, its colour (the definition’s hue), its state');
+      ['Security', '25', 'SE:run SE:run'], ['Specifier', by('Review the staging').pods[1].h, 'SP:done'], ['Cost', '150', 'CO:run'], ['Explore', by('Review the staging').pods[3].h, 'EX:quiet'],
+    ], 'a pod per type round the node, the most first — a round before the last one\u2019s too —, named by its type capitalised; its letters, its colour (the definition’s hue), its state');
     ctx.assert.deepEqual(by('Queue for invoice').pods.map(p => p.marks), ['GP:done GP:fail'], 'two of one type: one pod');
     await ctx.settle();
     await ctx.shot('space-dark');

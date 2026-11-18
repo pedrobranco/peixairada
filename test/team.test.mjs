@@ -90,3 +90,18 @@ test('a teammate\'s category is the type the lead spawned it as — never "teamm
       'by the spawn\'s subagent_type — by Task, its older name, too —, a roster name\'s too; its own name never its category; none named, the Agent tool\'s default');
   } finally { await srv.stop(); p.kill(); }
 });
+
+test('a teammate\'s own metadata names its category — spawnedAgentType — with no spawn call in sight (2026-11-18, v9)', { timeout: 30_000 }, async () => {
+  const p = standIn(), dir = tmpDir('peix-fx-');
+  const fx = makeFixture(dir, [{ cwd: '/tmp/acme/storefront', title: 'Pipeline', prompt: 'go', reply: 'Going.', at: yesterday(), live: { pid: p.pid, startedAt: Date.now() - 3600_000 } }]);
+  const [lead] = fx.chats;
+  teamFiles({ dir, lead, mates: [
+    { name: 'sp-1', summary: 'Specify it', said: 'Spec ready.', spawnedType: 'specifier' },
+    { name: 'rv-1', summary: 'Review it', work: 'Read the diff', spawnedType: 'evidence-reviewer' },
+  ] });
+  const srv = await startTestServer({ claudeDir: dir });
+  try {
+    const rows = await waitFor(async () => { const r = (await srv.api('api/sessions')).body.sessions.find(s => s.id === lead.id)?.agentRows; return r?.length === 2 && r; }, { what: 'the team\'s rows' });
+    assert.deepEqual(Object.fromEntries(rows.map(r => [r.name, r.type])), { 'sp-1': 'specifier', 'rv-1': 'evidence-reviewer' }, 'its record\'s spawnedAgentType, not its agentType (its own name)');
+  } finally { await srv.stop(); p.kill(); }
+});

@@ -826,7 +826,8 @@ function summary(s, ti = null) {   // `ti`: termIndex(), when the whole board is
     agents: s.agentsRunning || 0,   // sub-agents at work — what keeps the status 'working' past the main turn's end
     tasks: runningTasks(s),         // monitors and background commands still running behind the turn
     peerIn: peerInOf(s), peerQueue: peerQueueOf(s),   // another chat's newest message to it, and those waiting for its turn's end (2026-10-31)
-    agentRows: s.alive ? s.agentRows || null : null,   // a row per sub-agent of its last round, while its claude runs (noteAgents, 2026-11-02)
+    agentRows: s.alive ? s.agentRows || null : null,
+    agentAll: s.alive ? s.agentAll || null : null,   // and every agent of its claude's, when the rows are its last round only (Space, 2026-11-18)   // a row per sub-agent of its last round, while its claude runs (noteAgents, 2026-11-02)
     // the Watching lane's (2026-10-31): the turn at work was woken by the chat's own task notice, not by you; the next
     // wake-up it set itself; and how its last turn stopped short, while nothing runs
     woken: status === 'working' && !!s.woke, wake: nextWake(s), stopped: status === 'working' || status === 'needs-input' ? null : s.stopped,
@@ -2515,7 +2516,7 @@ function indexFile(file, { full = false } = {}) {
   const s = newSession(id, file);
   s.bornAt = st.birthtimeMs;
   if (prev) {
-    for (const k of ['live', 'rivals', 'alive', 'startedAt', 'openedAt', 'agentsRunning', 'agentRows', 'agentSig', 'agentSaid', 'headNow', 'headOk', 'peers', 'tasksGone', 'forkAt']) s[k] = prev[k];
+    for (const k of ['live', 'rivals', 'alive', 'startedAt', 'openedAt', 'agentsRunning', 'agentRows', 'agentAll', 'agentSig', 'agentSaid', 'headNow', 'headOk', 'peers', 'tasksGone', 'forkAt']) s[k] = prev[k];
     clearTimeout(prev.pushTimer); clearTimeout(prev.notifyTimer); clearTimeout(prev.driftTimer);
     s.silent = !!prev.file;
   }
@@ -2774,7 +2775,9 @@ function noteMateType(s, input) {
   const t = s.mateTypes ||= new Map(); t.delete(input.name); t.set(input.name, pstr(input.subagent_type) || pstr(input.agent_type) || pstr(input.agentType) || 'general-purpose');
   while (t.size > 64) t.delete(t.keys().next().value);
 }
-const mateType = (s, name, ...said) => s.mateTypes?.get(name) || said.find(k => k && k !== name && k !== 'team-lead') || 'general-purpose';
+// first what its own metadata says it was spawned as (`spawnedAgentType`, `customAgentType`; its `agentType` is its name — 2026-11-18, v9)
+const typeSaid = (k, name) => k && k !== name && k !== 'team-lead' ? k : null;
+const mateType = (s, name, spawned, kind) => typeSaid(spawned, name) || s.mateTypes?.get(name) || typeSaid(kind, name) || 'general-purpose';
 const isLead = m => m.agentType === 'team-lead' || m.name === 'team-lead' || String(m.agentId || '').startsWith('team-lead@');
 /** The roster beyond its lead, as Claude Code keeps it while the chat runs: what a teammate with no file yet is known by. */
 const rosterOf = s => jsonOnce(join(TEAMS_DIR, `session-${s.id.slice(0, 8)}`, 'config.json'), c => (c?.leadSessionId && c.leadSessionId !== s.id) || !Array.isArray(c?.members) ? []
@@ -2819,7 +2822,7 @@ const typeOf = (s, type) => ({ type, color: agentColor(s.live?.cwd || s.cwd, typ
 const AGENT_WORDS_MS = Number(process.env.AGENT_WORDS_MS ?? 15_000), AGENT_FILES = 40;
 /** The agent a tool's result names (2026-11-02): an Agent call's, a forked Skill's. How the transcript gets back to it, whatever became of its row. */
 const agentNamed = t => typeof t?.agentId === 'string' && /^[\w-]+$/.test(t.agentId) ? { agent: { id: t.agentId, name: pstr(t.name) || pstr(t.commandName), asked: pstr(t.description) } } : null;
-const agentMetaOf = m => !m || typeof m !== 'object' ? {} : { name: pstr(m.name), asked: pstr(m.description), kind: pstr(m.agentType), mate: m.taskKind === 'in_process_teammate' || !!pstr(m.teamName),
+const agentMetaOf = m => !m || typeof m !== 'object' ? {} : { name: pstr(m.name), asked: pstr(m.description), kind: pstr(m.agentType), spawned: pstr(m.spawnedAgentType) || pstr(m.customAgentType), mate: m.taskKind === 'in_process_teammate' || !!pstr(m.teamName),
   model: pstr(m.model), branch: pstr(m.worktreeBranch), tree: pstr(m.worktreePath), tool: pstr(m.toolUseId), finished: m.finished === true, stopped: m.stoppedByUser === true };
 const metaFile = (dir, n) => join(dir, n.slice(0, -'.jsonl'.length) + '.meta.json');
 /** Its meta says it finished, and nothing was written since: an agent ended by an API error writes no end of its own, and
@@ -2881,7 +2884,7 @@ function noteAgents(s, dir, work, since, now) {
     rows.push({ id, name: m.name, asked: m.asked || snippet(born.prompt, 80) || null, kind: m.kind && m.kind !== 'general-purpose' ? m.kind : null, mate: !!m.mate, st: state, last,
       // its type as Claude Code named it — a teammate's, the category it was spawned as (mateType, 2026-11-18, v6) — and the
       // colour that type's definition gives (Space's pods): none for a built-in
-      ...typeOf(s, m.mate ? mateType(s, m.name, m.kind) : m.kind || null),
+      ...typeOf(s, m.mate ? mateType(s, m.name, m.spawned, m.kind) : m.spawned || m.kind || null),
       // when it ended: not its last line alone — an API error writes none, and you may have opened the chat since that line (the page keeps a failure until then)
       at: born.at, end: state === 'run' || state === 'wait' ? null : new Date(Math.max(st.mtimeMs, Date.parse(end?.ts) || 0, m.finished ? jsonSeen.get(metaFile(dir, n))?.mtimeMs || 0 : 0)).toISOString(),
       lastAt: new Date(st.mtimeMs).toISOString(), why: state === 'fail' ? end?.why || null : null,
@@ -2890,12 +2893,16 @@ function noteAgents(s, dir, work, since, now) {
   rows.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
   let cut = 0, far = -Infinity;   // the last round: where one starts after every one before it had ended
   rows.forEach((r, i) => { const from = Date.parse(r.at); if (i && from > far) cut = i; far = Math.max(far, r.end ? Date.parse(r.lastAt) : Infinity); });
-  const kept = [...rows.slice(0, cut).filter(r => r.st === 'fail').slice(-3).map(r => ({ ...r, old: true })), ...rows.slice(cut)];
-  for (const m of rosterOf(s)) if (!names.has(m.name)) kept.push({ id: `mate-${m.name}`, name: m.name, asked: null, kind: null, mate: true, ...typeOf(s, mateType(s, m.name, m.kind)), st: 'joined', last: null, at: null, end: null, lastAt: null, why: null, branch: null, tree: null, tool: null });   // named, no file of its own yet
+  const kept = [...rows.slice(0, cut).filter(r => r.st === 'fail').slice(-3).map(r => ({ ...r, old: true })), ...rows.slice(cut)], joined = [];
+  for (const m of rosterOf(s)) if (!names.has(m.name)) joined.push({ id: `mate-${m.name}`, name: m.name, asked: null, kind: null, mate: true, ...typeOf(s, mateType(s, m.name, null, m.kind)), st: 'joined', last: null, at: null, end: null, lastAt: null, why: null, branch: null, tree: null, tool: null });   // named, no file of its own yet
+  kept.push(...joined);
+  // every agent its claude has run, rounds before the last too (2026-11-18, v9): Space's pods, which gather them by type
+  // round the chat; only when there were rounds before, else the same as the rows
+  const all = cut ? [...rows, ...joined] : null;
   // what changed: `lastAt` only by the minute, or every line of every agent would push the card
-  const sig = JSON.stringify(kept.map(({ lastAt, ...r }) => [r, Math.floor(Date.parse(lastAt) / 60_000)]));
+  const sig = JSON.stringify([kept.map(({ lastAt, ...r }) => [r, Math.floor(Date.parse(lastAt) / 60_000)]), all && rows.slice(0, cut).map(r => [r.id, r.st, r.type])]);
   if (sig === (s.agentSig ?? null) || (!kept.length && !s.agentRows)) return false;
-  s.agentRows = kept.length ? kept : null; s.agentSig = sig;
+  s.agentRows = kept.length ? kept : null; s.agentAll = all; s.agentSig = sig;
   return true;
 }
 // What the page asks of one agent, on demand (2026-11-02): the hover card's totals and the tab's transcript, read a piece at a
