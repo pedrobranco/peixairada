@@ -5,6 +5,48 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, later — Space becomes the board's other layout
+
+Pedro, trying the first Space: *"when i single-click the main node in Space, it opens the chat within the space screen
+(maybe half the bottom part of the screen). And the in the nodes itself, each node should render the 2 initials of each
+agent and it's corresponding color. Try to group each type of agents within a attached group in the main node"*; of three
+groupings drawn (pods on the core, arcs on the orbit, petals), *"Option A. The conversation name can be inside the main node
+up to 60 characters (then wrap text). If it has a associated folder, put it bellow the conversation name"*; then *"in the
+Space UI allow to still use the same shortcuts (like cmd+option+N to open new chats) as the normal home Peixairada screen.
+Add a toggle button to switch on and off to Space next to hide chat list on bottom left. This is to be an alternative visual
+UI for the Peixairada for Agents"*, *"the chats can be filtered on top with toggling each status on top"*, and *"The Space should
+be mutually exclusive to the chat list in the LEFT"*.
+
+* **Not a dialog any more: a layout** (`prefs.space`, `applySpace`, `main.space`, a grid of one column). A modal swallows
+  the ⌥⌘ keys; a layout has none to swallow. **Space takes the list's place, the chat below it** — the board's own
+  `#chat`, so every key, tab, drawer, picker and the pane's pages are what they are without it, and a terminal moves
+  nowhere (the plan's first idea, a drawer carried into a dialog, is gone with the dialog). With no chat open Space takes
+  the column (`spfull`). The divider between them (`#spdiv`) is dragged, 20–85 % (`prefs.spaceAt`).
+* **Space or the list, never both.** Space on hides the list and leaves `prefs.listHidden` as it was, for after; the
+  list's button, ⌥⌘B, the magnifier and the funnel leave Space for the list (`showList(true)`); a project picked (⌥⌘P) or a
+  face narrows Space as it does the list and leaves nothing. The status bar's **Space** (`#sbSpace`) sits beside the
+  list's button; ⌥⌘S, the launcher's row and its menu's do the same.
+* **The chats are the project in view's, by state, filtered on top** (`spChats`, `prefs.spOff`): a toggle per state
+  with its count — Asking you, Clauding, Watching, Ready, Idle, Done —, Idle and Done off at first, each at most
+  `SP_CAP` (30) of the newest, as a long lane holds back. In the lanes' order, then by the last word.
+* **A chat's node is its name and its folder** (`spNode`): the name cut at 60 characters and wrapped (three lines at
+  most), the folder under it as `~/…` beside the project's colour, none for a chat in no folder; its edge the chat's
+  state, pinging while it asks, works or watches; a done chat's desaturated.
+* **A pod per agent type, docked to the node** (`spPods`; option A): the most first, top, bottom, right, left — the sides a
+  column, so a pod of six fits —, a short line to the node, the type named under it; past four types the fourth says how
+  many more, past six agents of one type five and `+n`. A teammate's type is its name. **An agent is its type's two
+  letters in its type's colour**: the colour its definition gives (`color:` in its `.md`, as Claude Code draws it — the
+  server's `agentColor` on each row, with `type`, 2026-11-18), else a hue from its name, the same every time. Its state a
+  badge on the corner (a tick, a cross, a dashed ring, a square), an arc turning while it runs, still when quiet, an outline
+  when it has only joined.
+* **A click on a node opens the chat below** (`openSession`): its node lit, its agents the lanes on the right, as before.
+  Arrows move between nodes; ⏎ opens one.
+* Checked here (Chromium): `space.mjs` — off at first, the button, the nodes, the pods' letters and hues, the filters, the
+  chat below at Space's width, ⌥⌘N's picker over Space, a lane's tab, the divider and Space across a reload, the list's
+  button and ⌥⌘S trading places, and `ANIM_RULES` with Space on. Not here: `npm run perf` (Space's arcs run while it is on,
+  not only while a dialog is up), `npm run shell` (the pane's pages over a chat that is now in the lower half, and the notch's
+  padding on a header no longer at the top) — both want a Mac before this lands.
+
 ## Decisions of 2026-11-18 — Space: every chat's agents at once (⌥⌘S)
 
 Pedro: *"I don't want to use [an outside visualiser], i want to see graphics showing the status of the agents"* — then, of
