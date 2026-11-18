@@ -2,8 +2,33 @@
 
 What was decided, why, and what is still open, so the work can be picked up in another session.
 Newest at the top of each list. `CLAUDE.md` is the working notes (how things are built, what bit us);
-this file is the *why* and the *state*. Last updated 2026-11-07. The company, its repos and the people on its PRs go
+this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
+
+## Decisions of 2026-11-18 — Space: every chat's agents at once (⌥⌘S)
+
+Pedro: *"I don't want to use [an outside visualiser], i want to see graphics showing the status of the agents"* — then, of
+the two boards drawn for it, the first. Not a node graph of tool calls: the board already reads every agent's state, and
+what was missing was one picture of all of them.
+
+* **Space is a modal dialog, as the overview is** (`#sp`, `spOpen`; ⌥⌘S, the launcher's *Space*, the actions' row): the
+  whole board's agents, not one chat's, so not a pane tab. ⌥⌘S again closes it (`runHotkey` lets it through, as lunch's).
+* **Each live chat an orbit**: its project's square ringed in its state — asking, clauding, watching, ready, the ring
+  pinging for the first three —, its agents round it, a mark each. **A state is a shape as well as a colour** (`.spg`):
+  running a turning arc, quiet the arc still, waiting a dashed ring, done a tick, failed a cross, stopped a square,
+  joined an outline — so it reads without colour and in either theme (every colour a token). Chats with agents come
+  first, then by what they want of you. Past 16 agents the orbit holds 16 and the tally says the rest.
+* **The chat picked shows its agents as lanes on one clock** (`spLane`): a bar from its start to its end — to now while it
+  works —, how long, how it ended, its last step (`agNow`, a failure's reason); the clock's span 15 m · 30 m · 1 h
+  (`prefs.spWin`, 30 m). A lane opens that agent's tab (`agOpen`); the picked chat's *Open the chat*, or a double-click on
+  an orbit, the chat. Arrows move the pick.
+* **Read from the summaries alone** (`agentRows`): no new route, no new server work; it is the last round, as the card's
+  rows are, so lanes show the agents out together, not the chat's whole past. Drawn on its chats' events (`spSoon`) and
+  every 5 s for the clock; an orbit keeps its node while its markup is the same, the pick a class set after, so a mark
+  keeps turning through a redraw.
+* **Motion on `transform` and `opacity` only** (the arc's turn, the ring's ping, a dot's breath), each with its line in the
+  reduced-motion block, which keeps the shapes still. Not yet run here: `npm run perf` and the shell (WebKit, a Mac).
+  → `scripts/scenarios/space.mjs`.
 
 ## Decisions of 2026-11-07 — the fill on two screens, and who brings an app forward
 

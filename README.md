@@ -99,6 +99,9 @@ live terminal or what it's doing right now. The arrows walk it, ⏎ opens one.
 
 <img src="docs/shots/clip-overview.webp" alt="⌥⌘A: every live chat in columns by what it wants; the arrows move and ⏎ opens one">
 
+⌥⌘S is Space: each live chat an orbit of its agents, a mark per agent by state — running, waiting, done, failed,
+stopped —, and the chat you pick as lanes on one clock: when each agent started, how long it ran, how it ended.
+
 ## 🗨️ A chat with the people you share it with
 
 Optional, and off until you set it up: one chat, in a private GitHub repo — an issue whose comments are the

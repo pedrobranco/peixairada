@@ -234,6 +234,7 @@ sky every three levels and fireworks at a level-up, wherever the Mac has WebGL2.
 | ⌥⌘B | hide the chat list, and show it again |
 | ⌥⌘L | the launcher: chats, projects, PRs, tickets, actions, switches |
 | ⌥⌘A · ⌥⌘D · ⌥⌘0 | the overview: every live chat at once · this chat's changes · home |
+| ⌥⌘S | Space: every live chat's agents at once, by state · a chat's agents as lanes on one clock |
 | ⌥⌘M | lunch: today's menus, on a chalkboard |
 | ⌥⌘Z | Zé's game |
 | ⌥⌘Y | the theme |
