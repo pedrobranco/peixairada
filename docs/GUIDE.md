@@ -234,7 +234,7 @@ sky every three levels and fireworks at a level-up, wherever the Mac has WebGL2.
 | ⌥⌘B | hide the chat list, and show it again |
 | ⌥⌘L | the launcher: chats, projects, PRs, tickets, actions, switches |
 | ⌥⌘A · ⌥⌘D · ⌥⌘0 | the overview: every live chat at once · this chat's changes · home |
-| ⌥⌘S | Space, in the chat list's place: every chat as a node of its agents, filtered by state · the pointer on an agent shows its card · Settings › Space: the sky, its falling stars, the card, the pods · a click opens the chat on the right, its × closes it · ⌘+ ⌘− zoom the nodes · the status bar's Space too, ⌥⌘B back to the list |
+| ⌥⌘S | Space, in the chat list's place: every chat as a node of its agents, filtered by state · ★ in a node's corner (or F) puts it first, with its own chip on top · the pointer on an agent shows its card · Settings › Space: the sky, its falling stars, the card, the pods · a click opens the chat on the right, its × closes it · ⌘+ ⌘− zoom the nodes · the status bar's Space too, ⌥⌘B back to the list |
 | ⌥⌘M | lunch: today's menus, on a chalkboard |
 | ⌥⌘Z | Zé's game |
 | ⌥⌘Y | the theme |

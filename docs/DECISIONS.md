@@ -5,6 +5,29 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, v11 — favourite nodes, first, with their own chip; Space's nodes stop flickering
+
+> "Add support for favorites nodes em Space (star in the left top corner of the rounded rectangle) which fix on top. Add also that category on the top bar to filter out or in."
+> "it is flickering again. Redo the all logic on top of 54674c4 instead of picking any commit."
+
+* A star in each node's top-left corner: shown under the pointer or with the keys on the node, filled in the amber ink
+  once starred and shown always then — shown, not faded: no transition, nothing new to composite. F with the keys on
+  a node does the same (`.spstar`, `setFav`). Its click is also read from under the pointer, should an engine hand the
+  click to the node's button; a server started before this, with no `/favorite`, says to restart it.
+* Kept by the server, as pins and mutes are (`favChats` in the state file, `POST /api/sessions/:id/favorite {on}`, the
+  summary's `fav`): the app and every browser see the same stars. A `/clear` is a new chat and starts unstarred.
+* A favourite is its own category, as each state is (`spCat`): first in the grid, a row of their own — the first chat
+  after them starts the next row (`.spfirst`, `grid-column-start: 1`). The ★ *Favorites* chip comes first on the top bar
+  once a chat is starred: on, every favourite shows whatever its state; off, none does; the state chips count the rest.
+  Starring a chat while it is off turns it back on.
+* **The flicker.** A node is kept while its markup is the same and made anew when it is not — an agent going quiet or
+  back to work, ending, a star. Space's pings (`spsonar`) and arcs (`spspin`) were on no clock, so a node made anew
+  started them over: the flicker, on every node whose agents moved. They now join the cards' on the document clock
+  (`PHASED`; `phaseAnims()` once `renderSpace` made a node), so a new node's pings and arcs carry on where the old one's
+  were. The scenario holds it: a node made anew, every ping and arc's start the clock's zero — and it fails without.
+  Built again from v10 (54674c4) by hand: the cost of the commits since is gone.
+  → `test/favorites.test.mjs`, `space.mjs`.
+
 ## Decisions of 2026-11-18, v10 — a pod shows who works, the rest behind +N, folded again on its own
 
 > "For each subagents group (by category), just show by default the active ones / last one and add a button (with the count) to expand the list of agents done / idle."

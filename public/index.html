@@ -2538,6 +2538,16 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   #space .spbox[data-st="watch"]::after { animation: spsonar 4.2s ease-out infinite; }
   #space .spbox[data-st="done"] { filter: saturate(.4); }
   #space .spbt { max-width: 100%; font-size: var(--fs-sm); font-weight: 650; line-height: 1.25; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  #space .spstar { position: absolute; left: 7px; top: 6px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: var(--r-2); color: var(--muted); cursor: pointer; visibility: hidden; }   /* favourites (2026-11-18, v11): shown, not faded */
+  #space .spstar svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
+  #space .spt:hover .spstar, #space .spt:focus-visible .spstar, #space .spstar[aria-pressed="true"] { visibility: visible; }
+  #space .spstar:hover { background: var(--ctl-hi); color: var(--ink); }
+  #space .spstar[aria-pressed="true"] { color: var(--working-ink); }
+  #space .spstar[aria-pressed="true"] svg { fill: currentColor; }
+  #space .spt.spfirst { grid-column-start: 1; }
+  #space .spf.fav { --c: var(--working-ink); }
+  #space .spf.fav svg { width: 12px; height: 12px; fill: none; stroke: var(--c); stroke-width: 1.5; stroke-linejoin: round; }
+  #space .spf.fav[aria-pressed="true"] svg { fill: var(--c); }
   #space .spra { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-2xs); font-weight: 700; color: oklch(.78 .12 var(--h)); }   /* the agent the chat runs as (2026-11-18, v8) */
   :root[data-theme="light"] #space .spra { color: oklch(.48 .13 var(--h)); }
   #space .spgrid .spa[data-ag]:not([data-st="joined"]) { cursor: pointer; }
@@ -6075,7 +6085,7 @@ const toolName = n => {
   // animationName, so it is left alone. getAnimations() is the document's running animations, a few dozen at most, and
   // the style flush it forces is the one the frame was about to do. (Each card at a start of its own, hashed from the
   // chat's id, was a switch from 2026-09-27 to 2026-10-14.)
-  const PHASED = new Set(['ring', 'sonar', 'pulse', 'pix', 'pixhop', 'shimw', 'shimi']);
+  const PHASED = new Set(['ring', 'sonar', 'pulse', 'pix', 'pixhop', 'shimw', 'shimi', 'spsonar', 'spspin']);   // Space's pings and arcs too (2026-11-18, v11)
   // Once a frame, before it paints: the list and the header both ask after a render, and getAnimations() flushes style
   // each time. `now`: at once, and read at once.
   // The phase is set as the current time that start would mean first, and the start after it (2026-10-11): WebKit — the
@@ -12398,9 +12408,9 @@ const toolName = n => {
   /** A chat's node — what is open is a class set after, so opening a chat redraws no node and stops no arc turning. */
   function spNode(s) {
     const st = spState(s), rows = spRows(s), color = repoColor(s.cwd), folder = spFolder(s);
-    const said = `${s.title}${s.agent ? `, as @${agentShort(s.agent)}` : ''} — ${folder || 'no folder'}, ${SP_ST[st]}${rows.length ? `, ${spTally(rows)}` : ''}`;
+    const said = `${s.fav ? 'Starred: ' : ''}${s.title}${s.agent ? `, as @${agentShort(s.agent)}` : ''} — ${folder || 'no folder'}, ${SP_ST[st]}${rows.length ? `, ${spTally(rows)}` : ''}`;
     return `<button type="button" class="spt" data-id="${esc(s.id)}" aria-label="${esc(said)}" style="${color ? `--repo:${color}` : ''}"><span class="spo">${spPods(s)}`
-      + `<span class="spbox" data-st="${st}">${s.agent ? `<span class="spra" title="${esc(`Runs as the agent ${s.agent}`)}" style="--h:${spHue(agentShort(s.agent), s.agentColor)}">@${esc(agentShort(s.agent))}</span>` : ''}<span class="spbt">${ticks(esc(spCut(s.title)))}</span>${folder ? `<span class="spbf" title="${esc(s.cwd)}"><i></i>${esc(folder)}</span>` : ''}</span></span></button>`;
+      + `<span class="spbox" data-st="${st}"><span class="spstar" role="button" tabindex="-1" aria-pressed="${!!s.fav}" aria-label="${s.fav ? 'Unstar it' : 'Star it'} (F)" title="${s.fav ? 'Unstar' : 'Star'} (F)">${SP_STAR}</span>${s.agent ? `<span class="spra" title="${esc(`Runs as the agent ${s.agent}`)}" style="--h:${spHue(agentShort(s.agent), s.agentColor)}">@${esc(agentShort(s.agent))}</span>` : ''}<span class="spbt">${ticks(esc(spCut(s.title)))}</span>${folder ? `<span class="spbf" title="${esc(s.cwd)}"><i></i>${esc(folder)}</span>` : ''}</span></span></button>`;
   }
   /** One agent's lane: its span on the clock (to now while it works), how long, its last step. */
   function spLane(r, s, W, now) {
@@ -12424,10 +12434,24 @@ const toolName = n => {
       + (!open ? '' : `<div class="spls" id="spls">${rows.length ? lanes : `<p class="spnone">${s.alive ? 'No agents in its last round. They show here as they start.' : 'Not running: agents show while its claude runs.'}</p>`}</div>`);
   }
   /** The chats of the project in view, in the states picked: by state as the list's lanes go, then by the last word. Idle and Done hold back, as a long lane does. */
+  // Favourites (2026-11-18, v11): a chat starred — its node's ★, or F on its node; the server's `fav` — is a category of
+  // its own: first, a row of its own, whatever its state, in or out by the ★ chip on top. The state chips count the rest.
+  const spCat = s => s.fav ? 'fav' : spState(s);
   function spChats() {
-    const p = projectList().find(x => x.key === prefs.project), off = spOff(), rank = Object.keys(SP_ST), by = {};
-    for (const s of p?.sessions || []) { const k = spState(s); if (!off.includes(k)) (by[k] ||= []).push(s); }
+    const p = projectList().find(x => x.key === prefs.project), off = spOff(), rank = ['fav', ...Object.keys(SP_ST)], by = {};
+    for (const s of p?.sessions || []) { const k = spCat(s); if (!off.includes(k)) (by[k] ||= []).push(s); }
     return rank.flatMap(k => (by[k] || []).sort(byWord).slice(0, k === 'idle' || k === 'done' ? SP_CAP : Infinity));
+  }
+  const SP_STAR = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.6l1.95 3.95 4.36.63-3.16 3.08.75 4.34L8 11.55l-3.9 2.05.75-4.34L1.69 6.18l4.36-.63z"/></svg>';
+  function setFav(id, on) {
+    const show = v => { const s = state.sessions.get(id); if (s) { s.fav = v; renderSpace(); } };
+    if (on && spOff().includes('fav')) { prefs.spOff = spOff().filter(k => k !== 'fav'); savePrefs(); }   // a star just given never hides its node
+    show(on);
+    api('POST', `/api/sessions/${id}/favorite`, { on }).catch(e => {
+      show(!on);
+      const old = e.status === 404 && e.message === 'not found';   // a server started before this has no such route
+      note($('#space'), old ? 'Stars need the server restarted (scripts/launchd.sh restart)' : `Could not ${on ? 'star' : 'unstar'} it: ${e.message}`, true);
+    });
   }
   function spShut(key) { clearTimeout(sp.open.get(key)); sp.open.delete(key); }
   function spOpen(key) {
@@ -12443,19 +12467,24 @@ const toolName = n => {
     if (!prefs.space) return;
     const p = projectList().find(x => x.key === prefs.project), pool = p?.sessions || [], list = sp.list = spChats(), off = spOff();
     $('#main').classList.toggle('spfull', !state.current);
-    setHtml($('#spfs'), Object.keys(SP_ST).map(k => `<button type="button" class="spf" data-k="${k}" data-st="${k}" aria-pressed="${!off.includes(k)}"><i></i>${SP_ST[k]}<b>${pool.filter(s => spState(s) === k).length}</b></button>`).join(''));
+    const favs = pool.filter(s => s.fav).length;
+    setHtml($('#spfs'), (favs ? `<button type="button" class="spf fav" data-k="fav" aria-pressed="${!off.includes('fav')}" title="Your starred chats, first, whatever their state">${SP_STAR}Favorites<b>${favs}</b></button>` : '')
+      + Object.keys(SP_ST).map(k => `<button type="button" class="spf" data-k="${k}" data-st="${k}" aria-pressed="${!off.includes(k)}"><i></i>${SP_ST[k]}<b>${pool.filter(s => !s.fav && spState(s) === k).length}</b></button>`).join(''));
     setHtml($('#spsub'), `${spCount(list.length, 'chat')} · ${spCount(list.reduce((n, s) => n + spRows(s).length, 0), 'agent')}`);
     // a node keeps its element while its markup is the same, so its arcs turn on through every redraw
     const grid = $('#spgrid'), had = new Map([...grid.children].map(e => [e.dataset.id, e])), tpl = document.createElement('template'), keys = document.activeElement?.closest?.('#spgrid .spt')?.dataset.id;
-    let prev = null;
+    let prev = null, made = false;
     for (const s of list) {
       const html = spNode(s); let el = had.get(s.id); had.delete(s.id);
-      if (el?._drawn !== html) { tpl.innerHTML = html; const ne = tpl.content.firstElementChild; ne._drawn = html; if (el) el.replaceWith(ne); el = ne; }
+      if (el?._drawn !== html) { tpl.innerHTML = html; const ne = tpl.content.firstElementChild; ne._drawn = html; if (el) el.replaceWith(ne); el = ne; made = true; }
       if ((prev ? prev.nextElementSibling : grid.firstElementChild) !== el) { if (prev) prev.after(el); else grid.prepend(el); }
-      el.classList.toggle('on', s.id === state.current); el.setAttribute('aria-current', String(s.id === state.current));
-      prev = el;
+      if (el.classList.contains('on') !== (s.id === state.current)) { el.classList.toggle('on', s.id === state.current); el.setAttribute('aria-current', String(s.id === state.current)); }
+      const first = !s.fav && !!prev?._fav;   // the first after the favourites starts a row
+      if (el.classList.contains('spfirst') !== first) el.classList.toggle('spfirst', first);
+      el._fav = !!s.fav; prev = el;
     }
     for (const e of had.values()) e.remove();
+    if (made) phaseAnims();   // a node made anew: its pings and arcs onto the clock the old ones kept, no jump
     if (keys && document.activeElement === document.body) grid.querySelector(`.spt[data-id="${CSS.escape(keys)}"]`)?.focus();
     $('#spempty').hidden = !!list.length;
     const lane = document.activeElement?.closest?.('#spside .splane')?.dataset.ag, side = $('#spside'), cur = state.sessions.get(state.current);
@@ -12544,6 +12573,10 @@ const toolName = n => {
     spFall();
   }
   $('#sbSpace').onclick = spToggle;
+  $('#spgrid').addEventListener('keydown', e => {   // F on a node: star it, or not
+    const n = e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey && !e.altKey && e.target.closest?.('.spt[data-id]');
+    if (n) { e.preventDefault(); setFav(n.dataset.id, !state.sessions.get(n.dataset.id)?.fav); }
+  });
   $('#space').addEventListener('click', e => {
     const f = e.target.closest('.spf[data-k]');
     if (f) { const k = f.dataset.k, off = spOff(); prefs.spOff = off.includes(k) ? off.filter(x => x !== k) : [...off, k]; savePrefs(); return renderSpace(); }
@@ -12556,6 +12589,9 @@ const toolName = n => {
     // an agent's mark: its chat, open on that agent's tab — its own transcript (2026-11-18, v8); one with none yet, the chat
     const mk = e.target.closest('.spgrid .spa[data-ag]'), ms = mk && state.sessions.get(mk.dataset.sid), mr = ms && spRows(ms).find(x => x.id === mk.dataset.ag);
     if (mr && AG_ID.test(String(mr.id)) && mr.st !== 'joined') { mxtHide(); return agOpen(ms, mr); }
+    // the star: its own target, or the one under the pointer should the click go to the node's button (2026-11-18, v11)
+    const star = e.target.closest('.spstar') || (e.detail && e.target.matches?.('.spt') && document.elementFromPoint(e.clientX, e.clientY)?.closest('.spstar'));
+    if (star) { const id = star.closest('.spt').dataset.id; return setFav(id, !state.sessions.get(id)?.fav); }
     const node = e.target.closest('.spt[data-id]'); if (node) { if (node.dataset.id !== state.current) openSession(node.dataset.id); return; }
     const s = state.sessions.get(state.current), lane = e.target.closest('.splane[data-ag]'), r = lane && s && spRows(s).find(x => x.id === lane.dataset.ag);
     if (r) agOpen(s, r);

@@ -166,6 +166,7 @@ let driftAcks = {};
 // `quiet` and `muted`: no banner, no sound, and nothing that calls you counts it. Questions too, till you unmute it. By
 // the chat's id, so a /clear or a branch starts loud: that is another chat.
 let mutedChats = {};
+let favChats = {};   // starred in Space, first in its grid (2026-11-18, v11): id → when starred
 // Custom projects: id -> { id, name, cwds, createdAt }. A name over one or more folders — multi-repo
 // work, an investigation. Folders themselves need no record: they come from the sessions' cwds.
 let projects = {};
@@ -256,6 +257,7 @@ function loadState() {
     seen = st.seen && typeof st.seen === 'object' ? st.seen : {}; seenSince = typeof st.seenSince === 'string' ? st.seenSince : null;
     driftAcks = st.driftAcks && typeof st.driftAcks === 'object' ? st.driftAcks : {};
     mutedChats = st.mutedChats && typeof st.mutedChats === 'object' ? st.mutedChats : {};
+    favChats = st.favChats && typeof st.favChats === 'object' ? st.favChats : {};
     projects = st.projects || {};
     titles = st.titles || {};
     pinned = Array.isArray(st.pinned) ? st.pinned.filter(k => typeof k === 'string') : [];
@@ -295,7 +297,7 @@ function saveState() {
   try {
     mkdirSync(dirname(STATE_FILE), { recursive: true });
     const tmp = `${STATE_FILE}.${process.pid}.tmp`;
-    const body = JSON.stringify({ done: doneMarks, forGood: forGoodMarks, removed: removedMarks, unlinked, seen, seenSince, driftAcks, mutedChats, projects, titles, pinned, hidden: hiddenProjects, envs, notifications: notificationsOn, prTurns, prLogs: {}, awake: awakeOn, selfUpdate: autoUpdate, updated: updateLast, updateHeld, appBuild, worktrees: worktreesMade, peacockMoved, keyEnforced, jiraTokenSite, chatSeen, chatQuiet, links: chatLinks, lunch: lunchDay }, null, 1);
+    const body = JSON.stringify({ done: doneMarks, forGood: forGoodMarks, removed: removedMarks, unlinked, seen, seenSince, driftAcks, mutedChats, favChats, projects, titles, pinned, hidden: hiddenProjects, envs, notifications: notificationsOn, prTurns, prLogs: {}, awake: awakeOn, selfUpdate: autoUpdate, updated: updateLast, updateHeld, appBuild, worktrees: worktreesMade, peacockMoved, keyEnforced, jiraTokenSite, chatSeen, chatQuiet, links: chatLinks, lunch: lunchDay }, null, 1);
     // a PR's ledger on one line (2026-10-17): up to LOG_EV_MAX events each, a quarter fewer bytes than laid out
     const logs = Object.entries(prLogs).map(([url, log]) => `  ${JSON.stringify(url)}: ${JSON.stringify(log)}`);
     writeFileSync(tmp, logs.length ? body.replace('\n "prLogs": {},', () => `\n "prLogs": {\n${logs.join(',\n')}\n },`) : body, { mode: 0o600 });
@@ -844,7 +846,8 @@ function summary(s, ti = null) {   // `ti`: termIndex(), when the whole board is
     // the other live processes on this chat, and who wrote its last turn — the page's "VS Code too" warning
     rivals: s.rivals, tailEntrypoint: s.entrypoint, tailEntrypointAt: s.entrypointAt,
     done: isDone(s), doneAt: doneMarks[s.id] || null, forGood: forgotten(s), removed: isRemoved(s),
-    muted: !!mutedChats[s.id],   // no banner, sound or count from it, till you unmute it (2026-11-02)
+    muted: !!mutedChats[s.id],
+    fav: !!favChats[s.id],   // starred in Space (2026-11-18, v11)   // no banner, sound or count from it, till you unmute it (2026-11-02)
     seenAt: seen[s.id] || seenSince,   // the board last showed it: a reply after is a new one (2026-10-12)
     ...linksShown(s.id) && { links: linksShown(s.id) },   // merged, folded, branched — by your hand (2026-10-31)
     // the branch moved under it (2026-10-13): what its checkout is on now and what the chat was on, and who else runs in
@@ -6834,6 +6837,16 @@ const server = createServer(async (req, res) => {
       saveState(); schedulePush(s);
       return json(res, 200, { ok: true, acked: driftAcks[s.id] });
     }
+    if (req.method === 'POST' && (m = p.match(/^\/api\/sessions\/([\w-]+)\/favorite$/))) {   // starred in Space, or not (2026-11-18, v11)
+      const s = sessions.get(m[1]);
+      if (!s) return json(res, 404, { error: 'unknown session' });
+      const body = await jsonBody(req);
+      if (typeof body.on !== 'boolean') return json(res, 400, { error: 'expected {on: true|false}' });
+      if (body.on) favChats[s.id] = new Date().toISOString(); else delete favChats[s.id];
+      for (const id of Object.keys(favChats)) if (!sessions.has(id)) delete favChats[id];
+      saveState(); schedulePush(s);
+      return json(res, 200, { ok: true, fav: !!favChats[s.id] });
+    }
     if (req.method === 'POST' && (m = p.match(/^\/api\/sessions\/([\w-]+)\/mute$/))) {   // this chat's alerts silent, or back (2026-11-02)
       const s = sessions.get(m[1]);
       if (!s) return json(res, 404, { error: 'unknown session' });
@@ -7071,7 +7084,7 @@ server.on('upgrade', (req, socket, head) => { socket.on('error', () => socket.de
 // ---------------------------------------------------------------------------------------------
 // Boot — only when run as the program. Imported (the tests), the module exposes its pure parts and does nothing.
 // ---------------------------------------------------------------------------------------------
-export { cronNext, nextWake, pruneWakes, pruneTasks, findTasks, stopOf, pollBody, pollOf, cleanLunch, lunchPhase, dishesOn, closedOn, dayKey, sweepTasks, indexFile, settleDrift, noteHead, headOf, driftOf, updateParts, doingOf, dayOf, noteSpan, parseNumstat, parseNameStatus, splitPatch, addedPatch, changesOf, patchStat, projectDir, parseWorktrees, worktreesFor, branchWhere, worktreeBases, prRefs, ensureWorktree, folderBack, putBack, linkModules, sweepWorktrees, switchGuard, worktreesMade, fold, newSession, summary, agentRunning, usageWindows, prChecks, ticketsIn, noteTickets, cleanSetup, notePr, notePrs, unlinkPr, unlinked, waiveTurn, unwaiveTurn, moveTurn, prEvents, ciEvent, logEvents, noteRounds, roundsOf, prLogs, pruneLogs, prActs, takeActs, forgetRef, ghRepoOf, prTitle, duePrs, prStatus, prTurn, prPeople, setPrInfo, doneMarks, forGoodMarks, mutedChats, prAlertChat, cleanPrompt, textOf, snippet, plain, summarizeToolInput, toolResultSnippet, projectInput, movePeacock, termSummary, isDone, sessions, terms, foreignTo, lidRuns, prTurns };
+export { cronNext, nextWake, pruneWakes, pruneTasks, findTasks, stopOf, pollBody, pollOf, cleanLunch, lunchPhase, dishesOn, closedOn, dayKey, sweepTasks, indexFile, settleDrift, noteHead, headOf, driftOf, updateParts, doingOf, dayOf, noteSpan, parseNumstat, parseNameStatus, splitPatch, addedPatch, changesOf, patchStat, projectDir, parseWorktrees, worktreesFor, branchWhere, worktreeBases, prRefs, ensureWorktree, folderBack, putBack, linkModules, sweepWorktrees, switchGuard, worktreesMade, fold, newSession, summary, agentRunning, usageWindows, prChecks, ticketsIn, noteTickets, cleanSetup, notePr, notePrs, unlinkPr, unlinked, waiveTurn, unwaiveTurn, moveTurn, prEvents, ciEvent, logEvents, noteRounds, roundsOf, prLogs, pruneLogs, prActs, takeActs, forgetRef, ghRepoOf, prTitle, duePrs, prStatus, prTurn, prPeople, setPrInfo, doneMarks, forGoodMarks, mutedChats, favChats, prAlertChat, cleanPrompt, textOf, snippet, plain, summarizeToolInput, toolResultSnippet, projectInput, movePeacock, termSummary, isDone, sessions, terms, foreignTo, lidRuns, prTurns };
 export { handoffText };   // chats that talk (2026-10-31)
 export { agentFront, agentsFor };   // a new chat as an agent (2026-11-06)
 export { readerArgs };   // a reader reads, and does nothing else (2026-11-06)

@@ -158,6 +158,45 @@ export default async function (ctx) {
     await ctx.evaluate(`document.querySelector('#spfs .spf[data-k="ready"]').click()`);
     await ctx.waitFor(`document.querySelectorAll('#spgrid .spt').length === 7`, { what: 'back' });
 
+    // favourites (2026-11-18, v11): the ★ in a node's corner stars it — first, a row of its own, its own chip on top that
+    // keeps it whatever its state, kept by the server; F on a node unstars it. A node made anew keeps its pings and arcs
+    // where they were: on the document clock, as the cards' are (no flicker)
+    const bump = await ctx.evaluate(`[...document.querySelectorAll('#spgrid .spt')].find(b => b.querySelector('.spbt').textContent.startsWith('Bump the build')).dataset.id`);
+    const tile = `document.querySelector('#spgrid .spt[data-id="${bump}"]')`;
+    const spAnims = `document.getAnimations().filter(a => ['spsonar', 'spspin'].includes(a.animationName))`;
+    ctx.assert.equal(await ctx.evaluate(`!!document.querySelector('#spfs .spf[data-k="fav"]')`), false, 'no ★ chip before a favourite');
+    ctx.assert.equal(await ctx.evaluate(`getComputedStyle(${tile}.querySelector('.spstar')).visibility`), 'hidden', 'an unstarred node\u2019s star: only under the pointer');
+    await ctx.evaluate(`${tile}.querySelector('.spstar').click()`);
+    await ctx.waitFor(`document.querySelector('#spgrid .spt').dataset.id === '${bump}' && ${tile}.querySelector('.spstar').getAttribute('aria-pressed') === 'true'`, { what: 'starred: first' });
+    await ctx.waitFor(`peix.session('${bump}')?.fav === true`, { what: 'the server\u2019s word' });
+    ctx.assert.equal(await ctx.evaluate(`[...document.querySelectorAll('#spfs .spf')].map(f => f.dataset.k + ':' + f.getAttribute('aria-pressed') + ':' + f.querySelector('b').textContent).join(' ')`),
+      'fav:true:1 ask:true:1 work:true:2 watch:true:0 ready:true:3 idle:false:0 done:false:0', 'its chip first, the rest counted without it');
+    await ctx.settle();
+    out.favRow = await ctx.evaluate(`(() => { const [a, b] = document.querySelectorAll('#spgrid .spt'); return { next: b.classList.contains('spfirst'), below: b.offsetTop > a.offsetTop, left: b.offsetLeft === a.offsetLeft }; })()`);
+    ctx.assert.deepEqual(out.favRow, { next: true, below: true, left: true }, 'the favourites a row of their own');
+    await ctx.shot('space-favorite');
+    // a node made anew (infra's, its agents' marks a new look): every ping and arc still on the document clock
+    await ctx.evaluate(`window.__infraNode = document.querySelector('#spgrid .spt[data-id="${infra.id}"]')`);
+    await ctx.evaluate(`document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spstar').click()`);
+    await ctx.waitFor(`document.querySelector('#spgrid .spt[data-id="${infra.id}"]') !== window.__infraNode && document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spstar').getAttribute('aria-pressed') === 'true'`, { what: 'infra starred: its node made anew' });
+    await ctx.settle();
+    out.phased = await ctx.evaluate(`${spAnims}.map(a => a.startTime === 0)`);
+    ctx.assert.ok(out.phased.length > 2 && out.phased.every(Boolean), `every ping and arc on the document clock (${out.phased})`);
+    await ctx.evaluate(`document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spstar').click()`);
+    await ctx.waitFor(`peix.session('${infra.id}')?.fav === false`, { what: 'infra unstarred' });
+    await ctx.evaluate(`document.querySelector('#spfs .spf[data-k="ready"]').click()`);
+    await ctx.waitFor(`document.querySelectorAll('#spgrid .spt').length === 4 && !!${tile}`, { what: 'Ready off: the starred ready chat stays' });
+    await ctx.evaluate(`document.querySelector('#spfs .spf[data-k="ready"]').click(); document.querySelector('#spfs .spf[data-k="fav"]').click()`);
+    await ctx.waitFor(`document.querySelectorAll('#spgrid .spt').length === 6 && !${tile}`, { what: 'the ★ chip off: the favourite out' });
+    await ctx.evaluate(`document.querySelector('#spfs .spf[data-k="fav"]').click()`);
+    await ctx.waitFor(`document.querySelectorAll('#spgrid .spt').length === 7`, { what: 'in again' });
+    await ctx.reload();
+    await ctx.waitFor(`document.querySelector('#spgrid .spt')?.dataset.id === '${bump}'`, { what: 'starred still after a reload' });
+    await ctx.evaluate(`${tile}.focus()`);
+    await ctx.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'f', code: 'KeyF', text: 'f' });
+    await ctx.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'f', code: 'KeyF' });
+    await ctx.waitFor(`!document.querySelector('#spfs .spf[data-k="fav"]') && document.querySelector('#spgrid .spt').dataset.id !== '${bump}' && peix.session('${bump}')?.fav === false`, { what: 'F: unstarred, back in its place' });
+
     // zoom: the buttons, Fit, ⌘+ with the keys in Space, kept
     await ctx.evaluate(`document.querySelector('.spzoom [data-z="-1"]').click(); document.querySelector('.spzoom [data-z="-1"]').click(); document.querySelector('.spzoom [data-z="-1"]').click()`);
     await ctx.waitFor(`document.querySelector('#spzv').textContent === '70%' && document.querySelector('#spgrid').classList.contains('small')`, { what: '70 %, the pods\u2019 names gone' });
