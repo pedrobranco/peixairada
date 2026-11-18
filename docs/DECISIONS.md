@@ -5,6 +5,20 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, v10 — a pod shows who works, the rest behind +N, folded again on its own
+
+> "For each subagents group (by category), just show by default the active ones / last one and add a button (with the count) to expand the list of agents done / idle."
+> "It should also fold after N seconds (suggest a value)"
+
+* A pod, folded, is its agents at work (running, waiting, joined); none at work, its newest by its last line. The rest
+  are behind a pill at the pod's end, `+N`, counted; open, it reads `−` and folds them back (`spPods`, `.spx`).
+* Open is the page's alone, per chat and type (`sp.open`, `<chat>:<type>` → its timer), never prefs: a reload folds all.
+* It folds again by itself `SP_OPEN_MS` (20 s) after it opened — long enough to point at each mark and read its card,
+  short enough that a board left alone goes back to who works. While the pointer is on that chat's tile it waits,
+  looking again every 3 s. `window.peixSpOpenMs` shortens it for the scenario.
+* *Only agents at work* (`prefs.spBusy`) still drops the rest outright; a pod with nothing behind it has no pill.
+  → `space.mjs`.
+
 ## Decisions of 2026-11-18, v9 — every agent's category round the node, read from its own record; the node a box again
 
 Pedro, with `team-probe`'s output and a screenshot (an orchestrator chat whose node showed only an *Explorer* pod, the

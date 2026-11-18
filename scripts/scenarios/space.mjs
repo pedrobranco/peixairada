@@ -71,7 +71,20 @@ export default async function (ctx) {
     ctx.assert.deepEqual(by('Review the staging').pods.map(p => [p.label, p.h, p.marks]), [
       ['Security', '25', 'SE:run SE:run'], ['Specifier', by('Review the staging').pods[1].h, 'SP:done'], ['Cost', '150', 'CO:run'], ['Explore', by('Review the staging').pods[3].h, 'EX:quiet'],
     ], 'a pod per type round the node, the most first — a round before the last one\u2019s too —, named by its type capitalised; its letters, its colour (the definition’s hue), its state');
-    ctx.assert.deepEqual(by('Queue for invoice').pods.map(p => p.marks), ['GP:done GP:fail'], 'two of one type: one pod');
+    ctx.assert.deepEqual(by('Queue for invoice').pods.map(p => p.marks), ['GP:fail'], 'two of one type: one pod, folded to its newest when none works');
+    const pill = `document.querySelector('#spgrid .spt[data-id="${billing.id}"] .spx')`;
+    ctx.assert.deepEqual(await ctx.evaluate(`[${pill}.textContent, ${pill}.getAttribute('aria-expanded')]`), ['+1', 'false'], 'the rest behind +N, counted');
+    ctx.assert.equal(await ctx.evaluate(`document.querySelectorAll('#spgrid .spt[data-id="${infra.id}"] .spx').length`), 0, 'a pod with nothing behind it has no button');
+    await ctx.evaluate(`window.peixSpOpenMs = 1500; ${pill}.click()`);
+    await ctx.waitFor(`${pill}.getAttribute('aria-expanded') === 'true' && document.querySelectorAll('#spgrid .spt[data-id="${billing.id}"] .spa').length === 2`, { what: 'opened: the done ones too' });
+    await ctx.settle();
+    await ctx.shot('space-pod-open');
+    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 1, y: 1 });
+    await ctx.waitFor(`${pill}.getAttribute('aria-expanded') === 'false'`, { what: 'folded again on its own', timeout: 6000 });
+    await ctx.evaluate(`${pill}.click()`);
+    await ctx.waitFor(`${pill}.getAttribute('aria-expanded') === 'true'`, { what: 'open again' });
+    await ctx.evaluate(`${pill}.click(); delete window.peixSpOpenMs`);
+    await ctx.waitFor(`${pill}.getAttribute('aria-expanded') === 'false'`, { what: 'its − folds it' });
     await ctx.settle();
     await ctx.shot('space-dark');
     ctx.assert.deepEqual(await ctx.evaluate(ANIM_RULES), [], 'its arcs and pings keep the compositor\u2019s rules');
@@ -128,7 +141,7 @@ export default async function (ctx) {
     await set('busyOnly', true);
     await ctx.waitFor(`document.querySelectorAll('#spgrid .spt[data-id="${billing.id}"] .sppod').length === 0 && document.querySelectorAll('#spgrid .spt[data-id="${infra.id}"] .spa').length === 4`, { what: 'pods of agents at work alone' });
     await set('busyOnly', false);
-    await ctx.waitFor(`document.querySelectorAll('#spgrid .spt[data-id="${billing.id}"] .spa').length === 2`, { what: 'the ended ones back' });
+    await ctx.waitFor(`document.querySelectorAll('#spgrid .spt[data-id="${billing.id}"] .spa').length === 1`, { what: 'the ended ones back, folded to the newest' });
     await set('podNames', 'never');
     ctx.assert.equal(await ctx.evaluate(`[...document.querySelectorAll('#spgrid .spl')].every(l => getComputedStyle(l).display === 'none')`), true, 'no pod names');
     await set('podNames', 'zoom');
