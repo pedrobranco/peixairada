@@ -5,6 +5,23 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, v7 — a node is a circle, its folder its last name
+
+Pedro, with a screenshot of Space beside the chat (one node a row, each the column's width): *"each node is taking more
+space than it needs, it should be a circle and try to center the text within it. Also, just show the last folder within
+it and not the full path."*
+
+* **Why one a row**: the grid was `repeat(auto-fill, minmax(320px, 1fr))` — Space beside the chat, 70 % zoom, about 600 px
+  of grid: one 320 px column, stretched to the whole width.
+* **A tile is its own size** (`--spw` 268 × `--sph` 240 on `#space`; `repeat(auto-fill, var(--spw))`, centred): never
+  stretched; two a row where one was. Fit (`spFit`) counts by the same numbers (`SP_TILE`).
+* **The node is a circle** (`.spbox`: 124 px, `border-radius: 50%`, its ping round too), the title and the folder centred
+  in it — the title 12 px, four lines at most, a long word wrapped only when it must (no hyphens: *in-voice* read badly).
+  **The pods sit round the circle** (`SP_GEO`: its centre, radius, a pod's thickness, a wire's length; pods 34 px thick).
+* **The folder is its last name** (`spFolder`): `billing-api`, not `~/acme/billing-api`; the whole path its tooltip.
+* Checked here: `space.mjs` passes as it stood (the folder ends in its name, more a row zoomed out, Fit with no scroll);
+  shots dark and light at 100 % and 140 %.
+
 ## Decisions of 2026-11-18, v6 — a teammate's pod is its category
 
 Pedro: *"in the Space group the agents by Category, not by "Team mate" as is right now."*

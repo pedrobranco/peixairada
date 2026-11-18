@@ -2507,7 +2507,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   #space .spsub { margin-left: auto; color: var(--muted); font-size: var(--fs-sm); }
   #space .spbody { position: relative; min-height: 0; }
   #space .spfield { height: 100%; box-sizing: border-box; overflow: auto; overscroll-behavior: contain; padding: 8px 10px 56px; background: color-mix(in srgb, var(--ink) 3%, var(--bg)); }
-  #space .spgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 6px; zoom: var(--spz, 1); }   /* zoomed whole, so the grid reflows: more a row as it shrinks */
+  #space .spgrid { display: grid; grid-template-columns: repeat(auto-fill, var(--spw)); justify-content: center; gap: 6px; zoom: var(--spz, 1); }   /* zoomed whole, so the grid reflows: more a row as it shrinks; each node its own size, never stretched to the row (2026-11-18, v7) */
   #space:not([data-names="always"]) .spgrid.small .spl, #space[data-names="never"] .spl { display: none; }   /* under 75 %: the pods' names go, the letters and badges stay */
   #space .spzoom { position: absolute; right: 14px; bottom: 12px; display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--r-4); background: var(--panel); border: 1px solid var(--line); box-shadow: 0 8px 24px -12px rgb(0 0 0 / .5); }
   #space .spzoom button { min-width: 28px; height: 26px; padding: 0 8px; border: 0; border-radius: var(--r-3); background: transparent; color: var(--ink); font: inherit; font-size: var(--fs-base); cursor: pointer; }
@@ -2529,18 +2529,19 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   #space .spt { display: block; min-width: 0; padding: 0; border: 1px solid transparent; border-radius: var(--r-5); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   #space .spt:hover { background: var(--ctl); }
   #space .spt.on { background: var(--panel); border-color: var(--line); }
-  #space .spo { position: relative; display: block; width: 320px; height: 250px; margin: 0 auto; }
-  #space .spbox { position: absolute; left: 80px; top: 77px; width: 160px; height: 96px; box-sizing: border-box; padding: 7px 10px; border-radius: 12px; border: 2px solid var(--c); background: var(--panel); display: flex; flex-direction: column; justify-content: center; gap: 3px; z-index: 1; }
-  #space .spbox::after { content: ""; position: absolute; inset: -6px; border-radius: 16px; border: 2px solid var(--c); opacity: 0; }
+  #space { --spw: 268px; --sph: 240px; }   /* a node's tile: its circle and a pod each side (spPods' SP_GEO) */
+  #space .spo { position: relative; display: block; width: var(--spw); height: var(--sph); margin: 0 auto; }
+  #space .spbox { position: absolute; left: 72px; top: 58px; width: 124px; height: 124px; box-sizing: border-box; padding: 0 18px; border-radius: 50%; border: 2px solid var(--c); background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; z-index: 1; }   /* a circle, its words in the middle (2026-11-18, v7) */
+  #space .spbox::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--c); opacity: 0; }
   #space .spbox[data-st="ask"]::after { animation: spsonar 1.5s ease-out infinite; }
   #space .spbox[data-st="work"]::after { animation: spsonar 2.6s ease-out infinite; }
   #space .spbox[data-st="watch"]::after { animation: spsonar 4.2s ease-out infinite; }
   #space .spbox[data-st="done"] { filter: saturate(.4); }
-  #space .spbt { font-size: var(--fs-md); font-weight: 650; line-height: 1.25; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  #space .spbf { display: flex; align-items: center; gap: 5px; min-width: 0; font: var(--fs-2xs)/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #space .spbt { max-width: 100%; font-size: var(--fs-sm); font-weight: 650; line-height: 1.25; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  #space .spbf { display: flex; align-items: center; justify-content: center; gap: 4px; max-width: 100%; min-width: 0; font: var(--fs-2xs)/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #space .spbf i { flex: none; width: 8px; height: 8px; border-radius: 2px; background: var(--repo, var(--nocolor)); }
   #space .spwire { position: absolute; background: oklch(.72 .13 var(--h)); opacity: .6; }
-  #space .sppod { position: absolute; box-sizing: border-box; height: 38px; padding: 0 6px; border-radius: 19px; display: flex; align-items: center; justify-content: center; gap: 5px; background: oklch(.72 .13 var(--h) / .14); border: 1.5px solid oklch(.72 .13 var(--h) / .55); }
+  #space .sppod { position: absolute; box-sizing: border-box; height: 34px; padding: 0 6px; border-radius: 17px; display: flex; align-items: center; justify-content: center; gap: 5px; background: oklch(.72 .13 var(--h) / .14); border: 1.5px solid oklch(.72 .13 var(--h) / .55); }
   #space .spl { position: absolute; font-size: var(--fs-2xs); font-weight: 600; white-space: nowrap; color: oklch(.76 .12 var(--h)); }
   :root[data-theme="light"] #space .spl { color: oklch(.48 .13 var(--h)); }
   #space .spl { translate: -50% 0; }
@@ -12337,7 +12338,7 @@ const toolName = n => {
   const spHue = (name, color) => SP_HUE[color] ?? [...String(name)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
   const spTwo = name => { const p = String(name).split(/[^A-Za-z0-9]+/).filter(Boolean); return p.length ? (p.length > 1 ? p.map(x => x[0]).join('') : p[0].slice(0, 2)).toUpperCase().slice(0, 2) : '·'; };
   const spTally = rows => SP_ORDER.map(k => [k, rows.filter(r => spSt(r) === k).length]).filter(([, n]) => n).map(([k, n]) => `${n} ${SP_WORD[k]}`).join(' · ');
-  const spFolder = s => !s.cwd || s.cwd === state.about?.scratch ? '' : homePath(s.cwd);
+  const spFolder = s => !s.cwd || s.cwd === state.about?.scratch ? '' : s.cwd.replace(/\/+$/, '').split('/').pop() || '/';   // its last name only (2026-11-18, v7); the whole path its tooltip
   /** An agent's mark: its type's letters and colour, its state for a screen reader too. */
   const spAgent = (r, kind, hue, s) => { const st = spSt(r); return `<span class="spa" data-st="${st}" data-ag="${esc(r.id)}" data-sid="${esc(s.id)}" style="--h:${hue}" role="img" aria-label="${esc(`${spCap(kind)}${r.mate ? ' teammate' : ''}: ${SP_WORD[st]}`)}">${esc(spTwo(kind))}${['done', 'fail', 'wait', 'stop'].includes(st) ? '<i></i>' : ''}</span>`; };
   /** An agent pointed at in Space (2026-11-18, later): #mxtip's card in Space's words — its type in its colour and letters
@@ -12362,6 +12363,8 @@ const toolName = n => {
       + (now?.[1] ? `<dl class="agi spcw"><dt>${now[0]}</dt><dd>${now[1]}</dd></dl>` : '')
       + `<dl class="agi spcv">${kv.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
   }
+  // a node's circle in its tile (#space's --spw × --sph, .spbox's place): its centre and radius, a pod's thickness, a wire's length (2026-11-18, v7)
+  const SP_GEO = { cx: 134, cy: 120, r: 62, pt: 34, w: 8 }, SP_TILE = [268, 240];
   /** A chat's agents by type, the most first, each docked to its node on a side of its own: top, bottom, right, left. */
   function spPods(s) {
     const groups = [];
@@ -12372,8 +12375,9 @@ const toolName = n => {
       const hue = spHue(g.k, g.color), more = g.rows.length > SP_POD ? g.rows.length - (SP_POD - 1) : 0, rows = more ? g.rows.slice(0, SP_POD - 1) : g.rows;
       // top and bottom a row, the sides a column: x, y, width, height of the pod; of its wire; where its label is
       const n = rows.length + (more ? 1 : 0), len = n * 26 + (n - 1) * 5 + 12, side = ['top', 'bottom', 'right', 'left'][i];
-      const at = { top: [160 - len / 2, 27, len, 38, 159, 65, 2, 12, 160, 10], bottom: [160 - len / 2, 185, len, 38, 159, 173, 2, 12, 160, 226],
-        right: [252, 125 - len / 2, 38, len, 240, 124, 12, 2, 271, 128 + len / 2], left: [30, 125 - len / 2, 38, len, 68, 124, 12, 2, 49, 128 + len / 2] }[side];
+      const { cx, cy, r, pt, w } = SP_GEO, top = cy - r - w - pt, bot = cy + r + w, lft = cx - r - w - pt, rgt = cx + r + w;
+      const at = { top: [cx - len / 2, top, len, pt, cx - 1, cy - r - w, 2, w, cx, top - 14], bottom: [cx - len / 2, bot, len, pt, cx - 1, cy + r, 2, w, cx, bot + pt + 2],
+        right: [rgt, cy - len / 2, pt, len, cx + r, cy - 1, w, 2, rgt + pt / 2, cy + len / 2 + 3], left: [lft, cy - len / 2, pt, len, lft + pt, cy - 1, w, 2, lft + pt / 2, cy + len / 2 + 3] }[side];
       const label = `${spCap(g.k)}${i === SP_PODS - 1 && left ? ` · +${left} more` : ''}`;
       return `<span class="spwire" style="--h:${hue};left:${at[4]}px;top:${at[5]}px;width:${at[6]}px;height:${at[7]}px"></span>`
         + `<span class="sppod${side === 'right' || side === 'left' ? ' col' : ''}" style="--h:${hue};left:${at[0]}px;top:${at[1]}px;width:${at[2]}px;height:${at[3]}px">${rows.map(r => spAgent(r, g.k, hue, s)).join('')}${more ? `<span class="spmore">+${more}</span>` : ''}</span>`
@@ -12451,7 +12455,7 @@ const toolName = n => {
   function spZoom(z) { prefs.spZoom = Math.round(Math.min(1.5, Math.max(.5, z)) * 10) / 10; savePrefs(); spZoomShow(); }
   function spFit() {
     const f = $('#spfield'), n = $('#spgrid').children.length, W = f.clientWidth - 20, H = f.clientHeight - 64;
-    for (let z = 1.5; z > .5; z = Math.round((z - .1) * 10) / 10) { const cols = Math.max(1, Math.floor((W / z + 6) / 326)); if (Math.ceil(n / cols) * 256 * z <= H) return spZoom(z); }
+    for (let z = 1.5; z > .5; z = Math.round((z - .1) * 10) / 10) { const cols = Math.max(1, Math.floor((W / z + 6) / (SP_TILE[0] + 6))); if (Math.ceil(n / cols) * (SP_TILE[1] + 8) * z <= H) return spZoom(z); }
     spZoom(.5);
   }
   /** Space's ×, and ⌘W on the chat's tab there: the chat closed — Claude runs on —, Space the whole width again. */

@@ -372,7 +372,7 @@ npm run map                         # rewrite the section maps at the top of ser
   own size; scaled to .7 and cropped, the footer below the edge unless asking — `footRows`, `placeMini`), else its tail
   (`tailHtml`, `GET /api/tails?ids=`, every 2 s). A question's answers (`ask.labels`) come
   once the transcript has it; one clicked types its digit into the drawer (`answerInDrawer`). → `overview.mjs`.
-* **⌥⌘S is Space** (2026-11-18; `main.space`, `spNode`, `spPods`): the list's place, the chat right, pods by `type`, a teammate's the category it was spawned as (`mateType`, `noteMateType`); an agent's name only on its card (`spCardHtml` in `#mxtip`); a dark theme's sky (`#spsky`, `spFall`); Settings › Space (`spLook`, `spSet`). → `space.mjs`.
+* **⌥⌘S is Space** (2026-11-18; `main.space`, `spNode`, `spPods`; a node a circle in a tile of its own size, `SP_GEO`): the list's place, the chat right, pods by `type`, a teammate's the category it was spawned as (`mateType`, `noteMateType`); an agent's name only on its card (`spCardHtml` in `#mxtip`); a dark theme's sky (`#spsky`, `spFall`); Settings › Space (`spLook`, `spSet`). → `space.mjs`.
 * **The chat header is drawn only when it changed**: `renderHead` compares the header's, the menu's and the PR rows'
   markup with `drawn`, and runs `layoutNotch(); fitHeadPrs()` only for a new header; the handlers are bound on every
   call. Anything that edits the header in place resets `drawn.head` (`editTitle` does).
