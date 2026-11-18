@@ -5,6 +5,32 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, v3 — Space zooms, the chat on its right, a × to close it
+
+Pedro: *"allow to zoom in and out in the nodes part. And also, move to the right side the panel with the chat when we
+click. Allow to close the chat panel with a cross button"*; the design drawn for it (the lanes a strip under the nodes, the
+nodes reflowing as they zoom), *"lgtm"*.
+
+* **The chat on the right, the whole height** (`main.space`, columns `--sp` · 8 px · the rest): Space on the left, `#chat`
+  on the right, its header at the window's top again — where the notch's layout and the pane's pages expect it, which the
+  bottom half did not give them. The divider is vertical, dragged 25–80 % (`prefs.spaceAt`, .52 at first).
+* **The lanes moved under the nodes** (`#spside`, now a strip; `spSide`): a third column would not fit beside the chat
+  under ~1600 px. The open chat's alone, hidden with none open; its head folds it to one line (`prefs.spLanes`), its span
+  buttons as before. A lane is four columns: the agent, what it was asked over its last step, the clock, how long.
+* **A × in the chat's header, in Space only** (`#spClose`, after ···; `spCloseChat` → `leaveChat`): the chat closed and
+  Space the whole width — never its claude, which runs on. **⌘W on the chat's tab does the same** (`hotClose`: nothing split
+  and in Space), where it would otherwise have nothing to close.
+* **The nodes zoom, and reflow** (`spZoom`, `prefs.spZoom`, 50–150 % by tens): CSS `zoom` on `#spgrid` alone, never the
+  root, so a smaller zoom fits more nodes a row and scrolling stays the way round the field — not a canvas dragged about,
+  which keeps the arrows and ⏎ simple. Under 75 % the pods' names go (`.small`), the letters and badges stay. **Fit**
+  (`spFit`) takes the largest zoom that shows every node with no scroll. The buttons sit over the field's corner
+  (`.spzoom`); **⌘+ ⌘− ⌘0 with the keys in Space** are its zoom, not the chat's (`chatZoomKey`); a pinch or a ⌘/⌃-wheel over
+  the nodes too (`wheel` with `ctrlKey` in Chrome, WebKit's `gesturestart`/`gesturechange` — the app's pinch to be seen on a
+  Mac, `npm run shell`).
+* Checked here: `space.mjs` — the zoom's buttons, ⌘+ in Space, Fit with no scroll left, its zoom across a reload; the chat
+  right of Space at its height, the strip under the nodes, its fold; × and ⌘W closing it with the claude alive; the divider
+  dragged across.
+
 ## Decisions of 2026-11-18, later — Space becomes the board's other layout
 
 Pedro, trying the first Space: *"when i single-click the main node in Space, it opens the chat within the space screen
