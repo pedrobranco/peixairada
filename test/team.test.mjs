@@ -71,3 +71,21 @@ test('a teammate\'s first prompt is its last line until it says or calls somethi
     assert.deepEqual([team[0].name, team[0].st, team[0].last], ['reader', 'run', { kind: 'asked', text: 'Read the "old" client' }]);
   } finally { await srv.stop(); p.kill(); }
 });
+
+test('a teammate\'s category is the type the lead spawned it as — never "teammate"; general-purpose when none was named (2026-11-18)', { timeout: 30_000 }, async () => {
+  const p = standIn(), dir = tmpDir('peix-fx-');
+  const fx = makeFixture(dir, [{ cwd: '/tmp/acme/storefront', title: 'Retry declined payments', prompt: 'as a team', reply: 'Team up.', at: yesterday(), live: { pid: p.pid, startedAt: Date.now() - 3600_000 } }]);
+  const [lead] = fx.chats;
+  teamFiles({ dir, lead, also: ['scribe', 'docs-writer'], spawned: { ana: 'api', tomas: 'api', rita: null, 'docs-writer': 'docs' }, mates: [
+    { name: 'ana', summary: 'Backoff in the client', work: 'Edit the client' },
+    { name: 'tomas', summary: 'Retry the queue', work: 'Edit the queue' },
+    { name: 'rita', summary: 'Cover the decline codes', said: 'Covered.' },
+    { name: 'joao', summary: 'Spawned before the tail', said: 'Done.' },
+  ] });
+  const srv = await startTestServer({ claudeDir: dir });
+  try {
+    const rows = await waitFor(async () => { const r = (await srv.api('api/sessions')).body.sessions.find(s => s.id === lead.id)?.agentRows; return r?.length === 6 && r; }, { what: 'the team\'s rows' });
+    assert.deepEqual(Object.fromEntries(rows.map(r => [r.name, r.type])), { ana: 'api', tomas: 'api', rita: 'general-purpose', joao: 'general-purpose', scribe: 'general-purpose', 'docs-writer': 'docs' },
+      'by the spawn\'s subagent_type, a roster name\'s too; its own name never its category; none named, the Agent tool\'s default');
+  } finally { await srv.stop(); p.kill(); }
+});

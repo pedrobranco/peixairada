@@ -5,6 +5,23 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, v6 — a teammate's pod is its category
+
+Pedro: *"in the Space group the agents by Category, not by "Team mate" as is right now."*
+
+* **Why they were one pod**: a teammate's `.meta.json` names no `agentType` (the keys this Mac showed, 2026-10-31: `taskKind`,
+  `teamName`, `name`, `color`), so its row had no type and Space grouped every teammate as *teammate*.
+* **Its category is what the lead spawned it as** (`noteMateType`, from the lead's `Agent` call with a `name`: its
+  `subagent_type`, else `general-purpose`, the tool's own default; `s.mateTypes`, the newest spawn of a name winning, kept
+  across a tail re-read as the agents' ends are). `mateType` reads it, then the meta's or the roster's `agentType` when it is
+  not the teammate's own name (the fixture's guess), else `general-purpose` — never *teammate*. The roster's joined rows
+  get theirs too, and a row's colour is its category's definition's (`typeOf`), so a pod is one colour.
+* The page's own fallback for a teammate with no type is `general-purpose`. The *teammate* tag stays on the agent's card.
+* Checked here: `test/team.test.mjs` — two teammates spawned as `api` one pod, one spawned with no type and one never seen
+  spawned `general-purpose`, a roster name spawned as `docs` its own; the fixture writes the lead's spawn calls
+  (`teamFiles`' `spawned`). `space.mjs` passes. The first team test fails here as it did before this change (its explore
+  agent's row), to be seen on a Mac.
+
 ## Decisions of 2026-11-18, v5 — Space has its own settings
 
 Pedro: *"Add to options menu some options for the Space feature."* Which options was left to the work; these, each

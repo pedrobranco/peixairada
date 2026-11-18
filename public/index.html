@@ -12330,8 +12330,9 @@ const toolName = n => {
   const spRows = s => s?.alive ? s.agentRows || [] : [];
   const spCount = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   const spCut = t => { t = String(t || ''); return t.length > 60 ? t.slice(0, 60).trimEnd() + '…' : t; };
-  // an agent by its type, a teammate too — its name is its card's, never Space's (2026-11-18, later); capitalised where it is a word
-  const spKind = r => r.type || (r.mate ? 'teammate' : 'agent');
+  // an agent by its type, a teammate by the category it was spawned as (the server's mateType) — never "teammate": its name is
+  // its card's, never Space's (2026-11-18, later; v6); capitalised where it is a word
+  const spKind = r => r.type || (r.mate ? 'general-purpose' : 'agent');
   const spCap = t => String(t).charAt(0).toUpperCase() + String(t).slice(1);
   const spHue = (name, color) => SP_HUE[color] ?? [...String(name)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
   const spTwo = name => { const p = String(name).split(/[^A-Za-z0-9]+/).filter(Boolean); return p.length ? (p.length > 1 ? p.map(x => x[0]).join('') : p[0].slice(0, 2)).toUpperCase().slice(0, 2) : '·'; };

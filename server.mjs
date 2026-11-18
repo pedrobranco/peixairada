@@ -2426,7 +2426,7 @@ function fold(s, line) {
         else if (b.type === 'tool_use') {
           const e = { role: 'assistant', kind: 'tool_use', name: b.name, text: summarizeToolInput(b.name, b.input), toolUseId: b.id, ts };
           if (b.name === 'SendMessage') noteSend(s, e, b);
-          if (b.name === 'Agent' && pstr(b.input?.name)) e.who = b.input.name;
+          if (b.name === 'Agent' && pstr(b.input?.name)) { e.who = b.input.name; noteMateType(s, b.input); }
           if (b.name === 'Skill' && pstr(b.input?.args)) e.args = snippet(b.input.args, 140);   // a fork's words: which PR this review is of
           pushEntry(s, e);
           if (EDIT_TOOLS.has(b.name) && (b.input?.file_path || b.input?.notebook_path)) (s.turnFiles ||= new Set()).add(b.input.file_path || b.input.notebook_path);
@@ -2531,6 +2531,7 @@ function indexFile(file, { full = false } = {}) {
   s.newEntries = []; // initial load: nothing is "new"
   if (!s.cwd && prev?.cwd) s.cwd = prev.cwd;
   if (!s.tasks?.size && prev?.tasks?.size) s.tasks = prev.tasks;   // a tail re-read has not seen the calls that started them
+  if (prev?.mateTypes?.size) s.mateTypes = new Map([...prev.mateTypes, ...(s.mateTypes || [])]);   // nor the spawns that named its teammates' categories
   for (const [id, t] of s.tasks || []) { const p = prev?.tasks?.get(id); if (p) { t.heldAt = p.heldAt; t.askedAt = p.askedAt; } }   // …and lsof's word is the machine's, not the lines' (2026-11-04)
   if (!s.wakes && prev?.wakes?.size) s.wakes = prev.wakes;   // …nor the wake-ups it set (2026-10-31)
   if (prev?.agentEnds?.size) s.agentEnds = new Map([...prev.agentEnds, ...(s.agentEnds || [])]);   // …nor how its agents ended, past the tail (2026-11-02)
@@ -2765,10 +2766,17 @@ function jsonOnce(file, shape) {
   jsonSeen.set(file, { mtimeMs: st.mtimeMs, size: st.size, v });
   return v;
 }
+/** A teammate's category (2026-11-18, v6): the `subagent_type` the lead spawned it with — its metadata names none, its
+ *  roster entry its own name. By name, the newest spawn winning; `general-purpose`, the Agent tool's own default, when none. */
+function noteMateType(s, input) {
+  const t = s.mateTypes ||= new Map(); t.delete(input.name); t.set(input.name, pstr(input.subagent_type) || 'general-purpose');
+  while (t.size > 64) t.delete(t.keys().next().value);
+}
+const mateType = (s, name, ...said) => s.mateTypes?.get(name) || said.find(k => k && k !== name && k !== 'team-lead') || 'general-purpose';
 const isLead = m => m.agentType === 'team-lead' || m.name === 'team-lead' || String(m.agentId || '').startsWith('team-lead@');
 /** The roster beyond its lead, as Claude Code keeps it while the chat runs: what a teammate with no file yet is known by. */
 const rosterOf = s => jsonOnce(join(TEAMS_DIR, `session-${s.id.slice(0, 8)}`, 'config.json'), c => (c?.leadSessionId && c.leadSessionId !== s.id) || !Array.isArray(c?.members) ? []
-  : c.members.filter(m => m && typeof m === 'object' && pstr(m.name) && !isLead(m)).map(m => ({ name: m.name }))) || [];
+  : c.members.filter(m => m && typeof m === 'object' && pstr(m.name) && !isLead(m)).map(m => ({ name: m.name, kind: pstr(m.agentType) }))) || [];
 const TM_SUMMARY = /^\s*<teammate-message\b[^>]*\bsummary="([^"]*)"/;
 const mateSeen = new Map();   // a teammate's transcript → { mtimeMs, size, last }
 /** A teammate's last line: the last thing it said or called, else what the lead last asked of it. */
@@ -2805,6 +2813,7 @@ function mateLast(file, st) {
 // Only the last round shows: the agents out at one time, a new round being one that starts after all before it ended. A failure
 // from a round before stays with it (`old`), for the page to keep until the chat is opened (seenAt). Words hold AGENT_WORDS_MS:
 // a tool call every 6.6 s here (the median over 247 agents) would flicker, and a new one must not push for each step.
+const typeOf = (s, type) => ({ type, color: agentColor(s.live?.cwd || s.cwd, type) });
 const AGENT_WORDS_MS = Number(process.env.AGENT_WORDS_MS ?? 15_000), AGENT_FILES = 40;
 /** The agent a tool's result names (2026-11-02): an Agent call's, a forked Skill's. How the transcript gets back to it, whatever became of its row. */
 const agentNamed = t => typeof t?.agentId === 'string' && /^[\w-]+$/.test(t.agentId) ? { agent: { id: t.agentId, name: pstr(t.name) || pstr(t.commandName), asked: pstr(t.description) } } : null;
@@ -2868,8 +2877,9 @@ function noteAgents(s, dir, work, since, now) {
     if (state === 'run' && was?.st === 'run' && was.last && now - (said.get(id) || 0) < AGENT_WORDS_MS) last = was.last;   // it holds its words
     else if (JSON.stringify(last) !== JSON.stringify(was?.last ?? null)) said.set(id, now);
     rows.push({ id, name: m.name, asked: m.asked || snippet(born.prompt, 80) || null, kind: m.kind && m.kind !== 'general-purpose' ? m.kind : null, mate: !!m.mate, st: state, last,
-      // its type as Claude Code named it, and the colour its definition gives (2026-11-18, Space's pods): none for a built-in
-      type: m.kind || null, color: agentColor(s.live?.cwd || s.cwd, m.mate ? m.name || m.kind : m.kind),
+      // its type as Claude Code named it — a teammate's, the category it was spawned as (mateType, 2026-11-18, v6) — and the
+      // colour that type's definition gives (Space's pods): none for a built-in
+      ...typeOf(s, m.mate ? mateType(s, m.name, m.kind) : m.kind || null),
       // when it ended: not its last line alone — an API error writes none, and you may have opened the chat since that line (the page keeps a failure until then)
       at: born.at, end: state === 'run' || state === 'wait' ? null : new Date(Math.max(st.mtimeMs, Date.parse(end?.ts) || 0, m.finished ? jsonSeen.get(metaFile(dir, n))?.mtimeMs || 0 : 0)).toISOString(),
       lastAt: new Date(st.mtimeMs).toISOString(), why: state === 'fail' ? end?.why || null : null,
@@ -2879,7 +2889,7 @@ function noteAgents(s, dir, work, since, now) {
   let cut = 0, far = -Infinity;   // the last round: where one starts after every one before it had ended
   rows.forEach((r, i) => { const from = Date.parse(r.at); if (i && from > far) cut = i; far = Math.max(far, r.end ? Date.parse(r.lastAt) : Infinity); });
   const kept = [...rows.slice(0, cut).filter(r => r.st === 'fail').slice(-3).map(r => ({ ...r, old: true })), ...rows.slice(cut)];
-  for (const m of rosterOf(s)) if (!names.has(m.name)) kept.push({ id: `mate-${m.name}`, name: m.name, asked: null, kind: null, mate: true, st: 'joined', last: null, at: null, end: null, lastAt: null, why: null, branch: null, tree: null, tool: null });   // named, no file of its own yet
+  for (const m of rosterOf(s)) if (!names.has(m.name)) kept.push({ id: `mate-${m.name}`, name: m.name, asked: null, kind: null, mate: true, ...typeOf(s, mateType(s, m.name, m.kind)), st: 'joined', last: null, at: null, end: null, lastAt: null, why: null, branch: null, tree: null, tool: null });   // named, no file of its own yet
   // what changed: `lastAt` only by the minute, or every line of every agent would push the card
   const sig = JSON.stringify(kept.map(({ lastAt, ...r }) => [r, Math.floor(Date.parse(lastAt) / 60_000)]));
   if (sig === (s.agentSig ?? null) || (!kept.length && !s.agentRows)) return false;
