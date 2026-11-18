@@ -2868,6 +2868,8 @@ function noteAgents(s, dir, work, since, now) {
     if (state === 'run' && was?.st === 'run' && was.last && now - (said.get(id) || 0) < AGENT_WORDS_MS) last = was.last;   // it holds its words
     else if (JSON.stringify(last) !== JSON.stringify(was?.last ?? null)) said.set(id, now);
     rows.push({ id, name: m.name, asked: m.asked || snippet(born.prompt, 80) || null, kind: m.kind && m.kind !== 'general-purpose' ? m.kind : null, mate: !!m.mate, st: state, last,
+      // its type as Claude Code named it, and the colour its definition gives (2026-11-18, Space's pods): none for a built-in
+      type: m.kind || null, color: agentColor(s.live?.cwd || s.cwd, m.mate ? m.name || m.kind : m.kind),
       // when it ended: not its last line alone — an API error writes none, and you may have opened the chat since that line (the page keeps a failure until then)
       at: born.at, end: state === 'run' || state === 'wait' ? null : new Date(Math.max(st.mtimeMs, Date.parse(end?.ts) || 0, m.finished ? jsonSeen.get(metaFile(dir, n))?.mtimeMs || 0 : 0)).toISOString(),
       lastAt: new Date(st.mtimeMs).toISOString(), why: state === 'fail' ? end?.why || null : null,

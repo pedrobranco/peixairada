@@ -2470,93 +2470,99 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   #ov .ans { display: flex; flex-wrap: wrap; gap: 6px; }
   #ov .ans button { font: inherit; font-size: var(--fs-sm); padding: 4px 9px; border: 0; border-radius: var(--r-2); background: var(--ctl); color: var(--ink); cursor: pointer; }
   #ov .ans button:hover:not(:disabled) { background: color-mix(in srgb, var(--needs) 24%, transparent); }
-  /* ---- ⌥⌘S: Space, every live chat's agents (2026-11-18) ---- */
-  #sp { width: 100vw; height: 100vh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; border-radius: 0; background: var(--bg); color: var(--ink); outline: none; }
-  #sp[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
-  #sp::backdrop { background: transparent; }
-  #sp .sptop { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 14px 22px; border-bottom: 1px solid var(--line); }
-  #sp .sptop h1 { margin: 0; font-size: var(--fs-xl); }
-  #sp .spsub { color: var(--muted); font-size: var(--fs-sm); }
-  #sp .spleg { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0 0 0 auto; padding: 0; list-style: none; font-size: var(--fs-sm); color: var(--muted); }
-  #sp .spleg li { display: flex; align-items: center; gap: 6px; } #sp .spleg b { color: var(--ink); font-weight: 650; } #sp .spleg li.nil { opacity: .55; }
-  #sp .spwin { display: flex; gap: 2px; padding: 2px; border-radius: var(--r-3); background: var(--ctl); }
-  #sp .spwin button { font: inherit; font-size: var(--fs-sm); padding: 3px 9px; border: 0; border-radius: var(--r-2); background: transparent; color: var(--muted); cursor: pointer; }
-  #sp .spwin button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; }
-  #sp .spclose { font: inherit; font-size: var(--fs-xl); line-height: 1; padding: 2px 8px; border: 0; border-radius: var(--r-3); background: var(--ctl); color: var(--muted); cursor: pointer; }
-  #sp .spbody { display: flex; min-height: 0; }
-  #sp .spfield { flex: 1 1 auto; min-width: 0; overflow: auto; padding: 16px; background: color-mix(in srgb, var(--ink) 3%, var(--bg)); }
-  #sp .spgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
-  #sp .spempty { margin: 40px auto; max-width: 42ch; text-align: center; color: var(--muted); font-size: var(--fs-md); }
-  #sp .spside { flex: 0 0 min(420px, 42vw); min-width: 0; overflow: auto; padding: 18px 22px 24px; border-left: 1px solid var(--line); }
-  @media (max-width: 760px) { #sp .spbody { flex-direction: column; overflow: auto; } #sp .spfield { overflow: visible; } #sp .spside { flex: none; border-left: 0; border-top: 1px solid var(--line); } }
-  /* a chat: its project's square at the centre, ringed in its state; its agents on the orbit round it */
-  #sp .sps { display: block; min-width: 0; padding: 10px 10px 14px; border: 1px solid transparent; border-radius: var(--r-5); background: transparent; color: inherit; font: inherit; text-align: center; cursor: pointer; }
-  #sp .sps:hover { background: var(--ctl); }
-  #sp .sps.on { background: var(--panel); border-color: var(--line); }
-  #sp .spo { position: relative; display: block; width: 100%; max-width: 190px; aspect-ratio: 1; margin: 0 auto; }
-  #sp .spring { position: absolute; inset: 14%; border-radius: 50%; border: 1px dashed color-mix(in srgb, var(--ink) 18%, transparent); }
-  #sp .spc { position: absolute; left: 50%; top: 50%; width: 62px; height: 62px; margin: -31px 0 0 -31px; border-radius: 50%; display: flex; align-items: center; justify-content: center; --c: var(--idle); }
-  #sp .spc::before, #sp .spc::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--c); }
-  #sp .spc::after { opacity: 0; }
-  #sp [data-st="ask"] { --c: var(--needs); } #sp [data-st="work"] { --c: var(--working-ink); } #sp [data-st="watch"] { --c: var(--watch); } #sp [data-st="ready"] { --c: var(--idle); }
-  #sp .spc[data-st="ask"]::after { animation: spsonar 1.5s ease-out infinite; }
-  #sp .spc[data-st="work"]::after { animation: spsonar 2.6s ease-out infinite; }
-  #sp .spc[data-st="watch"]::after { animation: spsonar 4.2s ease-out infinite; }
-  #sp .spt { width: 44px; height: 44px; border-radius: var(--r-4); display: flex; align-items: center; justify-content: center; font-size: var(--fs-base); font-weight: 700; background: var(--repo, var(--nocolor)); color: var(--rink, var(--ink)); }
-  #sp .spsat { position: absolute; transform: translate(-50%, -50%); display: flex; padding: 3px; border-radius: 50%; background: color-mix(in srgb, var(--ink) 3%, var(--bg)); }
-  #sp .sps.on .spsat { background: var(--panel); }
-  #sp .spsat .spg { width: 20px; height: 20px; }
-  #sp .many .spsat { padding: 1px; } #sp .many .spsat .spg { width: 13px; height: 13px; }
-  #sp .spn { display: block; margin-top: 2px; font-size: var(--fs-md); font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
-  #sp .spm { display: block; margin-top: 4px; font-size: var(--fs-sm); color: var(--muted); }
-  #sp .spw { color: var(--c); font-weight: 600; }
-  #sp .spa { display: block; margin-top: 2px; font-size: var(--fs-sm); color: var(--muted); }
-  /* an agent's mark: a shape as well as a colour, so a state reads without it */
-  #sp .spg { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 16px; height: 16px; border-radius: 50%; box-sizing: border-box; }
-  #sp .spg[data-st="run"], #sp .spg[data-st="quiet"] { border: 2px solid color-mix(in srgb, var(--working-ink) 30%, transparent); }
-  #sp .spg[data-st="run"]::before { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid transparent; border-top-color: var(--working-ink); border-right-color: var(--working-ink); animation: spspin 1.1s linear infinite; }
-  #sp .spg[data-st="run"]::after, #sp .spg[data-st="quiet"]::after { content: ""; width: 30%; height: 30%; border-radius: 50%; background: var(--working-ink); }
-  #sp .spg[data-st="quiet"] { opacity: .6; }
-  #sp .spg[data-st="wait"] { border: 2px dashed var(--watch); }
-  #sp .spg[data-st="wait"]::after { content: ""; width: 30%; height: 30%; border-radius: 50%; background: var(--watch); animation: spbreathe 2.4s ease-in-out infinite; }
-  #sp .spg[data-st="done"] { background: var(--idle); }
-  #sp .spg[data-st="done"]::after { content: ""; width: 22%; height: 45%; margin-top: -12%; border: solid var(--bg); border-width: 0 2px 2px 0; transform: rotate(45deg); }
-  #sp .spg[data-st="fail"] { background: var(--needs); }
-  #sp .spg[data-st="fail"]::before, #sp .spg[data-st="fail"]::after { content: ""; position: absolute; width: 50%; height: 2px; border-radius: 1px; background: var(--bg); transform: rotate(45deg); }
-  #sp .spg[data-st="fail"]::after { transform: rotate(-45deg); }
-  #sp .spg[data-st="stop"] { border-radius: var(--r-1); background: var(--muted); scale: .82; }
-  #sp .spg[data-st="joined"] { border: 1.5px dashed var(--muted); }
-  /* the chat picked: its agents as lanes on one clock */
-  #sp .spproj { margin: 0; font-size: var(--fs-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-  #sp .spside h2 { margin: 4px 0 0; font-size: var(--fs-xl); line-height: 1.3; }
-  #sp .spstate { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 8px 0 0; font-size: var(--fs-md); color: var(--muted); }
-  #sp .spgo { margin-left: auto; font: inherit; font-size: var(--fs-sm); padding: 4px 10px; border: 0; border-radius: var(--r-3); background: var(--ctl); color: var(--ink); cursor: pointer; }
-  #sp .spgo:hover, #sp .spwin button:hover, #sp .spclose:hover { background: var(--ctl-hi); }
-  #sp .splanes { margin-top: 18px; }
-  #sp .spticks { display: flex; justify-content: space-between; margin-left: 30px; padding-bottom: 6px; font-size: var(--fs-xs); color: var(--muted); }
-  #sp .spticks .now { color: var(--accent); font-weight: 600; }
-  #sp .splane { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 2px 8px; align-items: baseline; padding: 11px 6px 11px 0; border-top: 1px solid var(--line); border-radius: var(--r-2); }
-  #sp .splane[data-ag] { cursor: pointer; } #sp .splane[data-ag]:hover { background: var(--ctl); }
-  #sp .splane > .spg { align-self: start; margin-top: 1px; }
-  #sp .spla { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-md); font-weight: 600; }
-  #sp .spla b { font-weight: 700; }
-  #sp .spld { font-size: var(--fs-sm); color: var(--muted); white-space: nowrap; }
-  #sp .splane[data-st="run"] .spld { color: var(--working-ink); } #sp .splane[data-st="wait"] .spld { color: var(--watch); } #sp .splane[data-st="fail"] .spld { color: var(--needs); } #sp .splane[data-st="done"] .spld { color: var(--idle); }
-  #sp .splk, #sp .sptrack, #sp .spll { grid-column: 2 / 4; }
-  #sp .splk { font-size: var(--fs-sm); color: var(--muted); }
-  #sp .sptrack { position: relative; height: 8px; margin-top: 7px; border-radius: 4px; background: var(--ctl); }
-  #sp .spbar { position: absolute; top: 0; bottom: 0; min-width: 4px; border-radius: 4px; box-sizing: border-box; background: var(--c, var(--muted)); }
-  #sp .spbar[data-st="run"] { --c: var(--working-ink); } #sp .spbar[data-st="quiet"] { --c: color-mix(in srgb, var(--working-ink) 55%, transparent); } #sp .spbar[data-st="done"] { --c: var(--idle); } #sp .spbar[data-st="fail"] { --c: var(--needs); }
-  #sp .spbar[data-st="wait"] { background: color-mix(in srgb, var(--watch) 16%, transparent); border: 1.5px dashed var(--watch); }
-  #sp .spbar[data-st="run"]::after { content: ""; position: absolute; right: -3px; top: -3px; width: 14px; height: 14px; border-radius: 50%; background: var(--working-ink); animation: spbreathe 1.6s ease-in-out infinite; }
-  #sp .spnow { position: absolute; right: 0; top: -4px; bottom: -4px; width: 2px; border-radius: 1px; background: var(--accent); }
-  #sp .spll { margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: var(--fs-sm)/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
-  #sp .spll b { font-weight: 600; color: var(--ink); }
-  #sp .splane[data-st="fail"] .spll { color: var(--needs); }
-  #sp .spnone { color: var(--muted); font-size: var(--fs-md); }
+  /* ---- ⌥⌘S: Space, the board's other layout — every chat as a node of its agents (2026-11-18) ---- */
+  main.space { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: calc(var(--sp, .55) * 100%) 8px minmax(0, 1fr); }
+  main.space > :is(#sessions, #splitter) { display: none; }   /* Space or the list, never both: it takes the list's place */
+  main.space > #space { grid-column: 1; grid-row: 1; }
+  main.space > #spdiv { grid-column: 1; grid-row: 2; }
+  main.space > #chat { grid-column: 1; grid-row: 3; min-width: 0; }
+  main.space.spfull { grid-template-rows: minmax(0, 1fr) 0 0; } main.space.spfull > :is(#chat, #spdiv) { display: none; }
+  #space { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; min-width: 0; background: var(--bg); color: var(--ink); }
+  #space[hidden], #spdiv[hidden] { display: none; }
+  #spdiv { display: flex; align-items: center; justify-content: center; cursor: row-resize; touch-action: none; border-block: 1px solid var(--line); background: var(--bg); }
+  #spdiv::before { content: ""; width: 44px; height: 3px; border-radius: 2px; background: var(--line); }
+  #spdiv:hover::before, #spdiv.drag::before { background: var(--muted); }
+  #space .sphd { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  #space .sphd h1 { margin: 0; font-size: var(--fs-lg); }
+  #space .spfs { display: flex; flex-wrap: wrap; gap: 6px; }
+  #space .spf { display: inline-flex; align-items: center; gap: 7px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+  #space .spf i { width: 8px; height: 8px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid var(--c); }
+  #space .spf b { font-weight: 650; }
+  #space .spf[aria-pressed="true"] { background: var(--ctl); border-color: transparent; color: var(--ink); }
+  #space .spf[aria-pressed="true"] i { background: var(--c); }
+  #space .spf:hover { background: var(--ctl-hi); }
+  #space .spsub { margin-left: auto; color: var(--muted); font-size: var(--fs-sm); }
+  #space .spbody { display: flex; min-height: 0; }
+  #space .spfield { flex: 1 1 auto; min-width: 0; overflow: auto; overscroll-behavior: contain; padding: 8px 10px; background: color-mix(in srgb, var(--ink) 3%, var(--bg)); }
+  #space .spgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 6px; }
+  #space .spempty { margin: 40px auto; max-width: 46ch; text-align: center; color: var(--muted); font-size: var(--fs-md); }
+  #space .spside { flex: 0 0 min(360px, 38%); min-width: 0; overflow: auto; overscroll-behavior: contain; padding: 12px 16px 18px; border-left: 1px solid var(--line); }
+  /* the chats' state, the colour its node's edge and its filter wear */
+  #space [data-st="ask"] { --c: var(--needs); } #space [data-st="work"] { --c: var(--working-ink); } #space [data-st="watch"] { --c: var(--watch); }
+  #space [data-st="ready"] { --c: var(--idle); } #space [data-st="idle"] { --c: var(--muted); } #space [data-st="done"] { --c: var(--ended); }
+  /* a chat: its node (the name, the folder) and a pod per agent type docked to it */
+  #space .spt { display: block; min-width: 0; padding: 0; border: 1px solid transparent; border-radius: var(--r-5); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  #space .spt:hover { background: var(--ctl); }
+  #space .spt.on { background: var(--panel); border-color: var(--line); }
+  #space .spo { position: relative; display: block; width: 320px; height: 250px; margin: 0 auto; }
+  #space .spbox { position: absolute; left: 80px; top: 77px; width: 160px; height: 96px; box-sizing: border-box; padding: 7px 10px; border-radius: 12px; border: 2px solid var(--c); background: var(--panel); display: flex; flex-direction: column; justify-content: center; gap: 3px; z-index: 1; }
+  #space .spbox::after { content: ""; position: absolute; inset: -6px; border-radius: 16px; border: 2px solid var(--c); opacity: 0; }
+  #space .spbox[data-st="ask"]::after { animation: spsonar 1.5s ease-out infinite; }
+  #space .spbox[data-st="work"]::after { animation: spsonar 2.6s ease-out infinite; }
+  #space .spbox[data-st="watch"]::after { animation: spsonar 4.2s ease-out infinite; }
+  #space .spbox[data-st="done"] { filter: saturate(.4); }
+  #space .spbt { font-size: var(--fs-md); font-weight: 650; line-height: 1.25; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  #space .spbf { display: flex; align-items: center; gap: 5px; min-width: 0; font: var(--fs-2xs)/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #space .spbf i { flex: none; width: 8px; height: 8px; border-radius: 2px; background: var(--repo, var(--nocolor)); }
+  #space .spwire { position: absolute; background: oklch(.72 .13 var(--h)); opacity: .6; }
+  #space .sppod { position: absolute; box-sizing: border-box; height: 38px; padding: 0 6px; border-radius: 19px; display: flex; align-items: center; justify-content: center; gap: 5px; background: oklch(.72 .13 var(--h) / .14); border: 1.5px solid oklch(.72 .13 var(--h) / .55); }
+  #space .spl { position: absolute; font-size: var(--fs-2xs); font-weight: 600; white-space: nowrap; color: oklch(.76 .12 var(--h)); }
+  :root[data-theme="light"] #space .spl { color: oklch(.48 .13 var(--h)); }
+  #space .spl { translate: -50% 0; }
+  #space .sppod.col { flex-direction: column; padding: 6px 0; }
+  /* an agent: its type's two letters in its type's colour, its state a badge on the corner, an arc that turns while it works */
+  #space .spa { position: relative; flex: none; width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: var(--fs-2xs); font-weight: 700; color: #141413; background: oklch(.72 .13 var(--h)); }
+  #space .spa[data-st="run"]::before, #space .spa[data-st="quiet"]::before { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--working-ink) 25%, transparent); border-top-color: var(--working-ink); border-right-color: var(--working-ink); }
+  #space .spa[data-st="run"]::before { animation: spspin 1.1s linear infinite; }
+  #space .spa[data-st="quiet"] { opacity: .7; }
+  #space .spa[data-st="joined"] { background: transparent; border: 1.5px dashed oklch(.72 .13 var(--h)); color: var(--muted); }
+  #space .spa > i { position: absolute; right: -4px; bottom: -4px; width: 12px; height: 12px; border-radius: 50%; box-sizing: border-box; border: 2px solid var(--bg); display: flex; align-items: center; justify-content: center; }
+  #space .spa[data-st="done"] > i { background: var(--idle); }
+  #space .spa[data-st="done"] > i::after { content: ""; width: 2.5px; height: 5px; margin-top: -1.5px; border: solid var(--bg); border-width: 0 1.5px 1.5px 0; rotate: 45deg; }
+  #space .spa[data-st="fail"] > i { background: var(--needs); }
+  #space .spa[data-st="fail"] > i::before, #space .spa[data-st="fail"] > i::after { content: ""; position: absolute; width: 6px; height: 1.5px; background: var(--bg); rotate: 45deg; }
+  #space .spa[data-st="fail"] > i::after { rotate: -45deg; }
+  #space .spa[data-st="wait"] > i { background: var(--bg); border: 2px dashed var(--watch); }
+  #space .spa[data-st="stop"] > i { border-radius: 3px; background: var(--muted); }
+  #space .spmore { flex: none; font-size: var(--fs-2xs); font-weight: 700; color: var(--muted); }
+  /* the chat open: its agents as lanes on one clock */
+  #space .spproj { margin: 0; font-size: var(--fs-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  #space .spstate { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 4px 0 0; font-size: var(--fs-md); color: var(--muted); }
+  #space .spw { color: var(--c); font-weight: 600; }
+  #space .spwin { display: flex; gap: 2px; margin-left: auto; padding: 2px; border-radius: var(--r-3); background: var(--ctl); }
+  #space .spwin button { font: inherit; font-size: var(--fs-xs); padding: 2px 8px; border: 0; border-radius: var(--r-2); background: transparent; color: var(--muted); cursor: pointer; }
+  #space .spwin button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; }
+  #space .spticks { display: flex; justify-content: space-between; margin: 14px 0 0 36px; padding-bottom: 5px; font-size: var(--fs-xs); color: var(--muted); }
+  #space .spticks .now { color: var(--accent); font-weight: 600; }
+  #space .splane { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 9px 6px 9px 0; border-top: 1px solid var(--line); border-radius: var(--r-2); }
+  #space .splane[data-ag] { cursor: pointer; } #space .splane[data-ag]:hover { background: var(--ctl); }
+  #space .spla { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-md); font-weight: 600; }
+  #space .spld { font-size: var(--fs-sm); color: var(--muted); white-space: nowrap; }
+  #space .splane[data-st="run"] .spld { color: var(--working-ink); } #space .splane[data-st="wait"] .spld { color: var(--watch); } #space .splane[data-st="fail"] .spld { color: var(--needs); } #space .splane[data-st="done"] .spld { color: var(--idle); }
+  #space :is(.sptrack, .spll) { grid-column: 2 / 4; }
+  #space .sptrack { position: relative; height: 7px; margin-top: 5px; border-radius: 4px; background: var(--ctl); }
+  #space .spbar { position: absolute; top: 0; bottom: 0; min-width: 4px; border-radius: 4px; box-sizing: border-box; background: var(--c, var(--muted)); }
+  #space .spbar[data-st="run"] { --c: var(--working-ink); } #space .spbar[data-st="quiet"] { --c: color-mix(in srgb, var(--working-ink) 55%, transparent); } #space .spbar[data-st="done"] { --c: var(--idle); } #space .spbar[data-st="fail"] { --c: var(--needs); }
+  #space .spbar[data-st="wait"] { background: color-mix(in srgb, var(--watch) 16%, transparent); border: 1.5px dashed var(--watch); }
+  #space .spnow { position: absolute; right: 0; top: -4px; bottom: -4px; width: 2px; border-radius: 1px; background: var(--accent); }
+  #space .spll { margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: var(--fs-sm)/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+  #space .spll b { font-weight: 600; color: var(--ink); }
+  #space .splane[data-st="fail"] .spll { color: var(--needs); }
+  #space .spnone { color: var(--muted); font-size: var(--fs-md); }
+  #sbSpace { align-self: center; height: 20px; margin-right: 4px; gap: 5px; font-size: var(--fs-xs); } #sbSpace .ic { width: 14px; height: 14px; fill: none; }
+  #sbSpace[aria-pressed="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
   @keyframes spspin { to { transform: rotate(360deg); } }
-  @keyframes spsonar { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(1.4); opacity: 0; } }
-  @keyframes spbreathe { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+  @keyframes spsonar { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(1.07); opacity: 0; } }
   #ov .ans button:disabled { opacity: .6; cursor: default; }
   #ov .ans b { font: 700 var(--fs-xs) ui-monospace, monospace; color: var(--needs); margin-right: 6px; }
   #ov .ot footer { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); color: var(--muted); min-width: 0; }
@@ -3123,7 +3129,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
     #sbSwim .ltick { animation: none; }   /* lunch's dishes stand still in the lane (the sign drops in and turns at once: lunchSign reads REDUCED) */
     #tv .tvr.flash, #log .msg.tvhit { animation-timing-function: step-end; }   /* the timeline's row gone to, the transcript's turn: lit, then not, no fade */
     #sbList .lpane { transition: none; }   /* the list's switch: its pane there or not */
-    #sp .spc::after, #sp .spg::before, #sp .spg::after, #sp .spbar::after { animation: none !important; }   /* Space (⌥⌘S): the marks keep their shapes, still */
+    #space .spbox::after, #space .spa::before { animation: none !important; }   /* Space (⌥⌘S): the marks keep their shapes, still */
     .gsep.lane .lc { transition: none; }   /* a lane's caret turns at once (its head kept since 2026-11-01; the lane itself folds at once: drawCards reads REDUCED) */
     .card.working::before, .card.watching::before { animation: none; background: var(--lit); }
     .agr[data-st="run"] > .agd::before { animation: none; border-color: var(--glow, var(--working)); }   /* an agent's arc: a whole circle, still */
@@ -3202,6 +3208,11 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
     <div class="sedge down" id="sdown"><button data-dir="1"></button></div>
   </section>
   <div id="splitter" title="Drag to resize"></div>
+  <section id="space" hidden aria-label="Space — every chat as a node of its agents">
+    <div class="sphd"><h1>Space</h1><div class="spfs" id="spfs" role="group" aria-label="Show chats by state"></div><span class="spsub" id="spsub"></span></div>
+    <div class="spbody"><div class="spfield" id="spfield"><h2 class="vh">Chats</h2><div class="spgrid" id="spgrid"></div><p class="spempty" id="spempty" hidden>No chat in the states picked above.</p></div><aside class="spside" id="spside" aria-label="The open chat's agents"></aside></div>
+  </section>
+  <div id="spdiv" hidden role="separator" aria-orientation="horizontal" aria-label="Drag to size Space and the chat" title="Drag to size Space and the chat"></div>
   <section id="chat">
     <div class="shead" id="shead"><h2>Home</h2><button class="hmore" id="noChatMore" title="Settings · ⌘,"></button></div>
     <div id="prlist" hidden></div>
@@ -3229,7 +3240,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   </section>
 </main>
 <span class="vh" role="status" id="agSay"></span>
-<footer id="sbar"><div id="sbFind"><button class="fsearch" id="sbList" aria-controls="sessions" aria-pressed="true" title="Hide the chat list (⌥⌘B)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.25 3.5v9" stroke="currentColor" stroke-width="1.5"/><rect class="lpane" x="2.5" y="3.5" width="3" height="9"/></svg></button><span id="filters"><button class="fsearch" id="qBtn" title="Search this project’s chats by title, branch or prompt — any letters in order, the best match first (⌥⌘F)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 1.5a5 5 0 1 0 3.03 8.97l3.5 3.5 1.06-1.06-3.5-3.5A5 5 0 0 0 6.5 1.5Zm0 1.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z"/></svg></button><input type="text" id="q" class="fq" placeholder="this project’s chats, done too — title, branch, prompt…" autocomplete="off" spellcheck="false" hidden><button class="fsearch" id="fBtn" aria-haspopup="menu" aria-pressed="false" title="Show only some chats — a PR at your move, or a new reply"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 2.5h12.5a.5.5 0 0 1 .38.82L10 8.9v4.35a.5.5 0 0 1-.28.45l-2.5 1.2A.5.5 0 0 1 6.5 14.45V8.9L1.37 3.32a.5.5 0 0 1 .38-.82Z"/></svg><span class="fl"></span></button></span></div><div id="sbLeft"></div><div id="sbPeople"><div id="people" hidden></div></div><div id="sbSwim" role="button" aria-label="Every agent at work (⌥⌘A)"></div><div id="sbRight"></div></footer>
+<footer id="sbar"><div id="sbFind"><button class="fsearch" id="sbList" aria-controls="sessions" aria-pressed="true" title="Hide the chat list (⌥⌘B)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.25 3.5v9" stroke="currentColor" stroke-width="1.5"/><rect class="lpane" x="2.5" y="3.5" width="3" height="9"/></svg></button><button class="fsearch" id="sbSpace" aria-controls="space" aria-pressed="false" title="Space — every chat as a node of its agents (⌥⌘S)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.4" stroke="currentColor" stroke-width="1.5"/><ellipse cx="8" cy="8" rx="6.5" ry="3" transform="rotate(-28 8 8)" stroke="currentColor" stroke-width="1.5"/></svg>Space</button><span id="filters"><button class="fsearch" id="qBtn" title="Search this project’s chats by title, branch or prompt — any letters in order, the best match first (⌥⌘F)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 1.5a5 5 0 1 0 3.03 8.97l3.5 3.5 1.06-1.06-3.5-3.5A5 5 0 0 0 6.5 1.5Zm0 1.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z"/></svg></button><input type="text" id="q" class="fq" placeholder="this project’s chats, done too — title, branch, prompt…" autocomplete="off" spellcheck="false" hidden><button class="fsearch" id="fBtn" aria-haspopup="menu" aria-pressed="false" title="Show only some chats — a PR at your move, or a new reply"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 2.5h12.5a.5.5 0 0 1 .38.82L10 8.9v4.35a.5.5 0 0 1-.28.45l-2.5 1.2A.5.5 0 0 1 6.5 14.45V8.9L1.37 3.32a.5.5 0 0 1 .38-.82Z"/></svg><span class="fl"></span></button></span></div><div id="sbLeft"></div><div id="sbPeople"><div id="people" hidden></div></div><div id="sbSwim" role="button" aria-label="Every agent at work (⌥⌘A)"></div><div id="sbRight"></div></footer>
 <dialog id="settings" class="pop" aria-labelledby="spTitle" tabindex="-1">
   <aside class="snav">
     <label class="sfind"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 1.5a5 5 0 1 0 3.03 8.97l3.5 3.5 1.06-1.06-3.5-3.5A5 5 0 0 0 6.5 1.5Zm0 1.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z"/></svg><input type="search" id="sq" placeholder="Search" aria-label="Search the settings" aria-controls="sbody" autocomplete="off" spellcheck="false"></label>
@@ -3390,10 +3401,6 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   <div class="ovtop"><h1>Overview</h1><div class="chips" id="ovchips"></div><div class="keys"><span><kbd>1–9</kbd>open</span><span><kbd>←↑↓→</kbd><kbd>⏎</kbd></span><span><kbd>esc</kbd>back</span><button class="ovclose" title="Close · esc">×</button></div></div>
   <div class="ovcols" id="ovcols"></div>
 </dialog>
-<dialog id="sp" aria-label="Space — every live chat's agents" tabindex="-1">
-  <div class="sptop"><h1>Space</h1><span class="spsub" id="spsub"></span><ul class="spleg" id="spleg" aria-label="Agents by state"></ul><div class="spwin" id="spwin" role="group" aria-label="The lanes' span"></div><button type="button" class="spclose" title="Close · esc" aria-label="Close">×</button></div>
-  <div class="spbody"><div class="spfield"><h2 class="vh">Live chats</h2><div class="spgrid" id="spgrid"></div><p class="spempty" id="spempty" hidden>No chat is running. Each live chat shows here with its agents round it.</p></div><aside class="spside" id="spside" aria-label="The chat picked, its agents"></aside></div>
-</dialog>
 <dialog id="lunchd" aria-labelledby="lunchTitle" tabindex="-1">
   <div class="chalk" id="lunchBoard"></div>
   <div class="lfoot" id="lunchFoot"></div>
@@ -3452,7 +3459,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
 //   css · the timeline tab: the chat and its PRs in one order (2026-10-17)
 //   css · home (2026-10-10): the column with no chat open — fastfetch's block, then the day
 //   css · ⌥⌘A, the overview (2026-10-10): the board blurred, every live chat a tile in its column
-//   css · ⌥⌘S: Space, every live chat's agents (2026-11-18)
+//   css · ⌥⌘S: Space, the board's other layout — every chat as a node of its agents (2026-11-18)
 //   css · project editor
 //   css · the chat (2026-10-17): a GitHub repo's issue, in a panel over the board's foot
 //   css · the small print: wrapping, figures, selection, focus, overscroll
@@ -3498,7 +3505,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
 //   js  · live tiles: a chat drawn small — its drawer's screen, or the last few things it did (2026-10-10)
 //   js  · tiles: the board's panels laid out as Hyprland's (2026-10-10)
 //   js  · ⌥⌘A: the overview, every live agent at once (2026-10-10)
-//   js  · ⌥⌘S: Space, every live chat's agents at once (2026-11-18)
+//   js  · ⌥⌘S: Space, the board's other layout (2026-11-18)
 //   js  · home: the chat column with no chat open (2026-10-10)
 //   js  · home's sea (2026-10-12): an ASCII sunset at sea, the board's fish leaping in it
 //   js  · a chat's folder not checked out: cloned first (2026-10-09)
@@ -3548,7 +3555,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
     return a;
   };
   const state = { voiceOver: false, sessions: new Map(), projects: [], paneGh: new Map(), paneIde: new Map(), paneWt: new Map(), paneVisible: false, paneLeft: 0, fill: false, fillHeard: false, notch: null, pins: [], hidden: [], repos: {}, current: null, unread: new Map(), entries: [], notifications: true, serverNotify: false, about: {}, config: { roots: [], quick: null, projects: {} }, titleEdit: null, prsFor: null, snapshots: 0, awake: { awake: false, lid: false, idleSleep: null, power: null }, lidAsking: false, clones: new Map(), update: null, editors: null, key: null, chat: { on: false, repo: null, room: null, unread: 0, invites: [] }, lunch: { on: false, set: false, places: [] } };
-  const prefs = { spWin: 30, agentCards: {}, cardPartsSeen: 0, mutedAt: 0, fishKey: null, fishing: null, laneSchool: false, laneBed: false, project: 'all', lastProject: null, lanesShut: ['done', 'idle'], lanesIdle: false, listFilter: null, sessionsWidth: 380, headDetails: false, chatZoom: 1, listHidden: false, splitAt: .5, stackAt: .5, prsOpen: false, cards: 'compact', cardsByLane: false, cardsMoved: false, optMeta: true, termReader: false, pageZoom: 1, fullSpace: false, person: null, cardsEven: false, cardsSnipOne: false, sounds: false, barStats: ['cpu', 'mem'], peopleCompact: true, changesScope: 'turn', editor: 'vscode', inEditor: 'vscode', pagesOut: true, linksMoved: false, boardSites: ['github.com'], cardParts: ['prs', 'rounds', 'tickets', 'faces'], prsHeight: null, theme: 'own', skinFollow: true, look: null, darkFrame: false, fillHints: 0, tvSeen: false, tvHints: 0, toured: false, settingsPane: 'general', zeBest: {}, zeDay: null, zeDiff: 1, zeSound: true, zeBand: 'vira', zeTwo: null, zeTrophies: {}, prChips: 'matrix', agentFor: {}, prAgent: null };
+  const prefs = { space: false, spaceAt: .55, spOff: ['idle', 'done'], spWin: 30, agentCards: {}, cardPartsSeen: 0, mutedAt: 0, fishKey: null, fishing: null, laneSchool: false, laneBed: false, project: 'all', lastProject: null, lanesShut: ['done', 'idle'], lanesIdle: false, listFilter: null, sessionsWidth: 380, headDetails: false, chatZoom: 1, listHidden: false, splitAt: .5, stackAt: .5, prsOpen: false, cards: 'compact', cardsByLane: false, cardsMoved: false, optMeta: true, termReader: false, pageZoom: 1, fullSpace: false, person: null, cardsEven: false, cardsSnipOne: false, sounds: false, barStats: ['cpu', 'mem'], peopleCompact: true, changesScope: 'turn', editor: 'vscode', inEditor: 'vscode', pagesOut: true, linksMoved: false, boardSites: ['github.com'], cardParts: ['prs', 'rounds', 'tickets', 'faces'], prsHeight: null, theme: 'own', skinFollow: true, look: null, darkFrame: false, fillHints: 0, tvSeen: false, tvHints: 0, toured: false, settingsPane: 'general', zeBest: {}, zeDay: null, zeDiff: 1, zeSound: true, zeBand: 'vira', zeTwo: null, zeTrophies: {}, prChips: 'matrix', agentFor: {}, prAgent: null };
   try { Object.assign(prefs, JSON.parse(localStorage.getItem('peixairada-prefs') || '{}')); } catch {}
   // Compact is the cards' default (2026-10-12; large before), and a board saved with large — the old default — moves to it
   // once; one that chose medium keeps it.
@@ -3651,7 +3658,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
     cards.forEach((c, i) => c.classList.toggle('qsel', on && i === qsel.i));
     return on ? cards[qsel.i] || null : null;
   }
-  const qShow = on => { const inp = $('#q'); if (on) showList(); inp.hidden = !on; $('#filters').classList.toggle('searching', on); if (on) { inp.focus(); inp.select(); } };
+  const qShow = on => { const inp = $('#q'); if (on) showList(true); inp.hidden = !on; $('#filters').classList.toggle('searching', on); if (on) { inp.focus(); inp.select(); } };
   // the box and the filter, on #filters itself (the status bar's)
   {
     const btn = $('#qBtn'), inp = $('#q');
@@ -4480,11 +4487,17 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
     list.style.width = prefs.sessionsWidth + 'px';
     if (hide && list.classList.contains('kf')) { list.classList.remove('kf'); $('#chat').classList.add('kf'); }   // the keys' border on what is left
     if (!hide && applyList.top != null) { $('#slist').scrollTop = applyList.top; applyList.top = null; followCard(); phaseAnims(); }
-    b.setAttribute('aria-pressed', String(!hide)); b.title = `${hide ? 'Show' : 'Hide'} the chat list (⌥⌘B)`;
+    const shown = !hide && !prefs.space;   // Space takes the list's place (2026-11-18): its button says so
+    b.setAttribute('aria-pressed', String(shown)); b.title = `${shown ? 'Hide' : 'Show'} the chat list (⌥⌘B)`;
   }
   function setList(show) { if (show === !prefs.listHidden) return; prefs.listHidden = !show; savePrefs(); applyList(); }
-  function toggleList() { setList(!!prefs.listHidden); }
-  function showList() { setList(true); }
+  function toggleList() { if (prefs.space) return showList(true); setList(!!prefs.listHidden); }
+  /** The list back. In Space (2026-11-18) only when asked for it — its button, ⌥⌘B, the magnifier, the funnel —, which leaves
+   *  Space; a project or a face picked narrows Space as it does the list. */
+  function showList(leave = false) {
+    if (prefs.space) { if (!leave) return; prefs.space = false; savePrefs(); applySpace(); }
+    setList(true); applyList();
+  }
   $('#sbList').onclick = toggleList;
   applyList();
   {
@@ -5362,7 +5375,7 @@ const toolName = n => {
     const every = projectList();
     if (!every.some(p => p.key === prefs.project)) prefs.project = ALL;
     const cur = every.find(p => p.key === prefs.project);
-    renderSessionList(cur); renderHidden();
+    renderSessionList(cur); renderHidden(); spSoon();   // Space (⌥⌘S) draws what the list draws, the project in view's
     const w = wanting(), total = w.needs.length + w.replied.length;   // what wants you, as the Dock counts it (2026-10-12; the alerts this page saw before)
     document.title = (total ? `(${total}) ` : '') + 'peixAIrada';
     if (inApp) postState();
@@ -7475,7 +7488,7 @@ const toolName = n => {
       { name: 'Every key', hint: '?', fn: keysOpen },
       { name: 'Take the tour', sub: ' — the board’s main parts, one at a time', fn: tourStart },
       { name: 'The overview — every live chat', hint: '⌥⌘A', fn: ovOpen },
-      { name: 'Space — every live chat\'s agents', hint: '⌥⌘S', fn: spOpen },
+      { name: prefs.space ? 'Leave Space' : 'Space — every chat as a node of its agents', hint: '⌥⌘S', fn: spToggle },
       { name: 'Home — the day', hint: '⌥⌘0', fn: hotHome },
       { name: 'About peixAIrada', fn: aboutOpen },
       { name: 'Zé, the Bruce Lee of Barcelos — a game', hint: '⌥⌘Z', fn: zeOpen },
@@ -7517,7 +7530,7 @@ const toolName = n => {
       { name: 'Tour', hint: 'the main parts', icon: '⇢', go: tourStart, leaf: true },
       { name: 'Home', hint: '⌥⌘0', icon: '⌂', go: hotHome, leaf: true },
       { name: 'Overview', hint: '⌥⌘A', icon: '▦', go: ovOpen, leaf: true },
-      { name: 'Space', hint: '⌥⌘S', icon: '◎', go: spOpen, leaf: true },
+      { name: 'Space', hint: '⌥⌘S', icon: '◎', go: spToggle, leaf: true },
       { name: 'About peixAIrada', icon: '·', go: aboutOpen, leaf: true },
     ].map(m => ({ kind: 'menu', id: 'mn:' + m.name, ...m }));
   };
@@ -7610,7 +7623,7 @@ const toolName = n => {
     ['⌥⌘↑↓', 'Go to', 'the chat above / below in the list', '', ['alt:ArrowUp', 'alt:ArrowDown']],
     ['⌥⌘⏎', 'Go to', 'the next thing that wants you', 'the question waiting longest, then a PR at your move, then what to read · again, the one after · the status bar says which', ['alt:Enter']],
     ['⌥⌘A', 'Go to', 'the overview: every live chat at once', 'Asking you · Clauding · Watching · New replies, each with what it is doing now · 1–9 opens one · a question\'s answer types its digit into the chat\'s drawer', ['alt:KeyA']],
-    ['⌥⌘S', 'Go to', 'Space: every live chat\'s agents at once', 'each chat an orbit of its agents, a mark each by state · a chat picked shows its agents as lanes on one clock · a lane opens its transcript · again closes it', ['alt:KeyS']],
+    ['⌥⌘S', 'Go to', 'Space: the board\'s other layout, every chat as a node of its agents', 'in the chat list\'s place, the chats by state, each with a pod per agent type · a click opens the chat below it, every key as ever · its agents as lanes on one clock · again, or ⌥⌘B, back to the list · the status bar\'s Space too', ['alt:KeyS']],
     ['⌥⌘0', 'Go to', 'home — the board\'s facts and your day', 'no chat open · a row opens its chat', ['alt:Digit0']],
     ['⌥⌘M', 'Go to', 'lunch — today\'s menus, on a chalkboard', 'the places you go, read each morning · Going and In 15 min at lunch time · again closes it · Settings › Lunch sets it up', ['alt:KeyM']],
     ['⌥⌘Z', 'Go to', 'Zé, the Bruce Lee of Barcelos — a game', 'meat makes him buff, greens thin — down to his bones · three meats in a row bring a Ford Focus, three greens a Mercedes A-Class · four ways to play, ← → on the title, G a second player (the galo, on A D W) · level 3 is ENTER THE DRAGON, every fifth the Avó da Horta · ← → run (twice: a dash), ↑ jumps, ↓ drops, space kicks (held: the nunchaku), P pauses, M the sound, T the music · a chat asking you stops it: ⏎ goes to it · again closes it', ['alt:KeyZ']],
@@ -7686,7 +7699,7 @@ const toolName = n => {
   // modifier the layout, and a key pressed on the other layout turns it (hotGroup). A modal up (the picker, the project
   // editor) swallows them all. In the app the pane is a native view with its own web views, so a key pressed there
   // never reaches this page: the shell forwards ⌥⌘ + these keys through peixKey (the same list, kept by hand there).
-  const HOTKEYS = { Enter: hotNext, KeyZ: zeToggle, KeyM: lunchToggle, KeyJ: hotTimelineKey, KeyT: hotShellKey, KeyE: hotVsCodeKey, KeyV: hotEditorApp, KeyG: hotGhKey, KeyC: hotClaudeKey, KeyW: hotCloseTab, KeyR: hotReload, KeyO: hotOracle, KeyP: () => pickOpen('project'), KeyK: () => pickOpen('chat'), KeyF: hotFind, KeyN: () => pickOpen('new'), KeyB: toggleList, KeyY: themesOpen, KeyL: () => pickOpen('launch'), KeyD: hotDiffKey, KeyA: ovOpen, KeyS: spOpen, Digit0: hotHome, ArrowUp: () => hotMove(-1), ArrowDown: () => hotMove(1), ArrowLeft: () => hotTab(-1), ArrowRight: () => hotTab(1), Digit1: () => hotGroup(0, true), Digit2: () => hotGroup(1, true) };
+  const HOTKEYS = { Enter: hotNext, KeyZ: zeToggle, KeyM: lunchToggle, KeyJ: hotTimelineKey, KeyT: hotShellKey, KeyE: hotVsCodeKey, KeyV: hotEditorApp, KeyG: hotGhKey, KeyC: hotClaudeKey, KeyW: hotCloseTab, KeyR: hotReload, KeyO: hotOracle, KeyP: () => pickOpen('project'), KeyK: () => pickOpen('chat'), KeyF: hotFind, KeyN: () => pickOpen('new'), KeyB: toggleList, KeyY: themesOpen, KeyL: () => pickOpen('launch'), KeyD: hotDiffKey, KeyA: ovOpen, KeyS: spToggle, Digit0: hotHome, ArrowUp: () => hotMove(-1), ArrowDown: () => hotMove(1), ArrowLeft: () => hotTab(-1), ArrowRight: () => hotTab(1), Digit1: () => hotGroup(0, true), Digit2: () => hotGroup(1, true) };
   // Plain ⌘ + a key, the board's own layout keys: ⌘1 / ⌘2 the halves. They are a separate map because the
   // modifier is: ⌥⌘ is "this chat, over there", ⌘ alone is "this window, this shape". ⌘K is not here — the drawer
   // takes it for the terminal's clear — and neither are ⌘+ and ⌘−, which are chatZoomKey's. ⌘0 is both: the other
@@ -7705,7 +7718,7 @@ const toolName = n => {
     if ($('#room').open) { $('#room').close(); if (fn === hotClose) return true; }   // …nor is the chat's panel (2026-10-17): a key is back to work
     if (code === 'KeyP' && mods === 'altcmd' && $('#pick').open && pick.mode === 'project') { projectAgain(); return true; }
     if (fn === hotGhKey && $('#pick').open && pick.mode === 'pr' && pick.ctx.sid) { prPickAgain(); return true; }   // the PRs' picker from one of them: ⌥⌘G again is the column's
-    if (fn !== hotClose && !(fn === settingsToggle && $('#settings').open) && !(fn === lunchToggle && $('#lunchd').open) && !(fn === zeToggle && $('#zeGame').open) && !(fn === spOpen && $('#sp').open) && document.querySelector('dialog[open]')) return false;
+    if (fn !== hotClose && !(fn === settingsToggle && $('#settings').open) && !(fn === lunchToggle && $('#lunchd').open) && !(fn === zeToggle && $('#zeGame').open) && document.querySelector('dialog[open]')) return false;
     return fn() !== false;
   };
   document.addEventListener('keydown', e => {
@@ -9235,7 +9248,7 @@ const toolName = n => {
   // face narrowing it too (2026-10-14; the project's alone before, a count the list did not show). A press on the funnel
   // that closed its own menu leaves it closed.
   let fCounts = {};
-  function setFilter(k) { prefs.listFilter = FILTERS[k] ? k : null; savePrefs(); if (prefs.listFilter) showList(); renderBoard(); $('#slist').scrollTop = 0; }
+  function setFilter(k) { prefs.listFilter = FILTERS[k] ? k : null; savePrefs(); if (prefs.listFilter) showList(true); renderBoard(); $('#slist').scrollTop = 0; }
   function drawFilter(p, narrow = () => true) {
     const f = listFilter(), b = $('#fBtn'), fl = b.querySelector('.fl');
     fCounts = Object.fromEntries(Object.entries(FILTERS).map(([k, x]) => [k, p.sessions.filter(s => x.test(s) && narrow(s)).length]));
@@ -12230,116 +12243,156 @@ const toolName = n => {
     note($('#shead'), 'Its drawer did not come up — answer it in the chat', true);
   }
 
-  // ---- ⌥⌘S: Space, every live chat's agents at once (2026-11-18) ------------------------------------------------------
-  // Each live chat an orbit: its project's square at the centre, ringed in its state (asking, clauding, watching, ready),
-  // its agents round it, a mark each — running an arc that turns, quiet the arc still, waiting a dashed ring, done a tick,
-  // failed a cross, stopped a square, joined an outline: a shape as well as a colour. The legend counts them across the
-  // board. The chat picked shows its agents as lanes on one clock (the last 15 m, 30 m or 1 h, `prefs.spWin`): when each
-  // began, how long it ran, how it ended, its last step; a lane opens its agent's tab (agOpen). Read from the summaries'
-  // `agentRows` alone — nothing more asked of the server —, drawn on its chats' events (spSoon) and every 5 s for the clock.
-  const sp = { sel: null, raf: 0, timer: 0, list: [] };
-  const SP_WINS = [15, 30, 60], SP_ORDER = ['run', 'quiet', 'wait', 'fail', 'done', 'stop', 'joined'], SP_SATS = 16;
+  // ---- ⌥⌘S: Space, the board's other layout (2026-11-18) ----------------------------------------------------------------
+  // The list's and the chat's place, split: Space on top, the chat itself below — the board's own #chat, so every key,
+  // tab, drawer and picker is the same (main.space, a grid). Space or the list, never both: ⌥⌘B, the list's button, the
+  // magnifier or the funnel leave Space for the list; Space hides it, and its own hidden-or-not is kept for after. Space: a node per chat of the
+  // project in view — its name (60 characters at most, wrapped) and its folder, its edge the chat's state — with a pod
+  // per agent type docked to it, each agent its type's two letters in its type's colour (the definition's, else one from
+  // its name), its state a badge on the corner, an arc that turns while it works. Filters by state on top (`prefs.spOff`);
+  // the open chat's agents as lanes on one clock (15 m · 30 m · 1 h, `prefs.spWin`), a lane its agent's tab (agOpen). A
+  // click on a node opens the chat below; no chat open, Space takes the column (`spfull`). Read from the summaries alone,
+  // drawn with the board (renderBoard → spSoon) and every 5 s for the clock while on (`prefs.space`, the status bar's
+  // #sbSpace, ⌥⌘S); the divider's place `prefs.spaceAt`.
+  const sp = { raf: 0, timer: 0, list: [] };
+  const SP_WINS = [15, 30, 60], SP_ORDER = ['run', 'quiet', 'wait', 'fail', 'done', 'stop', 'joined'], SP_POD = 6, SP_PODS = 4, SP_CAP = 30;
   const SP_WORD = { run: 'running', quiet: 'quiet', wait: 'waiting', fail: 'failed', done: 'done', stop: 'stopped', joined: 'joined' };
-  const SP_CORE = { ask: 'Asking you', work: 'Clauding', watch: 'Watching', ready: 'Ready' }, SP_RANK = { ask: 0, work: 1, watch: 2, ready: 3 };
+  const SP_ST = { ask: 'Asking you', work: 'Clauding', watch: 'Watching', ready: 'Ready', idle: 'Idle', done: 'Done' };
+  const SP_OF = { asking: 'ask', working: 'work', watching: 'watch', ready: 'ready', idle: 'idle', done: 'done' };
+  const SP_HUE = { red: 25, orange: 55, yellow: 95, green: 150, cyan: 200, blue: 255, purple: 300, pink: 350 };   // Claude Code's names, as .asdot's
   const spWin = () => SP_WINS.includes(prefs.spWin) ? prefs.spWin : 30;
+  const spOff = () => Array.isArray(prefs.spOff) ? prefs.spOff : ['idle', 'done'];
   const spSt = r => agQuiet(r) ? 'quiet' : r.st;
-  const spCore = s => asking(s) ? 'ask' : rankOf(s) === 'working' ? 'work' : inWatch(s) ? 'watch' : 'ready';
+  const spState = s => SP_OF[s.done ? 'done' : rankOf(s)] || 'ready';
   const spRows = s => s?.alive ? s.agentRows || [] : [];
   const spCount = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
-  const spGlyph = (st, said) => `<i class="spg" data-st="${st}"${said ? ` role="img" aria-label="${esc(said)}"` : ' aria-hidden="true"'}></i>`;
+  const spCut = t => { t = String(t || ''); return t.length > 60 ? t.slice(0, 60).trimEnd() + '…' : t; };
+  const spKind = r => r.mate ? r.name || 'teammate' : r.type || 'agent';
+  const spHue = (name, color) => SP_HUE[color] ?? [...String(name)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+  const spTwo = name => { const p = String(name).split(/[^A-Za-z0-9]+/).filter(Boolean); return p.length ? (p.length > 1 ? p.map(x => x[0]).join('') : p[0].slice(0, 2)).toUpperCase().slice(0, 2) : '·'; };
   const spTally = rows => SP_ORDER.map(k => [k, rows.filter(r => spSt(r) === k).length]).filter(([, n]) => n).map(([k, n]) => `${n} ${SP_WORD[k]}`).join(' · ');
-  /** The live chats, those with agents first, then by what they want of you. */
-  function spChats() {
-    return [...state.sessions.values()].filter(s => visible(s) && !s.done && s.alive)
-      .sort((a, b) => (spRows(b).length > 0) - (spRows(a).length > 0) || SP_RANK[spCore(a)] - SP_RANK[spCore(b)] || byWord(a, b));
-  }
-  /** A chat's orbit — what is picked is a class set after, so a pick redraws no orbit and stops no mark turning. */
-  function spSys(s) {
-    const rows = spRows(s), n = rows.length, core = spCore(s), color = repoColor(s.cwd), shown = rows.slice(0, SP_SATS);
-    const sats = shown.map((r, i) => {
-      const a = (shown.length === 1 ? -45 : -90 + 360 / shown.length * i) * Math.PI / 180;
-      return `<span class="spsat" style="left:${(50 + 36 * Math.cos(a)).toFixed(2)}%;top:${(50 + 36 * Math.sin(a)).toFixed(2)}%">${spGlyph(spSt(r))}</span>`;
+  const spFolder = s => !s.cwd || s.cwd === state.about?.scratch ? '' : homePath(s.cwd);
+  /** An agent's mark: its type's letters and colour, its state for a screen reader too. */
+  const spAgent = (r, kind, hue) => { const st = spSt(r); return `<span class="spa" data-st="${st}" style="--h:${hue}" role="img" aria-label="${esc(`${kind}: ${SP_WORD[st]}`)}">${esc(spTwo(kind))}${['done', 'fail', 'wait', 'stop'].includes(st) ? '<i></i>' : ''}</span>`; };
+  /** A chat's agents by type, the most first, each docked to its node on a side of its own: top, bottom, right, left. */
+  function spPods(s) {
+    const groups = [];
+    for (const r of spRows(s)) { const k = spKind(r); let g = groups.find(x => x.k === k); if (!g) groups.push(g = { k, rows: [], color: r.color }); g.rows.push(r); g.color ||= r.color; }
+    groups.sort((a, b) => b.rows.length - a.rows.length);
+    const shown = groups.slice(0, SP_PODS), left = groups.slice(SP_PODS).reduce((n, g) => n + g.rows.length, 0);
+    return shown.map((g, i) => {
+      const hue = spHue(g.k, g.color), more = g.rows.length > SP_POD ? g.rows.length - (SP_POD - 1) : 0, rows = more ? g.rows.slice(0, SP_POD - 1) : g.rows;
+      // top and bottom a row, the sides a column: x, y, width, height of the pod; of its wire; where its label is
+      const n = rows.length + (more ? 1 : 0), len = n * 26 + (n - 1) * 5 + 12, side = ['top', 'bottom', 'right', 'left'][i];
+      const at = { top: [160 - len / 2, 27, len, 38, 159, 65, 2, 12, 160, 10], bottom: [160 - len / 2, 185, len, 38, 159, 173, 2, 12, 160, 226],
+        right: [252, 125 - len / 2, 38, len, 240, 124, 12, 2, 271, 128 + len / 2], left: [30, 125 - len / 2, 38, len, 68, 124, 12, 2, 49, 128 + len / 2] }[side];
+      const label = `${g.k}${i === SP_PODS - 1 && left ? ` · +${left} more` : ''}`;
+      return `<span class="spwire" style="--h:${hue};left:${at[4]}px;top:${at[5]}px;width:${at[6]}px;height:${at[7]}px"></span>`
+        + `<span class="sppod${side === 'right' || side === 'left' ? ' col' : ''}" style="--h:${hue};left:${at[0]}px;top:${at[1]}px;width:${at[2]}px;height:${at[3]}px">${rows.map(r => spAgent(r, g.k, hue)).join('')}${more ? `<span class="spmore">+${more}</span>` : ''}</span>`
+        + `<span class="spl" style="--h:${hue};left:${at[8]}px;top:${at[9]}px">${esc(label)}</span>`;
     }).join('');
-    const said = n ? spTally(rows) : 'no agents';
-    return `<button type="button" class="sps" data-id="${esc(s.id)}" aria-label="${esc(`${s.title} — ${s.project}, ${SP_CORE[core]}, ${said}`)}" style="${color ? `--repo:${color};--rink:${inkOn(color)}` : ''}">
-      <span class="spo${n > 10 ? ' many' : ''}"><span class="spring"></span><span class="spc" data-st="${core}"><span class="spt">${esc(projCfg(s.project).abbr || abbrRule(s.project))}</span></span>${sats}</span>
-      <span class="spn">${ticks(esc(s.title))}</span>
-      <span class="spm">${esc(s.project)} · <span class="spw" data-st="${core}">${SP_CORE[core]}</span></span>
-      <span class="spa">${esc(said)}</span></button>`;
+  }
+  /** A chat's node — what is open is a class set after, so opening a chat redraws no node and stops no arc turning. */
+  function spNode(s) {
+    const st = spState(s), rows = spRows(s), color = repoColor(s.cwd), folder = spFolder(s);
+    const said = `${s.title} — ${folder || 'no folder'}, ${SP_ST[st]}${rows.length ? `, ${spTally(rows)}` : ''}`;
+    return `<button type="button" class="spt" data-id="${esc(s.id)}" aria-label="${esc(said)}" style="${color ? `--repo:${color}` : ''}"><span class="spo">${spPods(s)}`
+      + `<span class="spbox" data-st="${st}"><span class="spbt">${ticks(esc(spCut(s.title)))}</span>${folder ? `<span class="spbf" title="${esc(s.cwd)}"><i></i>${esc(folder)}</span>` : ''}</span></span></button>`;
   }
   /** One agent's lane: its span on the clock (to now while it works), how long, its last step. */
   function spLane(r, s, W, now) {
-    const st = spSt(r), from = Date.parse(r.at), end = r.end ? Date.parse(r.end) : now, took = end - from;
+    const st = spSt(r), from = Date.parse(r.at), end = r.end ? Date.parse(r.end) : now, took = end - from, kind = spKind(r), hue = spHue(kind, r.color);
     const a = Math.max(0, 1 - (now - from) / W), b = Math.max(0, 1 - (now - end) / W);
     const bar = !Number.isFinite(from) || now - end >= W ? '' : `<span class="spbar" data-st="${st}" style="left:${(a * 100).toFixed(2)}%;width:${Math.max(0.8, (b - a) * 100).toFixed(2)}%"></span>`;
     const dur = !Number.isFinite(from) ? SP_WORD[st] : st === 'run' ? `at work · ${agDur(now - from)}` : st === 'quiet' ? `quiet ${agDur(now - Date.parse(r.lastAt))}` : st === 'wait' ? `waiting · ${agDur(now - from)}`
       : st === 'done' ? `done in ${agDur(took)}` : st === 'fail' ? `failed after ${agDur(took)}` : st === 'stop' ? `stopped after ${agDur(took)}` : SP_WORD[st];
-    const kind = r.mate ? 'teammate' : r.kind || '', open = AG_ID.test(String(r.id)) && r.st !== 'joined';
-    return `<div class="splane" data-st="${st}"${open ? ` data-ag="${esc(r.id)}" role="button" tabindex="0" title="Open its transcript"` : ''}>${spGlyph(st, SP_WORD[st])}<span class="spla">${agAsked(r)}</span><span class="spld">${esc(dur)}</span>${kind ? `<span class="splk">${esc(kind)}${r.branch ? ` · ${esc(r.branch)}` : ''}</span>` : ''}<span class="sptrack">${bar}<i class="spnow"></i></span><span class="spll">${agNow(r, s) || (st === 'joined' ? 'In the team, nothing asked of it yet' : '')}</span></div>`;
+    const open = AG_ID.test(String(r.id)) && r.st !== 'joined';
+    return `<div class="splane" data-st="${st}"${open ? ` data-ag="${esc(r.id)}" role="button" tabindex="0" title="Open its transcript"` : ''}>${spAgent(r, kind, hue)}<span class="spla">${agAsked(r)}</span><span class="spld">${esc(dur)}</span><span class="sptrack">${bar}<i class="spnow"></i></span><span class="spll">${agNow(r, s) || (st === 'joined' ? 'In the team, nothing asked of it yet' : esc(kind))}</span></div>`;
   }
   function spSide(s) {
-    if (!s) return '';
-    const rows = spRows(s), core = spCore(s), mates = rows.filter(r => r.mate).length, w = spWin(), W = w * 60_000, now = Date.now();
+    if (!s) return '<p class="spnone">Open a chat — a click on its node — and its agents show here, each on one clock.</p>';
+    const rows = spRows(s), st = spState(s), mates = rows.filter(r => r.mate).length, w = spWin(), W = w * 60_000, now = Date.now();
     const lanes = [...rows].sort((a, b) => (a.at ? Date.parse(a.at) : Infinity) - (b.at ? Date.parse(b.at) : Infinity)).map(r => spLane(r, s, W, now)).join('');
     const who = !rows.length ? 'no agents' : mates ? `an agent team · ${spCount(mates, 'teammate')}${rows.length > mates ? ` · ${spCount(rows.length - mates, 'agent')}` : ''}` : spCount(rows.length, 'agent');
-    return `<p class="spproj">${esc(s.project)}</p><h2>${ticks(esc(s.title))}</h2>
-      <p class="spstate"><span class="spw" data-st="${core}">${SP_CORE[core]}</span><span>· ${who}</span><button type="button" class="spgo">Open the chat</button></p>
-      ${rows.length ? `<div class="splanes"><div class="spticks" aria-hidden="true"><span>${w}m ago</span><span>${Math.round(w * 2 / 3)}m</span><span>${Math.round(w / 3)}m</span><span class="now">now</span></div>${lanes}</div>`
-        : '<p class="spnone">No agents in its last round. Its agents show here as they start.</p>'}`;
+    return `<p class="spproj">Agents · ${esc(s.project)}</p><p class="spstate"><span class="spw" data-st="${st}">${SP_ST[st]}</span><span>· ${who}</span>`
+      + `<span class="spwin" role="group" aria-label="The lanes' span">${SP_WINS.map(x => `<button type="button" data-w="${x}" aria-pressed="${x === w}">${x === 60 ? '1h' : `${x}m`}</button>`).join('')}</span></p>`
+      + (rows.length ? `<div class="spticks" aria-hidden="true"><span>${w}m ago</span><span>${Math.round(w * 2 / 3)}m</span><span>${Math.round(w / 3)}m</span><span class="now">now</span></div>${lanes}`
+        : `<p class="spnone">${s.alive ? 'No agents in its last round. They show here as they start.' : 'Not running: agents show while its claude runs.'}</p>`);
+  }
+  /** The chats of the project in view, in the states picked: by state as the list's lanes go, then by the last word. Idle and Done hold back, as a long lane does. */
+  function spChats() {
+    const p = projectList().find(x => x.key === prefs.project), off = spOff(), rank = Object.keys(SP_ST), by = {};
+    for (const s of p?.sessions || []) { const k = spState(s); if (!off.includes(k)) (by[k] ||= []).push(s); }
+    return rank.flatMap(k => (by[k] || []).sort(byWord).slice(0, k === 'idle' || k === 'done' ? SP_CAP : Infinity));
   }
   function renderSpace() {
     sp.raf = 0;
-    const dlg = $('#sp'); if (!dlg.open) return;
-    const list = sp.list = spChats(), all = list.flatMap(spRows);
-    if (!list.some(s => s.id === sp.sel)) sp.sel = (list.find(s => spRows(s).length) || list[0])?.id || null;
-    setHtml($('#spsub'), `${spCount(list.length, 'live chat')} · ${spCount(all.length, 'agent')}`);
-    setHtml($('#spleg'), SP_ORDER.map(k => { const n = all.filter(r => spSt(r) === k).length; return `<li${n ? '' : ' class="nil"'}>${spGlyph(k)}<span>${SP_WORD[k][0].toUpperCase() + SP_WORD[k].slice(1)}</span><b>${n}</b></li>`; }).join(''));
-    setHtml($('#spwin'), SP_WINS.map(w => `<button type="button" data-w="${w}" aria-pressed="${w === spWin()}">${w === 60 ? '1h' : `${w}m`}</button>`).join(''));
-    // an orbit keeps its node while its markup is the same, so its marks turn on through every redraw
-    const grid = $('#spgrid'), had = new Map([...grid.children].map(e => [e.dataset.id, e])), tpl = document.createElement('template'), keys = document.activeElement?.closest?.('.sps')?.dataset.id;
+    if (!prefs.space) return;
+    const p = projectList().find(x => x.key === prefs.project), pool = p?.sessions || [], list = sp.list = spChats(), off = spOff();
+    $('#main').classList.toggle('spfull', !state.current);
+    setHtml($('#spfs'), Object.keys(SP_ST).map(k => `<button type="button" class="spf" data-k="${k}" data-st="${k}" aria-pressed="${!off.includes(k)}"><i></i>${SP_ST[k]}<b>${pool.filter(s => spState(s) === k).length}</b></button>`).join(''));
+    setHtml($('#spsub'), `${spCount(list.length, 'chat')} · ${spCount(list.reduce((n, s) => n + spRows(s).length, 0), 'agent')}`);
+    // a node keeps its element while its markup is the same, so its arcs turn on through every redraw
+    const grid = $('#spgrid'), had = new Map([...grid.children].map(e => [e.dataset.id, e])), tpl = document.createElement('template'), keys = document.activeElement?.closest?.('#spgrid .spt')?.dataset.id;
     let prev = null;
     for (const s of list) {
-      const html = spSys(s); let el = had.get(s.id); had.delete(s.id);
+      const html = spNode(s); let el = had.get(s.id); had.delete(s.id);
       if (el?._drawn !== html) { tpl.innerHTML = html; const ne = tpl.content.firstElementChild; ne._drawn = html; if (el) el.replaceWith(ne); el = ne; }
       if ((prev ? prev.nextElementSibling : grid.firstElementChild) !== el) { if (prev) prev.after(el); else grid.prepend(el); }
-      el.classList.toggle('on', s.id === sp.sel); el.setAttribute('aria-pressed', String(s.id === sp.sel));
+      el.classList.toggle('on', s.id === state.current); el.setAttribute('aria-current', String(s.id === state.current));
       prev = el;
     }
     for (const e of had.values()) e.remove();
-    if (keys && document.activeElement === document.body) grid.querySelector(`.sps[data-id="${CSS.escape(keys)}"]`)?.focus();
+    if (keys && document.activeElement === document.body) grid.querySelector(`.spt[data-id="${CSS.escape(keys)}"]`)?.focus();
     $('#spempty').hidden = !!list.length;
     const lane = document.activeElement?.closest?.('#spside .splane')?.dataset.ag;
-    if (setHtml($('#spside'), spSide(state.sessions.get(sp.sel))) && lane) $(`#spside .splane[data-ag="${CSS.escape(lane)}"]`)?.focus();
+    if (setHtml($('#spside'), spSide(state.sessions.get(state.current))) && lane) $(`#spside .splane[data-ag="${CSS.escape(lane)}"]`)?.focus();
   }
-  const spSoon = () => { if ($('#sp').open && !sp.raf) sp.raf = requestAnimationFrame(renderSpace); };
-  function spOpen() {
-    const dlg = $('#sp'); if (dlg.open) return dlg.close();
-    if (inApp) post({ type: 'focus' });
-    const cur = state.sessions.get(state.current); if (spRows(cur).length) sp.sel = cur.id;
-    dlg.showModal(); repostPane(); renderSpace();
-    ($('#spgrid .sps.on') || dlg).focus();
-    clearInterval(sp.timer); sp.timer = setInterval(spSoon, 5000);
+  const spSoon = () => { if (prefs.space && !sp.raf) sp.raf = requestAnimationFrame(renderSpace); };
+  /** On or off: the layout, the button, the clock; the chat's column moved, so its drawer and the pane's pages follow. */
+  function applySpace() {
+    const on = !!prefs.space, main = $('#main');
+    main.classList.toggle('space', on); if (!on) main.classList.remove('spfull');
+    applyList();   // the list's button: off while Space has its place
+    $('#space').hidden = $('#spdiv').hidden = !on;
+    main.style.setProperty('--sp', String(Math.min(.85, Math.max(.2, Number(prefs.spaceAt) || .55))));
+    const b = $('#sbSpace'); b.setAttribute('aria-pressed', String(on)); b.title = `${on ? 'Leave' : 'Open'} Space — every chat as a node of its agents (⌥⌘S)`;
+    clearInterval(sp.timer); sp.timer = on ? setInterval(spSoon, 5000) : 0;
+    if (on) renderSpace();
+    const s = state.sessions.get(state.current); if (s) syncTerm(s); else repostPane();
   }
-  $('#sp').addEventListener('close', () => { clearInterval(sp.timer); });
-  $('#sp').addEventListener('click', e => {
-    if (e.target.closest('.spclose')) return $('#sp').close();
-    const w = e.target.closest('#spwin [data-w]'); if (w) { prefs.spWin = +w.dataset.w; savePrefs(); return renderSpace(); }
-    const sys = e.target.closest('.sps'); if (sys) { sp.sel = sys.dataset.id; return renderSpace(); }
-    const s = state.sessions.get(sp.sel); if (!s) return;
-    if (e.target.closest('.spgo')) { $('#sp').close(); return openSession(s.id, { locate: true }); }
-    const lane = e.target.closest('.splane[data-ag]'), r = lane && spRows(s).find(x => x.id === lane.dataset.ag);
-    if (r) { $('#sp').close(); agOpen(s, r); }
+  function spToggle() { prefs.space = !prefs.space; savePrefs(); applySpace(); }
+  $('#sbSpace').onclick = spToggle;
+  $('#space').addEventListener('click', e => {
+    const f = e.target.closest('.spf[data-k]');
+    if (f) { const k = f.dataset.k, off = spOff(); prefs.spOff = off.includes(k) ? off.filter(x => x !== k) : [...off, k]; savePrefs(); return renderSpace(); }
+    const w = e.target.closest('.spwin [data-w]'); if (w) { prefs.spWin = +w.dataset.w; savePrefs(); return renderSpace(); }
+    const node = e.target.closest('.spt[data-id]'); if (node) { if (node.dataset.id !== state.current) openSession(node.dataset.id); return; }
+    const s = state.sessions.get(state.current), lane = e.target.closest('.splane[data-ag]'), r = lane && s && spRows(s).find(x => x.id === lane.dataset.ag);
+    if (r) agOpen(s, r);
   });
-  $('#sp').addEventListener('dblclick', e => { const sys = e.target.closest('.sps'); if (sys) { $('#sp').close(); openSession(sys.dataset.id, { locate: true }); } });
-  $('#sp').addEventListener('keydown', e => {
+  $('#space').addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.splane[data-ag]')) { e.preventDefault(); return e.target.click(); }
-    const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
-    if (!step || (!e.target.closest?.('#spgrid') && e.target !== $('#sp'))) return;
+    const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key], at = e.target.closest?.('#spgrid .spt');
+    if (!step || !at) return;
     e.preventDefault();
-    const i = sp.list.findIndex(s => s.id === sp.sel), s = sp.list[Math.max(0, Math.min(sp.list.length - 1, i + step))]; if (!s) return;
-    sp.sel = s.id; renderSpace(); $(`#spgrid .sps[data-id="${CSS.escape(s.id)}"]`)?.focus();
+    const nodes = [...$('#spgrid').children], i = nodes.indexOf(at);
+    nodes[Math.max(0, Math.min(nodes.length - 1, i + step))]?.focus();
   });
+  {
+    // the divider: Space's share of the column, dragged; the left button only, as the list's splitter
+    const div = $('#spdiv');
+    div.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      e.preventDefault(); div.setPointerCapture(e.pointerId); div.classList.add('drag');
+      const box = $('#main').getBoundingClientRect();
+      const move = ev => { const f = Math.min(.85, Math.max(.2, (ev.clientY - box.top) / box.height)); prefs.spaceAt = Math.round(f * 1000) / 1000; $('#main').style.setProperty('--sp', String(prefs.spaceAt)); };
+      const up = () => { div.classList.remove('drag'); div.removeEventListener('pointermove', move); savePrefs(); const s = state.sessions.get(state.current); if (s) syncTerm(s); };
+      div.addEventListener('pointermove', move); div.addEventListener('pointerup', up, { once: true }); div.addEventListener('pointercancel', up, { once: true });
+    });
+  }
+  applySpace();
 
   // ---- home: the chat column with no chat open (2026-10-10) ---------------------------------------------------------
   // fastfetch's block and btop's honesty: a pixel fish beside the board's facts in key: value lines and the palette's
@@ -17211,7 +17264,6 @@ precision highp float;uniform sampler2D uT;in vec2 vU;in vec4 vC;out vec4 o;void
       if (landed || heard) renderBoard(); else renderBoardSoon();   // a landing is drawn as it is said, flare and all
       zeHeard(s, was, landed);   // Zé's game, if it is up: a question pauses it
       ovSoon();   // the overview (⌥⌘A, 2026-10-10) follows its chats while it is up
-      spSoon();   // …and Space (⌥⌘S, 2026-11-18) its agents
       homeSoon(landed);   // …and the home its facts, the day again when a turn lands
       if (s.id === state.current) { renderHead(s); syncTerm(s); renderPresence(); }
       else if (state.sessions.get(state.current)?.links?.some(l => l.id === s.id)) renderResume(state.sessions.get(state.current));   // where it went on may have only just come up (2026-11-04)

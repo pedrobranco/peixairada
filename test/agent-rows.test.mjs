@@ -3,7 +3,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { appendFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { startTestServer, tmpDir, waitFor } from '../lib/testserver.mjs';
 import { agentFiles, agentNoteLine, makeFixture, toolLines } from '../scripts/fixture.mjs';
 
@@ -162,4 +163,18 @@ test('an agent that fails is an alert, once, with what it was asked and why; one
     await new Promise(res => setTimeout(res, 900));
     assert.equal(a.seen.filter(x => x.kind === 'agent-failed').length, 1, 'said once; the failure before the server came up, never');
   } finally { a?.stop(); await srv.stop(); p.kill(); }
+});
+
+test('a row says its type and the colour its definition gives, none for a built-in (Space\'s pods, 2026-11-18)', { timeout: 30_000 }, async () => {
+  const { p, fx, chat } = setup([
+    { id: 'sec', asked: 'Look for open ingress', kind: 'security', ago: 5 * MIN, steps: ['Grep the modules'] },
+    { id: 'look', asked: 'Find the modules', kind: 'Explore', ago: 4 * MIN, steps: ['List them'] },
+  ]);
+  mkdirSync(join(fx.dir, 'agents'), { recursive: true });
+  writeFileSync(join(fx.dir, 'agents', 'security.md'), '---\nname: security\ndescription: Reviews for security\ncolor: red\n---\nLook.\n');
+  const srv = await startTestServer({ claudeDir: fx.dir });
+  try {
+    const rows = await waitFor(async () => { const r = await rowsOf(srv, chat.id); return r?.length === 2 && r; }, { what: 'the rows' });
+    assert.deepEqual(rows.map(r => [r.id, r.type, r.color]).sort(), [['look', 'Explore', null], ['sec', 'security', 'red']]);
+  } finally { await srv.stop(); p.kill(); }
 });
