@@ -4,7 +4,8 @@
 // turning arc; the states on top filter it (Idle and Done off at first). No chat open, Space takes the column; a click on
 // a node opens the chat below it, whose agents become lanes on one clock; a lane opens its agent's tab. Every key is the
 // board's: ⌥⌘N's picker comes up over Space. The divider's place and Space itself outlive a reload. ⌥⌘S again leaves it.
-// Shots dark and light.
+// Pods named by type, capitalised; an agent pointed at shows its card, its name only there (v4); a dark theme's sky, a
+// falling star by transform and opacity; none in light. Shots dark and light.
 import { spawn } from 'node:child_process';
 import { appendFileSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -67,12 +68,37 @@ export default async function (ctx) {
     ctx.assert.match(by('Review the staging').folder, /infra$/, 'its folder under its name');
     ctx.assert.equal(by('Queue for invoice').st, 'ask', 'asking: its edge red');
     ctx.assert.deepEqual(by('Review the staging').pods.map(p => [p.label, p.h, p.marks]), [
-      ['security', '25', 'SE:run SE:run'], ['cost', '150', 'CO:run'], ['Explore', by('Review the staging').pods[2].h, 'EX:quiet'],
-    ], 'a pod per type, the most first; its letters, its colour (the definition’s hue), its state');
+      ['Security', '25', 'SE:run SE:run'], ['Cost', '150', 'CO:run'], ['Explore', by('Review the staging').pods[2].h, 'EX:quiet'],
+    ], 'a pod per type, the most first, named by its type capitalised; its letters, its colour (the definition’s hue), its state');
     ctx.assert.deepEqual(by('Queue for invoice').pods.map(p => p.marks), ['GP:done GP:fail'], 'two of one type: one pod');
     await ctx.settle();
     await ctx.shot('space-dark');
     ctx.assert.deepEqual(await ctx.evaluate(ANIM_RULES), [], 'its arcs and pings keep the compositor\u2019s rules');
+
+    // the sky behind the nodes, dark: four layers of stars, three twinkling by their opacity; a falling star, gone once fallen
+    out.sky = await ctx.evaluate(`(() => { const k = document.querySelector('#spsky'); return { shown: getComputedStyle(k).display !== 'none', layers: k.querySelectorAll(':scope > b').length, stars: k.querySelectorAll('b > i').length,
+      twinkle: document.getAnimations().filter(a => a.animationName === 'sptw').length, field: getComputedStyle(document.querySelector('#spfield')).backgroundColor }; })()`);
+    ctx.assert.deepEqual(out.sky, { shown: true, layers: 4, stars: 100, twinkle: 3, field: 'rgba(0, 0, 0, 0)' }, `a night sky behind the field: ${JSON.stringify(out.sky)}`);
+    ctx.assert.equal(await ctx.evaluate(`peix.spFall()`), 1, 'a falling star');
+    ctx.assert.deepEqual(await ctx.evaluate(`document.getAnimations().filter(a => a.id === 'spfall').map(a => a.effect.getKeyframes().map(k => Object.keys(k).filter(p => !['offset', 'easing', 'composite', 'computedOffset'].includes(p)).sort().join()).join(' '))`), ['opacity,transform opacity opacity,transform'], 'it moves by transform and opacity alone');
+    await ctx.waitFor(`!document.querySelector('#spsky .spfall')`, { what: 'fallen and gone', timeout: 3000 });
+
+    // an agent pointed at: its card — type, state, what it was asked, what it does now; then its model and effort
+    const mark = await ctx.evaluate(`(() => { const r = document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spa[data-ag="sec1"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: mark.x, y: mark.y });
+    await ctx.waitFor(`document.querySelector('#mxtip.on .spch')`, { what: 'the agent\u2019s card' });
+    await ctx.waitFor(`/tool call/.test(document.querySelector('#mxtip .spcv').textContent)`, { what: 'its effort read' });
+    await ctx.settle();
+    out.card = await ctx.evaluate(`(() => { const t = document.querySelector('#mxtip'), m = document.querySelector('#spgrid .spa[data-ag="sec1"]').getBoundingClientRect(), r = t.getBoundingClientRect(); return {
+      head: t.querySelector('.spch').textContent, asked: t.querySelector('.mtt').textContent, now: t.querySelector('.spcw').textContent, kv: [...t.querySelectorAll('.spcv dt')].map(d => d.textContent).join(' '), clear: r.bottom <= m.top + 1 || r.top >= m.bottom - 1 }; })()`);
+    ctx.assert.match(out.card.head, /^SESecurityat work \d+m$/, `its type, its state and time: ${out.card.head}`);
+    ctx.assert.equal(out.card.asked, 'Look for open ingress', 'what it was asked');
+    ctx.assert.match(out.card.now, /^Now.*0\.0\.0\.0\/0/, `what it does now: ${out.card.now}`);
+    ctx.assert.equal(out.card.kv, 'Model So far', 'its model and effort, read when pointed at');
+    ctx.assert.ok(out.card.clear, 'beside its mark, over it or under it as the room goes: never on it');
+    await ctx.shot('space-card-dark');
+    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
+    await ctx.waitFor(`!document.querySelector('#mxtip.on')`, { what: 'the card gone with the pointer' });
 
     // the states on top filter it: Ready off, its two chats gone; Idle and Done start off
     out.filters = await ctx.evaluate(`[...document.querySelectorAll('#spfs .spf')].map(f => f.dataset.k + ':' + f.getAttribute('aria-pressed') + ':' + f.querySelector('b').textContent).join(' ')`);
@@ -139,6 +165,7 @@ export default async function (ctx) {
     // a lane opens its agent's tab, in the chat below
     await ctx.evaluate(`document.querySelector('#spgrid .spt[data-id="${infra.id}"]').click()`);
     await ctx.waitFor(`peix.state().current === '${infra.id}' && !!document.querySelector('#spside .splane[data-ag="sec1"]')`, { what: 'its lanes' });
+    ctx.assert.equal(await ctx.evaluate(`document.querySelector('#spside .splane[data-ag="sec1"] .spla').textContent`), 'Look for open ingress', 'a lane says what it was asked, no name: names are the card\u2019s');
     await ctx.evaluate(`document.querySelector('#spside .splane[data-ag="sec1"]').click()`);
     await ctx.waitFor(`!document.querySelector('#agv').hidden && /Look for open ingress/.test(document.querySelector('#agv .agvh').textContent)`, { what: 'its tab, in the chat' });
 
@@ -169,6 +196,7 @@ export default async function (ctx) {
     await ctx.openChat(infra.id);
     await ctx.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'light' }] });
     await ctx.settle();
+    ctx.assert.equal(await ctx.evaluate(`getComputedStyle(document.querySelector('#spsky')).display`), 'none', 'no sky on a light theme');
     await ctx.shot('space-chat-light');
     return out;
   } finally { for (const s of sleeps) s.kill(); }

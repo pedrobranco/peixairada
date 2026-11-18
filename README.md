@@ -101,7 +101,8 @@ live terminal or what it's doing right now. The arrows walk it, ⏎ opens one.
 
 ⌥⌘S (or **Space** in the status bar) swaps the chat list for Space: every chat as a node with its name and folder,
 its agents docked to it in a pod per type — each agent its type's two letters in its colour, its state on the corner —,
-filtered by state on top, zoomed in or out to fit. Click a node and the chat opens on the right, every key working as
+filtered by state on top, zoomed in or out to fit, over a night sky on a dark theme. Point at an agent for its card: its type, how
+long it has been at it, what it was asked and is doing now, its model and effort. Click a node and the chat opens on the right, every key working as
 ever, a × to close it; its agents line up on one clock under the nodes.
 
 ## 🗨️ A chat with the people you share it with

@@ -5,6 +5,37 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, v4 — an agent's card in Space, its type for its name, a night sky
+
+Pedro, of the card proposed: *"I just want the hover on top to show: type, in the type's colour with its two letters, plus
+"teammate" when it's one. State and time … What it was asked … What it's doing now … Read when you hover: Model. Effort …
+Worktree, if it works in one. Do not show in the Space the name of the agent, only when hovering it. Instead of the naming in
+the space, show the agent type with capital letter"*; then *"add like background like space in the "Space" part with
+blinking stars in a very soft way"*, *"Also add some falling stars in a random timings"*; the board drawn for all three,
+*"I'm happy with it. lets go"*.
+
+* **An agent pointed at has a card** (`spCardHtml`, through `#mxtip` — `MX_AT` takes `#space .spa[data-ag]`, a mark naming
+  its chat by `data-sid`; `SP_CARD_W` 320): its type's letters and its type capitalised in its colour, *teammate* when one,
+  its state and time; its name, small, the only place Space shows it; what it was asked — the first line, the rest under it;
+  *Now* (its last tool call or sentence, `agNow`), *Last* once ended, *Error* in red when it failed; under a line what
+  `…/agents/:id` reads when pointed at — model, tool calls and tokens (*So far*, *In all* once ended), its worktree —
+  *reading…* till then. On a node's pods and the lanes under the chat; placed by `mxtShow`, over its mark or under it.
+* **Space names an agent by its type** (`spKind`: the type, a teammate's too, else *teammate* or *agent*; `spCap`): the
+  pods' labels capitalised, a team's pods by type rather than by name, a lane what it was asked with no name before it.
+* **A night sky behind the nodes, on a dark theme only** (`#spsky`, in `.spbody` under the field, which scrolls and zooms
+  over it; the field's ground transparent there): the theme's ground a shade darker, two faint glows, 100 stars in four
+  layers from fixed seeds — the same sky every time —, three of them breathing (`sptw`, opacity alone, 7 · 11 · 13 s, out of
+  phase). **A falling star now and then** (`spFall`): a wait drawn from 20–60 s (`SP_FALL_MS`, rarer than the drawing's
+  6 s, as said with it), a streak from a random place in the top half at a random angle, under 1.5 s by `transform` and
+  `opacity` (WAAPI, removed when done) — skipped while Space, the page or the sky is hidden, or motion is reduced, the wait
+  just drawn again. Reduced motion stills the twinkle. A light theme has no sky (none was chosen for it: the board's own
+  ground, as before).
+* Checked here: `space.mjs` — the pods' labels capitalised; the card's type, state, what it was asked, *Now*, then *Model*
+  and *So far* once read, clear of its mark, gone with the pointer; a lane with no name; the sky's four layers and 100 stars,
+  three twinkling, the field transparent over it; a falling star by transform and opacity, gone once fallen; no sky in light.
+  `reduced-motion`, `compositor-rules`, `agent-rows`, `card-pr-matrix`, `header-matrix`, `themes` pass. Still for a Mac:
+  `npm run perf` (the twinkle's cost in WebKit, expected nil: opacity on three layers) and the card over a pane page.
+
 ## Decisions of 2026-11-18, v3 — Space zooms, the chat on its right, a × to close it
 
 Pedro: *"allow to zoom in and out in the nodes part. And also, move to the right side the panel with the chat when we
