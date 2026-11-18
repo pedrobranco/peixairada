@@ -164,9 +164,15 @@ export default async function (ctx) {
     const bump = await ctx.evaluate(`[...document.querySelectorAll('#spgrid .spt')].find(b => b.querySelector('.spbt').textContent.startsWith('Bump the build')).dataset.id`);
     const tile = `document.querySelector('#spgrid .spt[data-id="${bump}"]')`;
     const spAnims = `document.getAnimations().filter(a => ['spsonar', 'spspin'].includes(a.animationName))`;
+    const press = async sel => {   // the mouse at its middle, pressed and let go: hit-testing as a hand's click has it
+      const r = await ctx.evaluate(`(() => { const b = document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; })()`);
+      await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: r.x, y: r.y });
+      await ctx.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: r.x, y: r.y, button: 'left', clickCount: 1 });
+      await ctx.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: r.x, y: r.y, button: 'left', clickCount: 1 });
+    };
     ctx.assert.equal(await ctx.evaluate(`!!document.querySelector('#spfs .spf[data-k="fav"]')`), false, 'no ★ chip before a favourite');
     ctx.assert.equal(await ctx.evaluate(`getComputedStyle(${tile}.querySelector('.spstar')).visibility`), 'hidden', 'an unstarred node\u2019s star: only under the pointer');
-    await ctx.evaluate(`${tile}.querySelector('.spstar').click()`);
+    await press(`#spgrid .spt[data-id="${bump}"] .spstar`);
     await ctx.waitFor(`document.querySelector('#spgrid .spt').dataset.id === '${bump}' && ${tile}.querySelector('.spstar').getAttribute('aria-pressed') === 'true'`, { what: 'starred: first' });
     await ctx.waitFor(`peix.session('${bump}')?.fav === true`, { what: 'the server\u2019s word' });
     ctx.assert.equal(await ctx.evaluate(`[...document.querySelectorAll('#spfs .spf')].map(f => f.dataset.k + ':' + f.getAttribute('aria-pressed') + ':' + f.querySelector('b').textContent).join(' ')`),
@@ -177,7 +183,7 @@ export default async function (ctx) {
     await ctx.shot('space-favorite');
     // a node made anew (infra's, its agents' marks a new look): every ping and arc still on the document clock
     await ctx.evaluate(`window.__infraNode = document.querySelector('#spgrid .spt[data-id="${infra.id}"]')`);
-    await ctx.evaluate(`document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spstar').click()`);
+    await press(`#spgrid .spt[data-id="${infra.id}"] .spstar`);
     await ctx.waitFor(`document.querySelector('#spgrid .spt[data-id="${infra.id}"]') !== window.__infraNode && document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spstar').getAttribute('aria-pressed') === 'true'`, { what: 'infra starred: its node made anew' });
     await ctx.settle();
     out.phased = await ctx.evaluate(`${spAnims}.map(a => a.startTime === 0)`);
@@ -276,6 +282,17 @@ export default async function (ctx) {
     await ctx.reload();
     await ctx.waitFor(`document.querySelector('#main').classList.contains('space') && document.querySelectorAll('#spgrid .spt').length === 7`, { what: 'Space back after the reload' });
     ctx.assert.equal(await ctx.evaluate(`document.querySelector('#main').style.getPropertyValue('--sp')`), String(out.at), 'its share kept');
+    // dragged all the way left: Space down to one tile's column, never less (2026-11-18, v12); then back
+    const r2 = await ctx.evaluate(`(() => { const d = document.querySelector('#spdiv').getBoundingClientRect(), m = document.querySelector('#main').getBoundingClientRect(); return { x: d.left + d.width / 2, y: d.top + d.height / 2, to: m.left + 4, back: m.left + m.width * .6 }; })()`);
+    const drag = async (from, to) => { await ctx.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: from, y: r2.y, button: 'left', clickCount: 1 }); await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: (from + to) / 2, y: r2.y, button: 'left', buttons: 1 }); await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: to, y: r2.y, button: 'left', buttons: 1 }); await ctx.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: to, y: r2.y, button: 'left', clickCount: 1 }); };
+    await drag(r2.x, r2.to);
+    await ctx.settle();
+    out.narrow = await ctx.evaluate(`(() => { const z = peix.prefs().spZoom || 1, f = document.querySelector('#spfield'), sp = document.querySelector('#space').getBoundingClientRect(), node = document.querySelector('#spgrid .spt').getBoundingClientRect();
+      return { w: Math.round(sp.width) === Math.ceil(304 * z + 36), cols: getComputedStyle(document.querySelector('#spgrid')).gridTemplateColumns.split(' ').length, fits: f.scrollWidth <= f.clientWidth + 1, inside: node.right <= sp.right + .5 }; })()`);
+    ctx.assert.deepEqual(out.narrow, { w: true, cols: 1, fits: true, inside: true }, 'one column, one tile at this zoom wide, nothing past Space\u2019s edge');
+    await ctx.shot('space-one-column');
+    const d2 = await ctx.evaluate(`(() => { const d = document.querySelector('#spdiv').getBoundingClientRect(); return d.left + d.width / 2; })()`);
+    await drag(d2, r2.back);
     ctx.assert.equal(await ctx.evaluate(`document.querySelector('#spzv').textContent`), `${Math.round(out.fit * 100)}%`, 'its zoom kept');
 
     // the list's button leaves Space for the list; ⌥⌘S takes its place again

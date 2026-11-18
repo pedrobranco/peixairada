@@ -2484,13 +2484,13 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   #ov .ans button { font: inherit; font-size: var(--fs-sm); padding: 4px 9px; border: 0; border-radius: var(--r-2); background: var(--ctl); color: var(--ink); cursor: pointer; }
   #ov .ans button:hover:not(:disabled) { background: color-mix(in srgb, var(--needs) 24%, transparent); }
   /* ---- ⌥⌘S: Space, the board's other layout — every chat as a node of its agents (2026-11-18) ---- */
-  main.space { display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: calc(var(--sp, .52) * 100%) 8px minmax(0, 1fr); }
+  main.space { display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: clamp(min(var(--sp-min), 100%), calc(var(--sp, .52) * 100%), max(var(--sp-min), 100% - var(--chat-min) - 8px)) 8px minmax(0, 1fr); --sp-min: 340px; --chat-min: 360px; }   /* Space down to one tile's column, the chat never under its own floor (2026-11-18, v12) */
   main.space > :is(#sessions, #splitter) { display: none; }   /* Space or the list, never both: it takes the list's place */
   main.space > #space { grid-row: 1; grid-column: 1; }
   main.space > #spdiv { grid-row: 1; grid-column: 2; }
   main.space > #chat { grid-row: 1; grid-column: 3; min-width: 0; }   /* the chat on the right, the whole height (2026-11-18, v3) */
   main.space.spfull { grid-template-columns: minmax(0, 1fr) 0 0; } main.space.spfull > :is(#chat, #spdiv) { display: none; }
-  #space { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; min-width: 0; background: var(--bg); color: var(--ink); }
+  #space { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-columns: minmax(0, 1fr); min-height: 0; min-width: 0; overflow: hidden; background: var(--bg); color: var(--ink); }   /* never wider than its column, however zoomed (2026-11-18, v12) */
   #space[hidden], #spdiv[hidden] { display: none; }
   #spdiv { display: flex; align-items: center; justify-content: center; cursor: col-resize; touch-action: none; border-inline: 1px solid var(--line); background: var(--bg); }
   #spdiv::before { content: ""; width: 3px; height: 44px; border-radius: 2px; background: var(--line); }
@@ -2505,7 +2505,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   #space .spf[aria-pressed="true"] i { background: var(--c); }
   #space .spf:hover { background: var(--ctl-hi); }
   #space .spsub { margin-left: auto; color: var(--muted); font-size: var(--fs-sm); }
-  #space .spbody { position: relative; min-height: 0; }
+  #space .spbody { position: relative; min-height: 0; min-width: 0; }
   #space .spfield { height: 100%; box-sizing: border-box; overflow: auto; overscroll-behavior: contain; padding: 8px 10px 56px; background: color-mix(in srgb, var(--ink) 3%, var(--bg)); }
   #space .spgrid { display: grid; grid-template-columns: repeat(auto-fill, var(--spw)); justify-content: center; gap: 6px; zoom: var(--spz, 1); }   /* zoomed whole, so the grid reflows: more a row as it shrinks; each node its own size, never stretched to the row (2026-11-18, v7) */
   #space:not([data-names="always"]) .spgrid.small .spl, #space[data-names="never"] .spl { display: none; }   /* under 75 %: the pods' names go, the letters and badges stay */
@@ -2532,13 +2532,13 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   #space { --spw: 304px; --sph: 216px; }   /* a node's tile: its box and a pod each side (spPods' SP_GEO) */
   #space .spo { position: relative; display: block; width: var(--spw); height: var(--sph); margin: 0 auto; }
   #space .spbox { position: absolute; left: 72px; top: 58px; width: 160px; height: 100px; box-sizing: border-box; padding: 6px 12px; border-radius: 16px; border: 2px solid var(--c); background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-align: center; z-index: 1; }   /* a rounded box, its words in the middle (2026-11-18, v9; a circle in v7 held too little) */
-  #space .spbox::after { content: ""; position: absolute; inset: -6px; border-radius: 20px; border: 2px solid var(--c); opacity: 0; }
+  #space .spbox::after { content: ""; position: absolute; inset: -6px; border-radius: 20px; border: 2px solid var(--c); opacity: 0; pointer-events: none; }   /* the ping lies over the box: never in a click's way (2026-11-18, v12) */
   #space .spbox[data-st="ask"]::after { animation: spsonar 1.5s ease-out infinite; }
   #space .spbox[data-st="work"]::after { animation: spsonar 2.6s ease-out infinite; }
   #space .spbox[data-st="watch"]::after { animation: spsonar 4.2s ease-out infinite; }
   #space .spbox[data-st="done"] { filter: saturate(.4); }
   #space .spbt { max-width: 100%; font-size: var(--fs-sm); font-weight: 650; line-height: 1.25; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  #space .spstar { position: absolute; left: 7px; top: 6px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: var(--r-2); color: var(--muted); cursor: pointer; visibility: hidden; }   /* favourites (2026-11-18, v11): shown, not faded */
+  #space .spstar { position: absolute; left: 7px; top: 6px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: var(--r-2); color: var(--muted); cursor: pointer; visibility: hidden; z-index: 1; }   /* favourites (2026-11-18, v11): shown, not faded */
   #space .spstar svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
   #space .spt:hover .spstar, #space .spt:focus-visible .spstar, #space .spstar[aria-pressed="true"] { visibility: visible; }
   #space .spstar:hover { background: var(--ctl-hi); color: var(--ink); }
@@ -12499,6 +12499,7 @@ const toolName = n => {
   function spZoomShow() {
     const z = spZoomNow(), g = $('#spgrid');
     g.style.setProperty('--spz', String(z)); g.classList.toggle('small', z < .75);
+    $('#main').style.setProperty('--sp-min', `${Math.ceil(SP_TILE[0] * z + 20 + 16)}px`);   // the divider's floor: one tile at this zoom, the field's padding and a scrollbar (2026-11-18, v12)
     $('#spzv').textContent = `${Math.round(z * 100)}%`;
   }
   function spZoom(z) { prefs.spZoom = Math.round(Math.min(1.5, Math.max(.5, z)) * 10) / 10; savePrefs(); spZoomShow(); }
@@ -12516,7 +12517,7 @@ const toolName = n => {
     main.classList.toggle('space', on); if (!on) main.classList.remove('spfull');
     applyList();   // the list's button: off while Space has its place
     $('#space').hidden = $('#spdiv').hidden = !on;
-    main.style.setProperty('--sp', String(Math.min(.8, Math.max(.25, Number(prefs.spaceAt) || .52))));
+    main.style.setProperty('--sp', String(Math.min(.9, Math.max(.05, Number(prefs.spaceAt) || .52))));   // CSS holds the floors: one tile, the chat's
     const b = $('#sbSpace'); b.setAttribute('aria-pressed', String(on)); b.title = `${on ? 'Leave' : 'Open'} Space — every chat as a node of its agents (⌥⌘S)`;
     clearInterval(sp.timer); sp.timer = on ? setInterval(spSoon, 5000) : 0;
     spLook(); if (on !== !!sp.fall) spFall();   // a falling star now and then while Space is on
@@ -12617,7 +12618,7 @@ const toolName = n => {
       if (e.button !== 0) return;
       e.preventDefault(); div.setPointerCapture(e.pointerId); div.classList.add('drag');
       const box = $('#main').getBoundingClientRect();
-      const move = ev => { const f = Math.min(.8, Math.max(.25, (ev.clientX - box.left) / box.width)); prefs.spaceAt = Math.round(f * 1000) / 1000; $('#main').style.setProperty('--sp', String(prefs.spaceAt)); };
+      const move = ev => { const f = Math.min(.9, Math.max(.05, (ev.clientX - box.left) / box.width)); prefs.spaceAt = Math.round(f * 1000) / 1000; $('#main').style.setProperty('--sp', String(prefs.spaceAt)); };
       const up = () => { div.classList.remove('drag'); div.removeEventListener('pointermove', move); savePrefs(); const s = state.sessions.get(state.current); if (s) syncTerm(s); };
       div.addEventListener('pointermove', move); div.addEventListener('pointerup', up, { once: true }); div.addEventListener('pointercancel', up, { once: true });
     });

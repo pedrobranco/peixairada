@@ -5,6 +5,21 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, v12 — the star takes a hand's click; Space down to one column
+
+> "The favorite button does not work and i can't resize to one column in the space (you can see in the screenshot the bare minimum width that it allows)"
+
+* **The star.** The box's ping, `.spbox::after`, lies over the whole box — 6 px past it every way — after the star in
+  the paint, so a hand's click on the star landed on the box: the node opened, nothing starred. The scenario had pressed
+  the star by `.click()`, which asks no hit-test, and passed. The ping is `pointer-events: none` now, the star over it
+  (`z-index: 1`), and the scenario presses the mouse at the star's middle (`press`): it fails without the fix.
+* **One column.** The divider stopped at a quarter of the window — two of Pedro's tiles on a wide screen. Its floor is
+  now one tile at Space's zoom, with the field's padding and a scrollbar (`--sp-min`, set by `spZoomShow`: 340 px at
+  100 %, 168 at 50 %), and the chat keeps 360 px (`--chat-min`); the share runs .05 to .9, CSS holding the floors.
+  Space clips what is wider than it (`#space { overflow: hidden }`, `.spbody { min-width: 0 }`): a zoomed tile spilled
+  over the chat before. The scenario drags it all the way left: one column, one tile at its zoom wide, nothing past it.
+  → `space.mjs`.
+
 ## Decisions of 2026-11-18, v11 — favourite nodes, first, with their own chip; Space's nodes stop flickering
 
 > "Add support for favorites nodes em Space (star in the left top corner of the rounded rectangle) which fix on top. Add also that category on the top bar to filter out or in."
