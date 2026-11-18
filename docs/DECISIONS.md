@@ -5,6 +5,27 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, v8 — an agent clicked is its transcript; the node names the chat's agent
+
+Pedro, with a screenshot of a chat run as `@orchestrator` and one teammate, `sp-…`, in a *General-purpose* pod: *"When
+clicking the agent, allow to jump in the chat to the chat with the agent. Also, it still shows General purpose on the
+subagents: in this case in the screenshot it should have named "specifier" in the group and show orchestrator as the main
+agent within the main node in Space (that started the chat and linked to the chat)."*
+
+* **A click on an agent's mark** in a node is its chat, open on that agent's tab — its own transcript (`agOpen`, as a lane
+  does); a teammate only the roster names yet, with no transcript, opens the chat. Claude Code's own teammate view (↑/↓ in
+  the drawer's footer) is keys, which the board never types.
+* **The node names the agent the chat runs as** (`.spra`, `@orchestrator` in its definition's colour, above the title; the
+  summary's `agent`: `--agent` or the folder's setting, `agent-setting` or the registry's).
+* **A teammate's category, read harder** (`SPAWN_TOOLS`: the spawn by `Agent` or by `Task`, its older name; `subagent_type`,
+  else `agent_type`/`agentType` in its input). Why the screenshot still said *General-purpose* is not known here: the server
+  may not have been restarted since v6 (a `server.mjs` change), or the spawn may be past what a restart reads of the
+  transcript, or written in a shape not seen yet. **`scripts/team-probe.mjs`** prints, for the chats written to in the
+  last hour, every call that names a teammate (its tool, `name`, `subagent_type`, its input's keys) and each teammate's
+  meta keys — keys and short names only, read-only — to settle it on the Mac.
+* Checked here: `test/team.test.mjs` (a spawn by `Task` as `specifier`), `space.mjs` (`@orchestrator` in its node; a mark
+  clicked with no chat open: its chat, on its agent's tab); the probe on a fixture.
+
 ## Decisions of 2026-11-18, v7 — a node is a circle, its folder its last name
 
 Pedro, with a screenshot of Space beside the chat (one node a row, each the column's width): *"each node is taking more

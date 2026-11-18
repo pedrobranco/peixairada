@@ -30,7 +30,7 @@ export default async function (ctx) {
     pods: [...b.querySelectorAll('.sppod')].map(p => ({ label: p.nextElementSibling.textContent, h: p.style.getPropertyValue('--h'), marks: [...p.querySelectorAll('.spa')].map(a => a.textContent + ':' + a.dataset.st).join(' ') })) }))`);
   try {
     const { chats } = makeFixture(ctx.fixture.dir, [
-      { cwd: dir('infra'), title: 'Review the staging VPC plan from every angle before we apply it', prompt: 'review the plan', reply: 'Sending reviewers out.', at: new Date(now - 12 * MIN), live: live(0) },
+      { cwd: dir('infra'), title: 'Review the staging VPC plan from every angle before we apply it', prompt: 'review the plan', reply: 'Sending reviewers out.', at: new Date(now - 12 * MIN), live: live(0, { agent: 'orchestrator' }) },
       { cwd: dir('billing-api'), title: 'Queue for invoice webhooks', prompt: 'move the webhooks to a queue', reply: 'Which queue should they go on?', at: new Date(now - 25 * MIN), live: live(1, { status: 'waiting', waitingFor: 'permission prompt' }) },
       { cwd: dir('storefront'), title: 'Retry declined card payments with backoff', prompt: 'retry them', reply: 'On it.', at: new Date(now - 20 * MIN), live: live(2) },
       { cwd: join(root, 'storefront'), title: 'Product grid follows the dark theme', prompt: 'fix the grid', reply: 'Done, 14 tests pass.', at: new Date(now - 40 * MIN), live: live(3) },
@@ -203,6 +203,14 @@ export default async function (ctx) {
     ctx.assert.equal(await ctx.evaluate(`document.querySelector('#spside .splane[data-ag="sec1"] .spla').textContent`), 'Look for open ingress', 'a lane says what it was asked, no name: names are the card\u2019s');
     await ctx.evaluate(`document.querySelector('#spside .splane[data-ag="sec1"]').click()`);
     await ctx.waitFor(`!document.querySelector('#agv').hidden && /Look for open ingress/.test(document.querySelector('#agv .agvh').textContent)`, { what: 'its tab, in the chat' });
+    // the node names the agent its chat runs as; a click on an agent's mark is its chat, on that agent's tab (v8)
+    ctx.assert.equal(await ctx.evaluate(`document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spra')?.textContent`), '@orchestrator', 'the chat\u2019s own agent in its node');
+    await ctx.evaluate(`document.querySelector('#spClose').click()`);
+    await ctx.waitFor(`peix.state().current === null`, { what: 'closed first' });
+    await ctx.evaluate(`document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spa[data-ag="sec2"]').click()`);
+    await ctx.waitFor(`peix.state().current === '${infra.id}' && !document.querySelector('#agv').hidden && /wide IAM/.test(document.querySelector('#agv .agvh').textContent)`, { what: 'a mark clicked: its chat, on its agent\u2019s tab' });
+    await ctx.settle();
+    await ctx.shot('space-agent-click-dark');
 
     // the divider, dragged: kept with Space across a reload
     const r = await ctx.evaluate(`(() => { const d = document.querySelector('#spdiv').getBoundingClientRect(), m = document.querySelector('#main').getBoundingClientRect(); return { x: d.left + d.width / 2, y: d.top + d.height / 2, to: m.left + m.width * .6 }; })()`);

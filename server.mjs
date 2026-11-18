@@ -2426,7 +2426,8 @@ function fold(s, line) {
         else if (b.type === 'tool_use') {
           const e = { role: 'assistant', kind: 'tool_use', name: b.name, text: summarizeToolInput(b.name, b.input), toolUseId: b.id, ts };
           if (b.name === 'SendMessage') noteSend(s, e, b);
-          if (b.name === 'Agent' && pstr(b.input?.name)) { e.who = b.input.name; noteMateType(s, b.input); }
+          if (b.name === 'Agent' && pstr(b.input?.name)) e.who = b.input.name;
+          if (SPAWN_TOOLS.has(b.name) && pstr(b.input?.name)) noteMateType(s, b.input);
           if (b.name === 'Skill' && pstr(b.input?.args)) e.args = snippet(b.input.args, 140);   // a fork's words: which PR this review is of
           pushEntry(s, e);
           if (EDIT_TOOLS.has(b.name) && (b.input?.file_path || b.input?.notebook_path)) (s.turnFiles ||= new Set()).add(b.input.file_path || b.input.notebook_path);
@@ -2768,8 +2769,9 @@ function jsonOnce(file, shape) {
 }
 /** A teammate's category (2026-11-18, v6): the `subagent_type` the lead spawned it with — its metadata names none, its
  *  roster entry its own name. By name, the newest spawn winning; `general-purpose`, the Agent tool's own default, when none. */
+const SPAWN_TOOLS = new Set(['Agent', 'Task']);   // the spawning tool by either of its names (Task, before Agent; 2026-11-18, v8)
 function noteMateType(s, input) {
-  const t = s.mateTypes ||= new Map(); t.delete(input.name); t.set(input.name, pstr(input.subagent_type) || 'general-purpose');
+  const t = s.mateTypes ||= new Map(); t.delete(input.name); t.set(input.name, pstr(input.subagent_type) || pstr(input.agent_type) || pstr(input.agentType) || 'general-purpose');
   while (t.size > 64) t.delete(t.keys().next().value);
 }
 const mateType = (s, name, ...said) => s.mateTypes?.get(name) || said.find(k => k && k !== name && k !== 'team-lead') || 'general-purpose';

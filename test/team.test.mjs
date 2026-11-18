@@ -76,16 +76,17 @@ test('a teammate\'s category is the type the lead spawned it as — never "teamm
   const p = standIn(), dir = tmpDir('peix-fx-');
   const fx = makeFixture(dir, [{ cwd: '/tmp/acme/storefront', title: 'Retry declined payments', prompt: 'as a team', reply: 'Team up.', at: yesterday(), live: { pid: p.pid, startedAt: Date.now() - 3600_000 } }]);
   const [lead] = fx.chats;
-  teamFiles({ dir, lead, also: ['scribe', 'docs-writer'], spawned: { ana: 'api', tomas: 'api', rita: null, 'docs-writer': 'docs' }, mates: [
+  teamFiles({ dir, lead, also: ['scribe', 'docs-writer'], spawned: { ana: 'api', tomas: 'api', rita: null, 'docs-writer': 'docs', sp1: { type: 'specifier', tool: 'Task' } }, mates: [
     { name: 'ana', summary: 'Backoff in the client', work: 'Edit the client' },
     { name: 'tomas', summary: 'Retry the queue', work: 'Edit the queue' },
     { name: 'rita', summary: 'Cover the decline codes', said: 'Covered.' },
     { name: 'joao', summary: 'Spawned before the tail', said: 'Done.' },
+    { name: 'sp1', summary: 'Specify the ticket', work: 'Search Notion' },
   ] });
   const srv = await startTestServer({ claudeDir: dir });
   try {
-    const rows = await waitFor(async () => { const r = (await srv.api('api/sessions')).body.sessions.find(s => s.id === lead.id)?.agentRows; return r?.length === 6 && r; }, { what: 'the team\'s rows' });
-    assert.deepEqual(Object.fromEntries(rows.map(r => [r.name, r.type])), { ana: 'api', tomas: 'api', rita: 'general-purpose', joao: 'general-purpose', scribe: 'general-purpose', 'docs-writer': 'docs' },
-      'by the spawn\'s subagent_type, a roster name\'s too; its own name never its category; none named, the Agent tool\'s default');
+    const rows = await waitFor(async () => { const r = (await srv.api('api/sessions')).body.sessions.find(s => s.id === lead.id)?.agentRows; return r?.length === 7 && r; }, { what: 'the team\'s rows' });
+    assert.deepEqual(Object.fromEntries(rows.map(r => [r.name, r.type])), { ana: 'api', tomas: 'api', rita: 'general-purpose', joao: 'general-purpose', scribe: 'general-purpose', 'docs-writer': 'docs', sp1: 'specifier' },
+      'by the spawn\'s subagent_type — by Task, its older name, too —, a roster name\'s too; its own name never its category; none named, the Agent tool\'s default');
   } finally { await srv.stop(); p.kill(); }
 });

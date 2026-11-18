@@ -2538,6 +2538,9 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   #space .spbox[data-st="watch"]::after { animation: spsonar 4.2s ease-out infinite; }
   #space .spbox[data-st="done"] { filter: saturate(.4); }
   #space .spbt { max-width: 100%; font-size: var(--fs-sm); font-weight: 650; line-height: 1.25; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  #space .spra { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-2xs); font-weight: 700; color: oklch(.78 .12 var(--h)); }   /* the agent the chat runs as (2026-11-18, v8) */
+  :root[data-theme="light"] #space .spra { color: oklch(.48 .13 var(--h)); }
+  #space .spgrid .spa[data-ag]:not([data-st="joined"]) { cursor: pointer; }
   #space .spbf { display: flex; align-items: center; justify-content: center; gap: 4px; max-width: 100%; min-width: 0; font: var(--fs-2xs)/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #space .spbf i { flex: none; width: 8px; height: 8px; border-radius: 2px; background: var(--repo, var(--nocolor)); }
   #space .spwire { position: absolute; background: oklch(.72 .13 var(--h)); opacity: .6; }
@@ -12387,9 +12390,9 @@ const toolName = n => {
   /** A chat's node — what is open is a class set after, so opening a chat redraws no node and stops no arc turning. */
   function spNode(s) {
     const st = spState(s), rows = spRows(s), color = repoColor(s.cwd), folder = spFolder(s);
-    const said = `${s.title} — ${folder || 'no folder'}, ${SP_ST[st]}${rows.length ? `, ${spTally(rows)}` : ''}`;
+    const said = `${s.title}${s.agent ? `, as @${agentShort(s.agent)}` : ''} — ${folder || 'no folder'}, ${SP_ST[st]}${rows.length ? `, ${spTally(rows)}` : ''}`;
     return `<button type="button" class="spt" data-id="${esc(s.id)}" aria-label="${esc(said)}" style="${color ? `--repo:${color}` : ''}"><span class="spo">${spPods(s)}`
-      + `<span class="spbox" data-st="${st}"><span class="spbt">${ticks(esc(spCut(s.title)))}</span>${folder ? `<span class="spbf" title="${esc(s.cwd)}"><i></i>${esc(folder)}</span>` : ''}</span></span></button>`;
+      + `<span class="spbox" data-st="${st}">${s.agent ? `<span class="spra" title="${esc(`Runs as the agent ${s.agent}`)}" style="--h:${spHue(agentShort(s.agent), s.agentColor)}">@${esc(agentShort(s.agent))}</span>` : ''}<span class="spbt">${ticks(esc(spCut(s.title)))}</span>${folder ? `<span class="spbf" title="${esc(s.cwd)}"><i></i>${esc(folder)}</span>` : ''}</span></span></button>`;
   }
   /** One agent's lane: its span on the clock (to now while it works), how long, its last step. */
   function spLane(r, s, W, now) {
@@ -12530,6 +12533,9 @@ const toolName = n => {
     const w = e.target.closest('.spwin [data-w]'); if (w) { prefs.spWin = +w.dataset.w; savePrefs(); spLook(); return renderSpace(); }
     const z = e.target.closest('.spzoom [data-z]'); if (z) return z.dataset.z === 'fit' ? spFit() : spZoom(spZoomNow() + .1 * +z.dataset.z);
     if (e.target.closest('.spfold')) { prefs.spLanes = prefs.spLanes === false; savePrefs(); return renderSpace(); }
+    // an agent's mark: its chat, open on that agent's tab — its own transcript (2026-11-18, v8); one with none yet, the chat
+    const mk = e.target.closest('.spgrid .spa[data-ag]'), ms = mk && state.sessions.get(mk.dataset.sid), mr = ms && spRows(ms).find(x => x.id === mk.dataset.ag);
+    if (mr && AG_ID.test(String(mr.id)) && mr.st !== 'joined') { mxtHide(); return agOpen(ms, mr); }
     const node = e.target.closest('.spt[data-id]'); if (node) { if (node.dataset.id !== state.current) openSession(node.dataset.id); return; }
     const s = state.sessions.get(state.current), lane = e.target.closest('.splane[data-ag]'), r = lane && s && spRows(s).find(x => x.id === lane.dataset.ag);
     if (r) agOpen(s, r);
