@@ -1,5 +1,5 @@
-// Space (⌥⌘S, 2026-11-18): the board's other layout. Off at first; the status bar's Space or ⌥⌘S puts it on: Space on top,
-// the chat below. Each chat of the project in view a node — its name, its folder, its edge its state — with a pod per
+// Space (⌥⌘S, 2026-11-18): the board's other layout. Off at first; the status bar's Space or ⌥⌘S puts it on: Space on the
+// left, the chat on the right (v3), the header's × or ⌘W closing it; the nodes zoom (−, +, Fit, ⌘+ in Space). Each chat of the project in view a node — its name, its folder, its edge its state — with a pod per
 // agent type docked to it, each agent its type's letters in its type's colour (the definition's), its state a badge or a
 // turning arc; the states on top filter it (Idle and Done off at first). No chat open, Space takes the column; a click on
 // a node opens the chat below it, whose agents become lanes on one clock; a lane opens its agent's tab. Every key is the
@@ -83,15 +83,50 @@ export default async function (ctx) {
     await ctx.evaluate(`document.querySelector('#spfs .spf[data-k="ready"]').click()`);
     await ctx.waitFor(`document.querySelectorAll('#spgrid .spt').length === 7`, { what: 'back' });
 
-    // a click on a node opens its chat below; its agents become lanes
+    // zoom: the buttons, Fit, ⌘+ with the keys in Space, kept
+    await ctx.evaluate(`document.querySelector('.spzoom [data-z="-1"]').click(); document.querySelector('.spzoom [data-z="-1"]').click(); document.querySelector('.spzoom [data-z="-1"]').click()`);
+    await ctx.waitFor(`document.querySelector('#spzv').textContent === '70%' && document.querySelector('#spgrid').classList.contains('small')`, { what: '70 %, the pods\u2019 names gone' });
+    out.cols = await ctx.evaluate(`getComputedStyle(document.querySelector('#spgrid')).gridTemplateColumns.split(' ').length`);
+    ctx.assert.ok(out.cols >= 3, `zoomed out, more nodes a row (${out.cols})`);
+    await ctx.evaluate(`document.querySelector('#spgrid .spt').focus()`);
+    await ctx.send('Input.dispatchKeyEvent', { type: 'keyDown', key: '=', code: 'Equal', modifiers: 4, windowsVirtualKeyCode: 187 });
+    await ctx.send('Input.dispatchKeyEvent', { type: 'keyUp', key: '=', code: 'Equal', modifiers: 4, windowsVirtualKeyCode: 187 });
+    await ctx.waitFor(`document.querySelector('#spzv').textContent === '80%'`, { what: '\u2318+ in Space: its zoom, not the chat\u2019s' });
+    await ctx.evaluate(`document.querySelector('.spzoom .fit').click()`);
+    await ctx.waitFor(`(() => { const f = document.querySelector('#spfield'); return f.scrollHeight <= f.clientHeight + 1; })()`, { what: 'Fit: every node in sight' });
+    out.fit = await ctx.evaluate(`peix.prefs().spZoom`);
+    await ctx.settle();
+    await ctx.shot('space-fit-dark');
+
+    // a click on a node opens its chat on the right, the whole height; its agents a strip under the nodes
     await ctx.evaluate(`document.querySelector('#spgrid .spt[data-id="${billing.id}"]').click()`);
-    await ctx.waitFor(`peix.state().current === '${billing.id}' && !document.querySelector('#main').classList.contains('spfull') && getComputedStyle(document.querySelector('#chat')).display !== 'none'`, { what: 'the chat below' });
+    await ctx.waitFor(`peix.state().current === '${billing.id}' && !document.querySelector('#main').classList.contains('spfull') && getComputedStyle(document.querySelector('#chat')).display !== 'none'`, { what: 'the chat on the right' });
     await ctx.waitFor(`document.querySelector('#spgrid .spt[data-id="${billing.id}"]').classList.contains('on') && document.querySelectorAll('#spside .splane').length === 2`, { what: 'its node lit, its lanes' });
-    out.geom = await ctx.evaluate(`(() => { const s = document.querySelector('#space').getBoundingClientRect(), c = document.querySelector('#chat').getBoundingClientRect(); return { below: c.top >= s.bottom, side: Math.abs(c.left - s.left) <= 8 && Math.abs(c.right - s.right) <= 8 }; })()`);
-    ctx.assert.deepEqual(out.geom, { below: true, side: true }, 'the chat under Space, its width (a tile\u2019s inset aside)');
+    out.geom = await ctx.evaluate(`(() => { const s = document.querySelector('#space').getBoundingClientRect(), c = document.querySelector('#chat').getBoundingClientRect(), l = document.querySelector('#spside').getBoundingClientRect(), f = document.querySelector('#spfield').getBoundingClientRect(); return { right: c.left >= s.right, tall: Math.abs(c.top - s.top) <= 8 && Math.abs(c.bottom - s.bottom) <= 8, strip: l.top >= f.bottom - 1 && l.left === s.left }; })()`);
+    ctx.assert.deepEqual(out.geom, { right: true, tall: true, strip: true }, 'Space left, the chat right at its height, the lanes under the nodes');
     ctx.assert.match(await ctx.evaluate(`document.querySelector('#spside .splane[data-st="fail"] .spll').textContent`), /API error/i, 'why it failed');
     await ctx.settle();
     await ctx.shot('space-chat-dark');
+
+    // the strip folds to its head, kept
+    await ctx.evaluate(`document.querySelector('#spside .spfold').click()`);
+    await ctx.waitFor(`!document.querySelector('#spside .splane') && document.querySelector('#spside .spfold').getAttribute('aria-expanded') === 'false'`, { what: 'the lanes folded' });
+    await ctx.evaluate(`document.querySelector('#spside .spfold').click()`);
+    await ctx.waitFor(`document.querySelectorAll('#spside .splane').length === 2`, { what: 'open again' });
+
+    // the header's × closes the chat — Space the whole width again; its claude is left alone
+    ctx.assert.equal(await ctx.evaluate(`!!document.querySelector('#shead #spClose')`), true, 'the header has its ×');
+    await ctx.evaluate(`document.querySelector('#spClose').click()`);
+    await ctx.waitFor(`peix.state().current === null && document.querySelector('#main').classList.contains('spfull') && document.querySelector('#spside').hidden`, { what: 'closed by its \u00d7' });
+    ctx.assert.equal(await ctx.evaluate(`peix.session('${billing.id}').alive`), true, 'its claude runs on');
+    ctx.assert.equal(await ctx.evaluate(`document.querySelector('#spgrid .spt.on')`), null, 'no node lit');
+    // ⌘W on the chat's tab does the same
+    await ctx.evaluate(`document.querySelector('#spgrid .spt[data-id="${billing.id}"]').click()`);
+    await ctx.waitFor(`peix.state().current === '${billing.id}' && !document.querySelector('#main').classList.contains('spfull')`, { what: 'open again' });
+    ctx.assert.equal(await ctx.evaluate(`peixKey('KeyW', 'cmd')`), true, '\u2318W taken');
+    await ctx.waitFor(`peix.state().current === null && document.querySelector('#main').classList.contains('spfull')`, { what: 'closed by \u2318W' });
+    await ctx.evaluate(`document.querySelector('#spgrid .spt[data-id="${billing.id}"]').click()`);
+    await ctx.waitFor(`peix.state().current === '${billing.id}'`, { what: 'and again, for what follows' });
 
     // every key is the board's: ⌥⌘N's picker over Space
     await ctx.key('KeyN');
@@ -105,19 +140,20 @@ export default async function (ctx) {
     await ctx.evaluate(`document.querySelector('#spgrid .spt[data-id="${infra.id}"]').click()`);
     await ctx.waitFor(`peix.state().current === '${infra.id}' && !!document.querySelector('#spside .splane[data-ag="sec1"]')`, { what: 'its lanes' });
     await ctx.evaluate(`document.querySelector('#spside .splane[data-ag="sec1"]').click()`);
-    await ctx.waitFor(`!document.querySelector('#agv').hidden && /Look for open ingress/.test(document.querySelector('#agv .agvh').textContent)`, { what: 'its tab below' });
+    await ctx.waitFor(`!document.querySelector('#agv').hidden && /Look for open ingress/.test(document.querySelector('#agv .agvh').textContent)`, { what: 'its tab, in the chat' });
 
     // the divider, dragged: kept with Space across a reload
-    const r = await ctx.evaluate(`(() => { const d = document.querySelector('#spdiv').getBoundingClientRect(), m = document.querySelector('#main').getBoundingClientRect(); return { x: d.left + d.width / 2, y: d.top + d.height / 2, to: m.top + m.height * .4 }; })()`);
+    const r = await ctx.evaluate(`(() => { const d = document.querySelector('#spdiv').getBoundingClientRect(), m = document.querySelector('#main').getBoundingClientRect(); return { x: d.left + d.width / 2, y: d.top + d.height / 2, to: m.left + m.width * .6 }; })()`);
     await ctx.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: r.x, y: r.y, button: 'left', clickCount: 1 });
-    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: r.x, y: (r.y + r.to) / 2, button: 'left', buttons: 1 });
-    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: r.x, y: r.to, button: 'left', buttons: 1 });
-    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: r.x, y: r.to, button: 'left', clickCount: 1 });
+    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: (r.x + r.to) / 2, y: r.y, button: 'left', buttons: 1 });
+    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: r.to, y: r.y, button: 'left', buttons: 1 });
+    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: r.to, y: r.y, button: 'left', clickCount: 1 });
     out.at = await ctx.evaluate(`peix.prefs().spaceAt`);
-    ctx.assert.ok(Math.abs(out.at - .4) < .03, `the divider dragged to 40 % (${out.at})`);
+    ctx.assert.ok(Math.abs(out.at - .6) < .03, `the divider dragged across to 60 % (${out.at})`);
     await ctx.reload();
     await ctx.waitFor(`document.querySelector('#main').classList.contains('space') && document.querySelectorAll('#spgrid .spt').length === 7`, { what: 'Space back after the reload' });
     ctx.assert.equal(await ctx.evaluate(`document.querySelector('#main').style.getPropertyValue('--sp')`), String(out.at), 'its share kept');
+    ctx.assert.equal(await ctx.evaluate(`document.querySelector('#spzv').textContent`), `${Math.round(out.fit * 100)}%`, 'its zoom kept');
 
     // the list's button leaves Space for the list; ⌥⌘S takes its place again
     await ctx.evaluate(`document.querySelector('#sbList').click()`);
