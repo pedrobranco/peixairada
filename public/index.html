@@ -2508,7 +2508,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   #space .spbody { position: relative; min-height: 0; }
   #space .spfield { height: 100%; box-sizing: border-box; overflow: auto; overscroll-behavior: contain; padding: 8px 10px 56px; background: color-mix(in srgb, var(--ink) 3%, var(--bg)); }
   #space .spgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 6px; zoom: var(--spz, 1); }   /* zoomed whole, so the grid reflows: more a row as it shrinks */
-  #space .spgrid.small .spl { display: none; }   /* under 75 %: the pods' names go, the letters and badges stay */
+  #space:not([data-names="always"]) .spgrid.small .spl, #space[data-names="never"] .spl { display: none; }   /* under 75 %: the pods' names go, the letters and badges stay */
   #space .spzoom { position: absolute; right: 14px; bottom: 12px; display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--r-4); background: var(--panel); border: 1px solid var(--line); box-shadow: 0 8px 24px -12px rgb(0 0 0 / .5); }
   #space .spzoom button { min-width: 28px; height: 26px; padding: 0 8px; border: 0; border-radius: var(--r-3); background: transparent; color: var(--ink); font: inherit; font-size: var(--fs-base); cursor: pointer; }
   #space .spzoom button:hover { background: var(--ctl); }
@@ -2592,8 +2592,9 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
      compositor), and now and then a falling star (spFall). Behind the field, which scrolls and zooms over it; none on a light theme. */
   #space .spfield { position: relative; }
   #space .spsky { position: absolute; inset: 0; overflow: hidden; pointer-events: none; display: none; }
-  :root[data-theme="dark"] #space .spsky { display: block; background: radial-gradient(60% 50% at 18% 12%, oklch(.42 .1 285 / .12), transparent 70%), radial-gradient(50% 45% at 85% 80%, oklch(.45 .07 230 / .09), transparent 70%), color-mix(in oklab, var(--bg) 62%, oklch(.15 .03 270)); }
-  :root[data-theme="dark"] #space .spfield { background: transparent; }
+  :root[data-theme="dark"] #space:not(.nosky) .spsky { display: block; background: radial-gradient(60% 50% at 18% 12%, oklch(.42 .1 285 / .12), transparent 70%), radial-gradient(50% 45% at 85% 80%, oklch(.45 .07 230 / .09), transparent 70%), color-mix(in oklab, var(--bg) 62%, oklch(.15 .03 270)); }
+  :root[data-theme="dark"] #space:not(.nosky) .spfield { background: transparent; }
+  #space.still .spsky > b { animation: none; }   /* Settings › Space: the stars, untwinkling */
   #space .spsky > b { position: absolute; inset: 0; }
   #space .spsky i { position: absolute; border-radius: 50%; background: color-mix(in oklab, var(--ink) 75%, white); }
   #space .spsky .tw1 { animation: sptw 7s ease-in-out infinite; }
@@ -3290,6 +3291,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
       <button role="tab" data-tab="general" class="on" aria-selected="true" aria-controls="spGeneral" id="stGeneral" style="--sic: var(--muted)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M7.1 1h1.8l.4 1.9c.4.15.8.35 1.15.6l1.85-.65 1.3 2.2-1.45 1.3c.05.4.05.8 0 1.2l1.45 1.3-1.3 2.2-1.85-.65c-.35.25-.75.45-1.15.6L8.9 15H7.1l-.4-1.9c-.4-.15-.8-.35-1.15-.6l-1.85.65-1.3-2.2 1.45-1.3a4.6 4.6 0 0 1 0-1.2L2.4 7.15l1.3-2.2 1.85.65c.35-.25.75-.45 1.15-.6ZM8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z"/></svg><span>General</span><b class="sn"></b></button>
       <button role="tab" data-tab="look" aria-selected="false" aria-controls="spLook" id="stLook" tabindex="-1" style="--sic: var(--accent)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1Zm0 1.5v11a5.5 5.5 0 0 0 0-11Z"/></svg><span>Appearance</span><b class="sn"></b></button>
       <button role="tab" data-tab="list" aria-selected="false" aria-controls="spList" id="stList" tabindex="-1" style="--sic: var(--working)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2.5h12v4.5H2Zm0 6.5h12v4.5H2Z"/></svg><span>Chat list</span><b class="sn"></b></button>
+      <button role="tab" data-tab="space" aria-selected="false" aria-controls="spSpace" id="stSpace" tabindex="-1" style="--sic: var(--watch)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="8" cy="8" rx="6.5" ry="3" transform="rotate(-28 8 8)" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Space</span><b class="sn"></b></button>
       <button role="tab" data-tab="term" aria-selected="false" aria-controls="spTerm" id="stTerm" tabindex="-1" style="--sic: var(--ink)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.6 3.1 6.4 8l-4.8 4.9 1.1 1.1L8.6 8 2.7 2ZM8 12.6h6.4v1.5H8Z"/></svg><span>Terminal</span><b class="sn"></b></button>
       <button role="tab" data-tab="setup" aria-selected="false" aria-controls="spSetup" id="stSetup" tabindex="-1" style="--sic: var(--vscode)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 2A1.25 1.25 0 0 0 .5 3.25v9.5C.5 13.44 1.06 14 1.75 14h12.5c.69 0 1.25-.56 1.25-1.25v-7.5C15.5 4.56 14.94 4 14.25 4H7.6L6.2 2.4A1.25 1.25 0 0 0 5.27 2Z"/></svg><span>Projects</span><b class="sn"></b></button>
       <button role="tab" data-tab="jira" aria-selected="false" aria-controls="spJira" id="stJira" tabindex="-1" style="--sic: var(--watch)"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M1.5 3.5h13v3a1.5 1.5 0 0 0 0 3v3h-13v-3a1.5 1.5 0 0 0 0-3Zm1.5 1.5v.9a3 3 0 0 1 0 4.2V11h10v-.9a3 3 0 0 1 0-4.2V5Zm6 0h1.2v6H9Z"/></svg><span>Jira</span><b class="sn"></b></button>
@@ -3353,6 +3355,20 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
               <label class="csub" id="snipRow"><span class="sl"><b>Its words on one line</b><small data-d="The last word, or the prompt and the reply, a line each" data-off="Only where a card shows its words"></small></span><input type="checkbox" class="sw" role="switch" id="cardsSnipOne"></label>
             </div>
           </div>
+        </div></section>
+      </div>
+      <div class="spane" data-tab="space" hidden role="tabpanel" id="spSpace" aria-labelledby="stSpace">
+        <h5 class="sph">Space</h5>
+        <section class="sgrp"><h6 class="sgh" id="sgSky">Sky</h6><div class="slist" role="group" aria-labelledby="sgSky">
+          <div class="srow set" data-kw="space sky night stars background dark"><label class="sl" for="skyOn"><b>Night sky</b><small>Stars behind the nodes, on a dark theme</small></label><input type="checkbox" class="sw" role="switch" id="skyOn"></div>
+          <div class="srow set sub" id="twinkleRow" data-kw="space sky stars twinkle blink shimmer motion"><label class="sl" for="twinkleOn"><b>Twinkling</b><small data-d="A few stars brighten and dim, slowly" data-off="Only with the night sky"></small></label><input type="checkbox" class="sw" role="switch" id="twinkleOn"></div>
+          <div class="srow set sub" id="fallRow" data-kw="space sky falling shooting stars meteor motion often rarely"><label class="sl" for="fallPick"><b>Falling stars</b><small data-d="One now and then, at a random moment" data-off="Only with the night sky"></small></label><span class="ssel"><select id="fallPick"><option value="off">Never</option><option value="rare">Rarely · 1–3 min</option><option value="some">Now and then · 20–60 s</option><option value="often">Often · 5–20 s</option></select></span></div>
+        </div></section>
+        <section class="sgrp"><h6 class="sgh" id="sgSpAg">Agents</h6><div class="slist" role="group" aria-labelledby="sgSpAg">
+          <div class="srow set" data-kw="space agent card hover tooltip pointer model tokens"><label class="sl" for="agCardOn"><b>Agent card</b><small>Pointing at an agent shows its type, state, what it was asked and does now</small></label><input type="checkbox" class="sw" role="switch" id="agCardOn"></div>
+          <div class="srow set" data-kw="space agents finished done failed running pods busy only"><label class="sl" for="busyOnly"><b>Only agents at work</b><small>Pods leave out the ones that ended; the lanes keep them</small></label><input type="checkbox" class="sw" role="switch" id="busyOnly"></div>
+          <div class="srow set" data-kw="space pod names labels type zoom"><label class="sl" for="podNames"><b>Pod names</b><small>Each pod's type, beside it</small></label><span class="ssel"><select id="podNames"><option value="always">Always</option><option value="zoom">Not zoomed out</option><option value="never">Never</option></select></span></div>
+          <div class="srow set" data-kw="space lanes clock span window minutes hour strip under chat"><label class="sl" for="laneSpan"><b>Lanes' span</b><small>How far back the open chat's lanes reach</small></label><span class="ssel"><select id="laneSpan"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">An hour</option></select></span></div>
         </div></section>
       </div>
       <div class="spane" data-tab="term" hidden role="tabpanel" id="spTerm" aria-labelledby="stTerm">
@@ -3597,7 +3613,7 @@ code.icode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
     return a;
   };
   const state = { voiceOver: false, sessions: new Map(), projects: [], paneGh: new Map(), paneIde: new Map(), paneWt: new Map(), paneVisible: false, paneLeft: 0, fill: false, fillHeard: false, notch: null, pins: [], hidden: [], repos: {}, current: null, unread: new Map(), entries: [], notifications: true, serverNotify: false, about: {}, config: { roots: [], quick: null, projects: {} }, titleEdit: null, prsFor: null, snapshots: 0, awake: { awake: false, lid: false, idleSleep: null, power: null }, lidAsking: false, clones: new Map(), update: null, editors: null, key: null, chat: { on: false, repo: null, room: null, unread: 0, invites: [] }, lunch: { on: false, set: false, places: [] } };
-  const prefs = { space: false, spaceAt: .52, spZoom: 1, spLanes: true, spOff: ['idle', 'done'], spWin: 30, agentCards: {}, cardPartsSeen: 0, mutedAt: 0, fishKey: null, fishing: null, laneSchool: false, laneBed: false, project: 'all', lastProject: null, lanesShut: ['done', 'idle'], lanesIdle: false, listFilter: null, sessionsWidth: 380, headDetails: false, chatZoom: 1, listHidden: false, splitAt: .5, stackAt: .5, prsOpen: false, cards: 'compact', cardsByLane: false, cardsMoved: false, optMeta: true, termReader: false, pageZoom: 1, fullSpace: false, person: null, cardsEven: false, cardsSnipOne: false, sounds: false, barStats: ['cpu', 'mem'], peopleCompact: true, changesScope: 'turn', editor: 'vscode', inEditor: 'vscode', pagesOut: true, linksMoved: false, boardSites: ['github.com'], cardParts: ['prs', 'rounds', 'tickets', 'faces'], prsHeight: null, theme: 'own', skinFollow: true, look: null, darkFrame: false, fillHints: 0, tvSeen: false, tvHints: 0, toured: false, settingsPane: 'general', zeBest: {}, zeDay: null, zeDiff: 1, zeSound: true, zeBand: 'vira', zeTwo: null, zeTrophies: {}, prChips: 'matrix', agentFor: {}, prAgent: null };
+  const prefs = { space: false, spaceAt: .52, spZoom: 1, spLanes: true, spOff: ['idle', 'done'], spWin: 30, spSky: true, spTwinkle: true, spFalls: 'some', spCard: true, spBusy: false, spNames: 'zoom', agentCards: {}, cardPartsSeen: 0, mutedAt: 0, fishKey: null, fishing: null, laneSchool: false, laneBed: false, project: 'all', lastProject: null, lanesShut: ['done', 'idle'], lanesIdle: false, listFilter: null, sessionsWidth: 380, headDetails: false, chatZoom: 1, listHidden: false, splitAt: .5, stackAt: .5, prsOpen: false, cards: 'compact', cardsByLane: false, cardsMoved: false, optMeta: true, termReader: false, pageZoom: 1, fullSpace: false, person: null, cardsEven: false, cardsSnipOne: false, sounds: false, barStats: ['cpu', 'mem'], peopleCompact: true, changesScope: 'turn', editor: 'vscode', inEditor: 'vscode', pagesOut: true, linksMoved: false, boardSites: ['github.com'], cardParts: ['prs', 'rounds', 'tickets', 'faces'], prsHeight: null, theme: 'own', skinFollow: true, look: null, darkFrame: false, fillHints: 0, tvSeen: false, tvHints: 0, toured: false, settingsPane: 'general', zeBest: {}, zeDay: null, zeDiff: 1, zeSound: true, zeBand: 'vira', zeTwo: null, zeTrophies: {}, prChips: 'matrix', agentFor: {}, prAgent: null };
   try { Object.assign(prefs, JSON.parse(localStorage.getItem('peixairada-prefs') || '{}')); } catch {}
   // Compact is the cards' default (2026-10-12; large before), and a board saved with large — the old default — moves to it
   // once; one that chose medium keeps it.
@@ -6693,6 +6709,7 @@ const toolName = n => {
     const el = mxt.el ||= Object.assign(document.createElement('div'), { id: 'mxtip', role: 'tooltip' });
     if (!el.isConnected) document.body.append(el);
     if (ag) agInfoSoon(s, ag, a);
+    if (inSpace && prefs.spCard === false) return mxtHide();   // Settings › Space: no card
     const html = ag ? (inSpace ? spCardHtml(ag, s) : agCardHtml(ag, s)) : mxCardHtml(pr, prGroups(s.prs).find(g => g.includes(pr)) || [pr]);
     if (el._drawn !== html) { el.innerHTML = el._drawn = html; fillAges(el); }
     const sq = ag ? null : a.classList.contains('mxs') ? a : a.closest('.tmx')?.querySelector('.mxs.lead');
@@ -7507,7 +7524,7 @@ const toolName = n => {
   // menu: → or ⏎ goes into a row with ›, ← (or ⌫ on an empty box) comes back out of one opened from here (ctx.back).
   // Toggle holds every switch of the settings, ⏎ flips one and the menu stays. The rows are the pickers' own (#pick).
   const SWITCHES = [['notifyOn', 'Notifications'], ['autoUpdate', 'Update itself'],
-    ['soundsOn', 'Sounds'], ['optMeta', '⌥ is Meta in the terminal'], ['darkFrame', 'Dark frame round a light chat'], ['cardsSnipOne', 'A card’s words on one line'], ['laneSchool', 'A fish per chat in the status bar'], ['laneBed', 'The seabed in the status bar']];
+    ['soundsOn', 'Sounds'], ['optMeta', '⌥ is Meta in the terminal'], ['darkFrame', 'Dark frame round a light chat'], ['cardsSnipOne', 'A card’s words on one line'], ['laneSchool', 'A fish per chat in the status bar'], ['laneBed', 'The seabed in the status bar'], ['skyOn', 'Space’s night sky'], ['agCardOn', 'Space’s agent card']];
   const toggleRows = () => [
     { kind: 'toggle', id: 'tg:awake', name: 'Keep the Mac awake', hint: 'idle sleep held off', on: () => state.awake.awake, flip: () => setAwake({ awake: !state.awake.awake }) },
     { kind: 'toggle', id: 'tg:lid', name: '…with the lid closed', hint: 'Touch ID or your password', on: () => state.awake.lid, flip: () => state.lidAsking || setAwake({ lid: !state.awake.lid }) },
@@ -12347,7 +12364,7 @@ const toolName = n => {
   /** A chat's agents by type, the most first, each docked to its node on a side of its own: top, bottom, right, left. */
   function spPods(s) {
     const groups = [];
-    for (const r of spRows(s)) { const k = spKind(r); let g = groups.find(x => x.k === k); if (!g) groups.push(g = { k, rows: [], color: r.color }); g.rows.push(r); g.color ||= r.color; }
+    for (const r of spRows(s)) { if (prefs.spBusy && !['run', 'wait', 'joined'].includes(r.st)) continue; const k = spKind(r); let g = groups.find(x => x.k === k); if (!g) groups.push(g = { k, rows: [], color: r.color }); g.rows.push(r); g.color ||= r.color; }
     groups.sort((a, b) => b.rows.length - a.rows.length);
     const shown = groups.slice(0, SP_PODS), left = groups.slice(SP_PODS).reduce((n, g) => n + g.rows.length, 0);
     return shown.map((g, i) => {
@@ -12448,16 +12465,35 @@ const toolName = n => {
     main.style.setProperty('--sp', String(Math.min(.8, Math.max(.25, Number(prefs.spaceAt) || .52))));
     const b = $('#sbSpace'); b.setAttribute('aria-pressed', String(on)); b.title = `${on ? 'Leave' : 'Open'} Space — every chat as a node of its agents (⌥⌘S)`;
     clearInterval(sp.timer); sp.timer = on ? setInterval(spSoon, 5000) : 0;
-    if (on !== !!sp.fall) spFall();   // a falling star now and then while Space is on
+    spLook(); if (on !== !!sp.fall) spFall();   // a falling star now and then while Space is on
     if (on) renderSpace();
     const s = state.sessions.get(state.current); if (s) { drawn.head = null; renderHead(s); syncTerm(s); } else repostPane();   // the header's × is Space's
   }
   function spToggle() { prefs.space = !prefs.space; savePrefs(); applySpace(); }
+  // Settings › Space (2026-11-18, v5): the sky, its twinkle and its falling stars; the agent card, the pods' agents and
+  // names, the lanes' span. What only looks is a class or an attribute on #space (spLook); what is drawn, a redraw.
+  function spLook() {
+    const sky = prefs.spSky !== false, el = $('#space');
+    el.classList.toggle('nosky', !sky); el.classList.toggle('still', prefs.spTwinkle === false); el.dataset.names = prefs.spNames || 'zoom';
+    $('#skyOn').checked = sky; $('#twinkleOn').checked = prefs.spTwinkle !== false; $('#agCardOn').checked = prefs.spCard !== false; $('#busyOnly').checked = !!prefs.spBusy;
+    $('#fallPick').value = SP_FALLS[prefs.spFalls] ? prefs.spFalls : 'off'; $('#podNames').value = prefs.spNames || 'zoom'; $('#laneSpan').value = String(spWin());
+    for (const [row, box] of [['#twinkleRow', '#twinkleOn'], ['#fallRow', '#fallPick']]) {
+      const r = $(row), say = r.querySelector('small'); r.classList.toggle('off', !sky); $(box).disabled = !sky; say.textContent = sky ? say.dataset.d : say.dataset.off;
+    }
+  }
+  const spSet = (k, v, draw) => { prefs[k] = v; savePrefs(); spLook(); if (k === 'spSky' || k === 'spFalls') spFall(); if (draw) renderSpace(); };
+  $('#skyOn').addEventListener('change', e => spSet('spSky', e.target.checked));
+  $('#twinkleOn').addEventListener('change', e => spSet('spTwinkle', e.target.checked));
+  $('#fallPick').addEventListener('change', e => spSet('spFalls', e.target.value));
+  $('#agCardOn').addEventListener('change', e => { spSet('spCard', e.target.checked); if (!e.target.checked) mxtHide(); });
+  $('#busyOnly').addEventListener('change', e => spSet('spBusy', e.target.checked, prefs.space));
+  $('#podNames').addEventListener('change', e => spSet('spNames', e.target.value));
+  $('#laneSpan').addEventListener('change', e => spSet('spWin', +e.target.value, prefs.space));
   // The sky (2026-11-18, later), drawn once: four layers of stars from fixed seeds, so it is the same sky every time — the
   // first still, the others twinkling (CSS). A falling star now and then (SP_FALL_MS, a random wait each time): from a random
   // place in the sky's top half, at a random angle, under a second and a half — never while Space is hidden, the page is,
   // the theme is light, or motion is reduced: the wait just starts again.
-  const SP_FALL_MS = [20_000, 60_000];
+  const SP_FALLS = { rare: [60_000, 180_000], some: [20_000, 60_000], often: [5_000, 20_000] };   // Settings › Space's picks
   {
     const rand = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     $('#spsky').innerHTML = [['', 11, 46, .28], ['tw1', 23, 22, .55], ['tw2', 37, 18, .5], ['tw3', 51, 14, .6]].map(([cls, seed, n, o]) => {
@@ -12468,8 +12504,8 @@ const toolName = n => {
   }
   function spFall(now = false) {
     clearTimeout(sp.fall); sp.fall = 0;
-    if (!prefs.space) return;
-    const wait = SP_FALL_MS[0] + Math.random() * (SP_FALL_MS[1] - SP_FALL_MS[0]);
+    const at = SP_FALLS[prefs.spFalls]; if (!prefs.space || !at || prefs.spSky === false) return;
+    const wait = at[0] + Math.random() * (at[1] - at[0]);
     if (!now) { sp.fall = setTimeout(() => spFall(true), wait); return; }
     const sky = $('#spsky');
     if (!document.hidden && !REDUCED.matches && getComputedStyle(sky).display !== 'none' && sky.clientWidth) {
@@ -12486,7 +12522,7 @@ const toolName = n => {
   $('#space').addEventListener('click', e => {
     const f = e.target.closest('.spf[data-k]');
     if (f) { const k = f.dataset.k, off = spOff(); prefs.spOff = off.includes(k) ? off.filter(x => x !== k) : [...off, k]; savePrefs(); return renderSpace(); }
-    const w = e.target.closest('.spwin [data-w]'); if (w) { prefs.spWin = +w.dataset.w; savePrefs(); return renderSpace(); }
+    const w = e.target.closest('.spwin [data-w]'); if (w) { prefs.spWin = +w.dataset.w; savePrefs(); spLook(); return renderSpace(); }
     const z = e.target.closest('.spzoom [data-z]'); if (z) return z.dataset.z === 'fit' ? spFit() : spZoom(spZoomNow() + .1 * +z.dataset.z);
     if (e.target.closest('.spfold')) { prefs.spLanes = prefs.spLanes === false; savePrefs(); return renderSpace(); }
     const node = e.target.closest('.spt[data-id]'); if (node) { if (node.dataset.id !== state.current) openSession(node.dataset.id); return; }

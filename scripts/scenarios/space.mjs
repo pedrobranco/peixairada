@@ -100,6 +100,41 @@ export default async function (ctx) {
     await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
     await ctx.waitFor(`!document.querySelector('#mxtip.on')`, { what: 'the card gone with the pointer' });
 
+    // Settings › Space: its pane; the sky off, then on without its twinkle; no falling star when Never; no card; only agents at work; no pod names
+    ctx.assert.equal(await ctx.evaluate(`peixKey('Comma', 'cmd')`), true, '⌘, the settings');
+    await ctx.evaluate(`document.querySelector('#settings .stabs [data-tab="space"]').click()`);
+    out.pane = await ctx.evaluate(`[...document.querySelectorAll('#spSpace .srow.set .sl b')].map(b => b.textContent)`);
+    ctx.assert.deepEqual(out.pane, ['Night sky', 'Twinkling', 'Falling stars', 'Agent card', 'Only agents at work', 'Pod names', 'Lanes’ span'.replace('’', "'")], 'its rows');
+    await ctx.settle();
+    await ctx.shot('space-settings-dark');
+    await ctx.evaluate(`document.querySelector('#settingsClose').click()`);
+    const set = (id, v) => ctx.evaluate(`(() => { const el = document.querySelector('#${id}'); if (el.type === 'checkbox') el.checked = ${JSON.stringify(v)}; else el.value = ${JSON.stringify(v)}; el.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+    await set('skyOn', false);
+    ctx.assert.deepEqual(await ctx.evaluate(`[getComputedStyle(document.querySelector('#spsky')).display, getComputedStyle(document.querySelector('#spfield')).backgroundColor !== 'rgba(0, 0, 0, 0)', document.querySelector('#twinkleRow').classList.contains('off'), document.querySelector('#fallPick').disabled, peix.spFall()]`),
+      ['none', true, true, true, 0], 'no sky: the field its own ground again, the sky’s rows off with their reason, no star falls');
+    await set('skyOn', true); await set('twinkleOn', false);
+    ctx.assert.deepEqual(await ctx.evaluate(`[getComputedStyle(document.querySelector('#spsky')).display, document.getAnimations().filter(a => a.animationName === 'sptw').length]`), ['block', 0], 'the sky back, its stars still');
+    await set('twinkleOn', true); await set('fallPick', 'off');
+    ctx.assert.equal(await ctx.evaluate(`peix.spFall()`), 0, 'falling stars: never');
+    await set('fallPick', 'some');
+    await set('agCardOn', false);
+    const sec = await ctx.evaluate(`(() => { const r = document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spa[data-ag="sec1"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: sec.x, y: sec.y });
+    await ctx.sleep(400);
+    ctx.assert.equal(await ctx.evaluate(`!!document.querySelector('#mxtip.on')`), false, 'no card when it is off');
+    await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
+    await set('agCardOn', true);
+    await set('busyOnly', true);
+    await ctx.waitFor(`document.querySelectorAll('#spgrid .spt[data-id="${billing.id}"] .sppod').length === 0 && document.querySelectorAll('#spgrid .spt[data-id="${infra.id}"] .spa').length === 4`, { what: 'pods of agents at work alone' });
+    await set('busyOnly', false);
+    await ctx.waitFor(`document.querySelectorAll('#spgrid .spt[data-id="${billing.id}"] .spa').length === 2`, { what: 'the ended ones back' });
+    await set('podNames', 'never');
+    ctx.assert.equal(await ctx.evaluate(`[...document.querySelectorAll('#spgrid .spl')].every(l => getComputedStyle(l).display === 'none')`), true, 'no pod names');
+    await set('podNames', 'zoom');
+    await set('laneSpan', '60');
+    ctx.assert.equal(await ctx.evaluate(`peix.prefs().spWin`), 60, 'the lanes’ span');
+    await set('laneSpan', '30');
+
     // the states on top filter it: Ready off, its two chats gone; Idle and Done start off
     out.filters = await ctx.evaluate(`[...document.querySelectorAll('#spfs .spf')].map(f => f.dataset.k + ':' + f.getAttribute('aria-pressed') + ':' + f.querySelector('b').textContent).join(' ')`);
     ctx.assert.equal(out.filters, 'ask:true:1 work:true:2 watch:true:0 ready:true:4 idle:false:0 done:false:0', 'a toggle a state, its count');

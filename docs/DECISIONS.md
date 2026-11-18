@@ -5,6 +5,25 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-18, v5 — Space has its own settings
+
+Pedro: *"Add to options menu some options for the Space feature."* Which options was left to the work; these, each
+something Space draws that one might want otherwise:
+
+* **A Space pane in Settings** (`#spSpace`, after Chat list; `spLook` sets the controls and what only looks — `#space.nosky`,
+  `.still`, `data-names` —, `spSet` keeps a pick and redraws what is drawn):
+  * **Sky**: *Night sky* (`prefs.spSky`, on), and under it *Twinkling* (`spTwinkle`, on) and *Falling stars*
+    (`spFalls`: never · rarely, 1–3 min · now and then, 20–60 s, the default · often, 5–20 s — `SP_FALLS`), both off with
+    their reason while the sky is.
+  * **Agents**: *Agent card* (`spCard`, on; off, `mxtShow` shows none in Space); *Only agents at work* (`spBusy`, off: the
+    pods leave out the ended, the lanes keep them); *Pod names* (`spNames`: always · not zoomed out, the default, under 75 % ·
+    never); *Lanes' span* (`spWin`, the strip's own 15 · 30 · 60 buttons, kept in step).
+* The sky and the card are the launcher's switches too (`SWITCHES`).
+* Checked here: `space.mjs` — the pane's rows; the sky off (the field its ground again, the two rows under it off, no
+  star falls), on without a twinkle; *Never* lets none fall; no card when off; pods of agents at work alone; no pod names;
+  the span. `settings-panes.mjs` walks the new pane; `launcher`, `reduced-motion`, `compositor-rules`, `themes`,
+  `agent-rows` pass.
+
 ## Decisions of 2026-11-18, v4 — an agent's card in Space, its type for its name, a night sky
 
 Pedro, of the card proposed: *"I just want the hover on top to show: type, in the type's colour with its two letters, plus
