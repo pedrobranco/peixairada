@@ -44,7 +44,7 @@ npm run map                         # rewrite the section maps at the top of ser
   `ws`, `@xterm/headless` 5.5.0 and `@xterm/addon-serialize` 0.13.0 — pinned exactly to the vendored xterm's version,
   which `npm run check` compares with `node_modules`. The xterm client packages, marked, DOMPurify and highlight.js are
   dev-only, `public/vendor/`'s sources byte for byte (2026-11-06); every version exact. Rebuild the app after `npm install` or
-  a node switch (it copies `node_modules` and the node binary).
+  a node switch (it copies both).
 * **A session that runs in a drawer**: finish the work, write the notes and the recap first, and run
   `restart --after 20` last. `scripts/board.sh /api/terminals` says which chats are in drawers. `launchd.sh` and `build.sh`
   detach themselves when run from a drawer (`PEIXAIRADA_DRAWER`, the app's bundle id). → Findings: *build.sh from a drawer*.
@@ -66,7 +66,7 @@ npm run map                         # rewrite the section maps at the top of ser
 | `lib/refit.mjs` | A terminal's refit, the holder's copy |
 | `lib/version.mjs` | The version (2026-10-21): package.json's major.minor, the patch the commits since; the server's per HEAD, build.sh's into the app |
 | `public/index.html` | The frontend, one file, no build step. A section map at the top of its script |
-| `public/vendor/` | `marked` 18.1.2 + `DOMPurify` 3.4.17 + `highlight.js` 11.12.0 + `xterm` 5.5.0 (+ fit 0.11, web-links 0.12) — UMD builds, no CDN at runtime |
+| `public/vendor/` | `marked`, `DOMPurify`, `highlight.js`, `xterm` (+ fit, web-links), package.json's versions — UMD builds, no CDN at runtime |
 | `mac/Sources/main.swift` | The native shell: window, the pane (web views per page), server lifecycle, Dock badge, menu bar, notifications, the hotkey forwarder |
 | `mac/icon/MakeIcon.swift`, `mac/build.sh` | The icon, drawn in CoreGraphics; compile + bundle + sign + install (the version `lib/version.mjs`'s) |
 | `scripts/launchd.sh` | The server as a login agent; `restart [--after N]` |
@@ -77,7 +77,7 @@ npm run map                         # rewrite the section maps at the top of ser
 | `scripts/webkit.mjs`, `webkit.swift` | The live board in a `WKWebView`, the app's engine |
 | `scripts/fakeclaude.mjs`, `fixture.mjs` | A stand-in CLI for tests; a `~/.claude` look-alike |
 | `scripts/fake*.mjs` | What every test server runs instead of the real CLIs and services; each file's head says its knobs |
-| `scripts/readme-board.mjs`, `-shots`, `-clips` | The README's pictures from a made-up board, never the real one: stills and clips (animated WebP) → `docs/shots/` |
+| `scripts/readme-board.mjs`, `-shots`, `-clips` | The README's pictures from a made-up board, never the real one: stills and clips → `docs/shots/` |
 | `scripts/check.sh`, `check-page.mjs`, `map.mjs` | Static checks; the section maps |
 | `test/` | `node:test` files (`npm test`) |
 
@@ -372,6 +372,7 @@ npm run map                         # rewrite the section maps at the top of ser
   own size; scaled to .7 and cropped, the footer below the edge unless asking — `footRows`, `placeMini`), else its tail
   (`tailHtml`, `GET /api/tails?ids=`, every 2 s). A question's answers (`ask.labels`) come
   once the transcript has it; one clicked types its digit into the drawer (`answerInDrawer`). → `overview.mjs`.
+* **⌥⌘S is Space** (2026-11-18; `main.space`, `spNode`, `spPods`; a node a rounded box in a tile of its own size, `SP_GEO`): the list's place, the chat right, pods by `type` of every agent its claude ran (`agentAll`, not the last round), a teammate's the category it was spawned as (`mateType`: its meta's `spawnedAgentType`, else the spawn — `noteMateType`, `SPAWN_TOOLS`; `scripts/team-probe.mjs` shows what is there); the chat's own agent in its node (`.spra`); a pod folded to its agents at work, else its newest, the rest behind `+N` (`.spx`, `sp.open`), folded again `SP_OPEN_MS` on, later while the pointer is on its chat; a mark's click its agent's tab (`agOpen`); a chat starred (its node's `.spstar`, F; `favChats` in the state file → `fav`, `POST …/favorite`, `setFav`) is its own category, `spCat`: first, a row of its own (`.spfirst`), the top bar's ★ chip in or out whatever its state; **nothing lies over the star** (`.spbox::after` the ping, `pointer-events: none`; the scenario presses with the mouse, never `.click()`); the divider down to one zoomed tile (`--sp-min` from `spZoomShow`, the chat's `--chat-min`; `#space` clips); **a node made anew is phased** (`spsonar`, `spspin` in `PHASED`, `phaseAnims()` after `renderSpace` made one), so a rebuild never restarts its pings and arcs; an agent's name only on its card (`spCardHtml` in `#mxtip`); a dark theme's sky (`#spsky`, `spFall`; bigger stars its fifth layer, `.big`; a planet or a comet now and then, `spVisit`, `SP_VISIT_MS`, `prefs.spVisits`, by transform and opacity alone); Settings › Space (`spLook`, `spSet`). → `space.mjs`.
 * **The chat header is drawn only when it changed**: `renderHead` compares the header's, the menu's and the PR rows'
   markup with `drawn`, and runs `layoutNotch(); fitHeadPrs()` only for a new header; the handlers are bound on every
   call. Anything that edits the header in place resets `drawn.head` (`editTitle` does).
@@ -831,7 +832,7 @@ npm run map                         # rewrite the section maps at the top of ser
   newline-delimited JSON, listed at the holder's head (`seq`, `upto`). The
   server connects, proxies pages (`attachTermSocket`), adopts holders on boot (`adoptHolders`), and tells a holder its
   session id once the registry reveals it. An exited holder lingers `TERM_LINGER_MS` with its last screen, then
-  removes its files. **The socket path must stay under 104 bytes** — test state dirs are short on purpose.
+  removes its files. **The socket path must stay under 104 bytes** (test state dirs are short).
 * **The drawer is automatic**: the pane's body while the chat runs here, gone when the process exits (`termEnded`);
   `syncTerm` on every open and update. **⌥⌘T is a zsh tab** beside it (a holder with `shell: true`, `shellOf()`,
   `s.shell`), **⌘T another** (`fresh` on the POST, never one at a time; `shellsOf`, `s.shells`, oldest first). **Vim**
@@ -961,7 +962,7 @@ npm run map                         # rewrite the section maps at the top of ser
 
 ## Verifying changes
 
-**Do not claim a UI change works without loading it in a real browser** — the screen shows what code hides.
+**Do not claim a UI change works without loading it in a real browser**.
 Look at the screenshots. **After any edit to the page, load it**: `check-page` only compiles, and a `const` read before its line kills
 the board at load — `npm test` loads the page (`test/page-load.test.mjs`); `npm run verify` reads the live one.
 
@@ -1004,7 +1005,7 @@ the board at load — `npm test` loads the page (`test/page-load.test.mjs`); `np
   `KEY_MODE=enforce`, a `ZDOTDIR` with no rc files. Up is its `listening` line (a port taken first moves it to a fresh
   one); stdin a pipe whose end stops it (`PEIX_TEST_PARENT`); `meta.env` is spread last. `waitFor(fn, {timeout, what})`, `srv.post(path, body)` and
   `tmpDir()` are the tests' polls, POSTs and dirs (a bare `mkdtempSync` fails `npm run check`); every test process has
-  its own state (`test/env.mjs`, preloaded). **A wait's timeout is for what never comes** (15 s by default, 2026-10-13).
+  its own state (`test/env.mjs`, preloaded). **A wait's timeout is for what never comes** (15 s, 2026-10-13).
 * **Test against the fake claude, not real chats**: `scripts/fakeclaude.mjs` via `CLAUDE_BIN` (`fake: true`) is
   instant and touches nothing; the real CLI, at no cost: `lib/reallab.mjs`. A test against the real `~/.claude` names it as `claudeDir` outright (read-only), uses
   a stale chat and `DELETE`s the terminals it made.

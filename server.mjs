@@ -166,6 +166,7 @@ let driftAcks = {};
 // `quiet` and `muted`: no banner, no sound, and nothing that calls you counts it. Questions too, till you unmute it. By
 // the chat's id, so a /clear or a branch starts loud: that is another chat.
 let mutedChats = {};
+let favChats = {};   // starred in Space, first in its grid (2026-11-18, v11): id → when starred
 // Custom projects: id -> { id, name, cwds, createdAt }. A name over one or more folders — multi-repo
 // work, an investigation. Folders themselves need no record: they come from the sessions' cwds.
 let projects = {};
@@ -256,6 +257,7 @@ function loadState() {
     seen = st.seen && typeof st.seen === 'object' ? st.seen : {}; seenSince = typeof st.seenSince === 'string' ? st.seenSince : null;
     driftAcks = st.driftAcks && typeof st.driftAcks === 'object' ? st.driftAcks : {};
     mutedChats = st.mutedChats && typeof st.mutedChats === 'object' ? st.mutedChats : {};
+    favChats = st.favChats && typeof st.favChats === 'object' ? st.favChats : {};
     projects = st.projects || {};
     titles = st.titles || {};
     pinned = Array.isArray(st.pinned) ? st.pinned.filter(k => typeof k === 'string') : [];
@@ -295,7 +297,7 @@ function saveState() {
   try {
     mkdirSync(dirname(STATE_FILE), { recursive: true });
     const tmp = `${STATE_FILE}.${process.pid}.tmp`;
-    const body = JSON.stringify({ done: doneMarks, forGood: forGoodMarks, removed: removedMarks, unlinked, seen, seenSince, driftAcks, mutedChats, projects, titles, pinned, hidden: hiddenProjects, envs, notifications: notificationsOn, prTurns, prLogs: {}, awake: awakeOn, selfUpdate: autoUpdate, updated: updateLast, updateHeld, appBuild, worktrees: worktreesMade, peacockMoved, keyEnforced, jiraTokenSite, chatSeen, chatQuiet, links: chatLinks, lunch: lunchDay }, null, 1);
+    const body = JSON.stringify({ done: doneMarks, forGood: forGoodMarks, removed: removedMarks, unlinked, seen, seenSince, driftAcks, mutedChats, favChats, projects, titles, pinned, hidden: hiddenProjects, envs, notifications: notificationsOn, prTurns, prLogs: {}, awake: awakeOn, selfUpdate: autoUpdate, updated: updateLast, updateHeld, appBuild, worktrees: worktreesMade, peacockMoved, keyEnforced, jiraTokenSite, chatSeen, chatQuiet, links: chatLinks, lunch: lunchDay }, null, 1);
     // a PR's ledger on one line (2026-10-17): up to LOG_EV_MAX events each, a quarter fewer bytes than laid out
     const logs = Object.entries(prLogs).map(([url, log]) => `  ${JSON.stringify(url)}: ${JSON.stringify(log)}`);
     writeFileSync(tmp, logs.length ? body.replace('\n "prLogs": {},', () => `\n "prLogs": {\n${logs.join(',\n')}\n },`) : body, { mode: 0o600 });
@@ -826,7 +828,8 @@ function summary(s, ti = null) {   // `ti`: termIndex(), when the whole board is
     agents: s.agentsRunning || 0,   // sub-agents at work — what keeps the status 'working' past the main turn's end
     tasks: runningTasks(s),         // monitors and background commands still running behind the turn
     peerIn: peerInOf(s), peerQueue: peerQueueOf(s),   // another chat's newest message to it, and those waiting for its turn's end (2026-10-31)
-    agentRows: s.alive ? s.agentRows || null : null,   // a row per sub-agent of its last round, while its claude runs (noteAgents, 2026-11-02)
+    agentRows: s.alive ? s.agentRows || null : null,
+    agentAll: s.alive ? s.agentAll || null : null,   // and every agent of its claude's, when the rows are its last round only (Space, 2026-11-18)   // a row per sub-agent of its last round, while its claude runs (noteAgents, 2026-11-02)
     // the Watching lane's (2026-10-31): the turn at work was woken by the chat's own task notice, not by you; the next
     // wake-up it set itself; and how its last turn stopped short, while nothing runs
     woken: status === 'working' && !!s.woke, wake: nextWake(s), stopped: status === 'working' || status === 'needs-input' ? null : s.stopped,
@@ -843,7 +846,8 @@ function summary(s, ti = null) {   // `ti`: termIndex(), when the whole board is
     // the other live processes on this chat, and who wrote its last turn — the page's "VS Code too" warning
     rivals: s.rivals, tailEntrypoint: s.entrypoint, tailEntrypointAt: s.entrypointAt,
     done: isDone(s), doneAt: doneMarks[s.id] || null, forGood: forgotten(s), removed: isRemoved(s),
-    muted: !!mutedChats[s.id],   // no banner, sound or count from it, till you unmute it (2026-11-02)
+    muted: !!mutedChats[s.id],
+    fav: !!favChats[s.id],   // starred in Space (2026-11-18, v11)   // no banner, sound or count from it, till you unmute it (2026-11-02)
     seenAt: seen[s.id] || seenSince,   // the board last showed it: a reply after is a new one (2026-10-12)
     ...linksShown(s.id) && { links: linksShown(s.id) },   // merged, folded, branched — by your hand (2026-10-31)
     // the branch moved under it (2026-10-13): what its checkout is on now and what the chat was on, and who else runs in
@@ -2427,6 +2431,7 @@ function fold(s, line) {
           const e = { role: 'assistant', kind: 'tool_use', name: b.name, text: summarizeToolInput(b.name, b.input), toolUseId: b.id, ts };
           if (b.name === 'SendMessage') noteSend(s, e, b);
           if (b.name === 'Agent' && pstr(b.input?.name)) e.who = b.input.name;
+          if (SPAWN_TOOLS.has(b.name) && pstr(b.input?.name)) noteMateType(s, b.input);
           if (b.name === 'Skill' && pstr(b.input?.args)) e.args = snippet(b.input.args, 140);   // a fork's words: which PR this review is of
           pushEntry(s, e);
           if (EDIT_TOOLS.has(b.name) && (b.input?.file_path || b.input?.notebook_path)) (s.turnFiles ||= new Set()).add(b.input.file_path || b.input.notebook_path);
@@ -2514,7 +2519,7 @@ function indexFile(file, { full = false } = {}) {
   const s = newSession(id, file);
   s.bornAt = st.birthtimeMs;
   if (prev) {
-    for (const k of ['live', 'rivals', 'alive', 'startedAt', 'openedAt', 'agentsRunning', 'agentRows', 'agentSig', 'agentSaid', 'headNow', 'headOk', 'peers', 'tasksGone', 'forkAt']) s[k] = prev[k];
+    for (const k of ['live', 'rivals', 'alive', 'startedAt', 'openedAt', 'agentsRunning', 'agentRows', 'agentAll', 'agentSig', 'agentSaid', 'headNow', 'headOk', 'peers', 'tasksGone', 'forkAt']) s[k] = prev[k];
     clearTimeout(prev.pushTimer); clearTimeout(prev.notifyTimer); clearTimeout(prev.driftTimer);
     s.silent = !!prev.file;
   }
@@ -2531,6 +2536,7 @@ function indexFile(file, { full = false } = {}) {
   s.newEntries = []; // initial load: nothing is "new"
   if (!s.cwd && prev?.cwd) s.cwd = prev.cwd;
   if (!s.tasks?.size && prev?.tasks?.size) s.tasks = prev.tasks;   // a tail re-read has not seen the calls that started them
+  if (prev?.mateTypes?.size) s.mateTypes = new Map([...prev.mateTypes, ...(s.mateTypes || [])]);   // nor the spawns that named its teammates' categories
   for (const [id, t] of s.tasks || []) { const p = prev?.tasks?.get(id); if (p) { t.heldAt = p.heldAt; t.askedAt = p.askedAt; } }   // …and lsof's word is the machine's, not the lines' (2026-11-04)
   if (!s.wakes && prev?.wakes?.size) s.wakes = prev.wakes;   // …nor the wake-ups it set (2026-10-31)
   if (prev?.agentEnds?.size) s.agentEnds = new Map([...prev.agentEnds, ...(s.agentEnds || [])]);   // …nor how its agents ended, past the tail (2026-11-02)
@@ -2765,10 +2771,20 @@ function jsonOnce(file, shape) {
   jsonSeen.set(file, { mtimeMs: st.mtimeMs, size: st.size, v });
   return v;
 }
+/** A teammate's category (2026-11-18, v6): the `subagent_type` the lead spawned it with — its metadata names none, its
+ *  roster entry its own name. By name, the newest spawn winning; `general-purpose`, the Agent tool's own default, when none. */
+const SPAWN_TOOLS = new Set(['Agent', 'Task']);   // the spawning tool by either of its names (Task, before Agent; 2026-11-18, v8)
+function noteMateType(s, input) {
+  const t = s.mateTypes ||= new Map(); t.delete(input.name); t.set(input.name, pstr(input.subagent_type) || pstr(input.agent_type) || pstr(input.agentType) || 'general-purpose');
+  while (t.size > 64) t.delete(t.keys().next().value);
+}
+// first what its own metadata says it was spawned as (`spawnedAgentType`, `customAgentType`; its `agentType` is its name — 2026-11-18, v9)
+const typeSaid = (k, name) => k && k !== name && k !== 'team-lead' ? k : null;
+const mateType = (s, name, spawned, kind) => typeSaid(spawned, name) || s.mateTypes?.get(name) || typeSaid(kind, name) || 'general-purpose';
 const isLead = m => m.agentType === 'team-lead' || m.name === 'team-lead' || String(m.agentId || '').startsWith('team-lead@');
 /** The roster beyond its lead, as Claude Code keeps it while the chat runs: what a teammate with no file yet is known by. */
 const rosterOf = s => jsonOnce(join(TEAMS_DIR, `session-${s.id.slice(0, 8)}`, 'config.json'), c => (c?.leadSessionId && c.leadSessionId !== s.id) || !Array.isArray(c?.members) ? []
-  : c.members.filter(m => m && typeof m === 'object' && pstr(m.name) && !isLead(m)).map(m => ({ name: m.name }))) || [];
+  : c.members.filter(m => m && typeof m === 'object' && pstr(m.name) && !isLead(m)).map(m => ({ name: m.name, kind: pstr(m.agentType) }))) || [];
 const TM_SUMMARY = /^\s*<teammate-message\b[^>]*\bsummary="([^"]*)"/;
 const mateSeen = new Map();   // a teammate's transcript → { mtimeMs, size, last }
 /** A teammate's last line: the last thing it said or called, else what the lead last asked of it. */
@@ -2805,10 +2821,11 @@ function mateLast(file, st) {
 // Only the last round shows: the agents out at one time, a new round being one that starts after all before it ended. A failure
 // from a round before stays with it (`old`), for the page to keep until the chat is opened (seenAt). Words hold AGENT_WORDS_MS:
 // a tool call every 6.6 s here (the median over 247 agents) would flicker, and a new one must not push for each step.
+const typeOf = (s, type) => ({ type, color: agentColor(s.live?.cwd || s.cwd, type) });
 const AGENT_WORDS_MS = Number(process.env.AGENT_WORDS_MS ?? 15_000), AGENT_FILES = 40;
 /** The agent a tool's result names (2026-11-02): an Agent call's, a forked Skill's. How the transcript gets back to it, whatever became of its row. */
 const agentNamed = t => typeof t?.agentId === 'string' && /^[\w-]+$/.test(t.agentId) ? { agent: { id: t.agentId, name: pstr(t.name) || pstr(t.commandName), asked: pstr(t.description) } } : null;
-const agentMetaOf = m => !m || typeof m !== 'object' ? {} : { name: pstr(m.name), asked: pstr(m.description), kind: pstr(m.agentType), mate: m.taskKind === 'in_process_teammate' || !!pstr(m.teamName),
+const agentMetaOf = m => !m || typeof m !== 'object' ? {} : { name: pstr(m.name), asked: pstr(m.description), kind: pstr(m.agentType), spawned: pstr(m.spawnedAgentType) || pstr(m.customAgentType), mate: m.taskKind === 'in_process_teammate' || !!pstr(m.teamName),
   model: pstr(m.model), branch: pstr(m.worktreeBranch), tree: pstr(m.worktreePath), tool: pstr(m.toolUseId), finished: m.finished === true, stopped: m.stoppedByUser === true };
 const metaFile = (dir, n) => join(dir, n.slice(0, -'.jsonl'.length) + '.meta.json');
 /** Its meta says it finished, and nothing was written since: an agent ended by an API error writes no end of its own, and
@@ -2868,6 +2885,9 @@ function noteAgents(s, dir, work, since, now) {
     if (state === 'run' && was?.st === 'run' && was.last && now - (said.get(id) || 0) < AGENT_WORDS_MS) last = was.last;   // it holds its words
     else if (JSON.stringify(last) !== JSON.stringify(was?.last ?? null)) said.set(id, now);
     rows.push({ id, name: m.name, asked: m.asked || snippet(born.prompt, 80) || null, kind: m.kind && m.kind !== 'general-purpose' ? m.kind : null, mate: !!m.mate, st: state, last,
+      // its type as Claude Code named it — a teammate's, the category it was spawned as (mateType, 2026-11-18, v6) — and the
+      // colour that type's definition gives (Space's pods): none for a built-in
+      ...typeOf(s, m.mate ? mateType(s, m.name, m.spawned, m.kind) : m.spawned || m.kind || null),
       // when it ended: not its last line alone — an API error writes none, and you may have opened the chat since that line (the page keeps a failure until then)
       at: born.at, end: state === 'run' || state === 'wait' ? null : new Date(Math.max(st.mtimeMs, Date.parse(end?.ts) || 0, m.finished ? jsonSeen.get(metaFile(dir, n))?.mtimeMs || 0 : 0)).toISOString(),
       lastAt: new Date(st.mtimeMs).toISOString(), why: state === 'fail' ? end?.why || null : null,
@@ -2876,12 +2896,16 @@ function noteAgents(s, dir, work, since, now) {
   rows.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
   let cut = 0, far = -Infinity;   // the last round: where one starts after every one before it had ended
   rows.forEach((r, i) => { const from = Date.parse(r.at); if (i && from > far) cut = i; far = Math.max(far, r.end ? Date.parse(r.lastAt) : Infinity); });
-  const kept = [...rows.slice(0, cut).filter(r => r.st === 'fail').slice(-3).map(r => ({ ...r, old: true })), ...rows.slice(cut)];
-  for (const m of rosterOf(s)) if (!names.has(m.name)) kept.push({ id: `mate-${m.name}`, name: m.name, asked: null, kind: null, mate: true, st: 'joined', last: null, at: null, end: null, lastAt: null, why: null, branch: null, tree: null, tool: null });   // named, no file of its own yet
+  const kept = [...rows.slice(0, cut).filter(r => r.st === 'fail').slice(-3).map(r => ({ ...r, old: true })), ...rows.slice(cut)], joined = [];
+  for (const m of rosterOf(s)) if (!names.has(m.name)) joined.push({ id: `mate-${m.name}`, name: m.name, asked: null, kind: null, mate: true, ...typeOf(s, mateType(s, m.name, null, m.kind)), st: 'joined', last: null, at: null, end: null, lastAt: null, why: null, branch: null, tree: null, tool: null });   // named, no file of its own yet
+  kept.push(...joined);
+  // every agent its claude has run, rounds before the last too (2026-11-18, v9): Space's pods, which gather them by type
+  // round the chat; only when there were rounds before, else the same as the rows
+  const all = cut ? [...rows, ...joined] : null;
   // what changed: `lastAt` only by the minute, or every line of every agent would push the card
-  const sig = JSON.stringify(kept.map(({ lastAt, ...r }) => [r, Math.floor(Date.parse(lastAt) / 60_000)]));
+  const sig = JSON.stringify([kept.map(({ lastAt, ...r }) => [r, Math.floor(Date.parse(lastAt) / 60_000)]), all && rows.slice(0, cut).map(r => [r.id, r.st, r.type])]);
   if (sig === (s.agentSig ?? null) || (!kept.length && !s.agentRows)) return false;
-  s.agentRows = kept.length ? kept : null; s.agentSig = sig;
+  s.agentRows = kept.length ? kept : null; s.agentAll = all; s.agentSig = sig;
   return true;
 }
 // What the page asks of one agent, on demand (2026-11-02): the hover card's totals and the tab's transcript, read a piece at a
@@ -6813,6 +6837,16 @@ const server = createServer(async (req, res) => {
       saveState(); schedulePush(s);
       return json(res, 200, { ok: true, acked: driftAcks[s.id] });
     }
+    if (req.method === 'POST' && (m = p.match(/^\/api\/sessions\/([\w-]+)\/favorite$/))) {   // starred in Space, or not (2026-11-18, v11)
+      const s = sessions.get(m[1]);
+      if (!s) return json(res, 404, { error: 'unknown session' });
+      const body = await jsonBody(req);
+      if (typeof body.on !== 'boolean') return json(res, 400, { error: 'expected {on: true|false}' });
+      if (body.on) favChats[s.id] = new Date().toISOString(); else delete favChats[s.id];
+      for (const id of Object.keys(favChats)) if (!sessions.has(id)) delete favChats[id];
+      saveState(); schedulePush(s);
+      return json(res, 200, { ok: true, fav: !!favChats[s.id] });
+    }
     if (req.method === 'POST' && (m = p.match(/^\/api\/sessions\/([\w-]+)\/mute$/))) {   // this chat's alerts silent, or back (2026-11-02)
       const s = sessions.get(m[1]);
       if (!s) return json(res, 404, { error: 'unknown session' });
@@ -7050,7 +7084,7 @@ server.on('upgrade', (req, socket, head) => { socket.on('error', () => socket.de
 // ---------------------------------------------------------------------------------------------
 // Boot — only when run as the program. Imported (the tests), the module exposes its pure parts and does nothing.
 // ---------------------------------------------------------------------------------------------
-export { cronNext, nextWake, pruneWakes, pruneTasks, findTasks, stopOf, pollBody, pollOf, cleanLunch, lunchPhase, dishesOn, closedOn, dayKey, sweepTasks, indexFile, settleDrift, noteHead, headOf, driftOf, updateParts, doingOf, dayOf, noteSpan, parseNumstat, parseNameStatus, splitPatch, addedPatch, changesOf, patchStat, projectDir, parseWorktrees, worktreesFor, branchWhere, worktreeBases, prRefs, ensureWorktree, folderBack, putBack, linkModules, sweepWorktrees, switchGuard, worktreesMade, fold, newSession, summary, agentRunning, usageWindows, prChecks, ticketsIn, noteTickets, cleanSetup, notePr, notePrs, unlinkPr, unlinked, waiveTurn, unwaiveTurn, moveTurn, prEvents, ciEvent, logEvents, noteRounds, roundsOf, prLogs, pruneLogs, prActs, takeActs, forgetRef, ghRepoOf, prTitle, duePrs, prStatus, prTurn, prPeople, setPrInfo, doneMarks, forGoodMarks, mutedChats, prAlertChat, cleanPrompt, textOf, snippet, plain, summarizeToolInput, toolResultSnippet, projectInput, movePeacock, termSummary, isDone, sessions, terms, foreignTo, lidRuns, prTurns };
+export { cronNext, nextWake, pruneWakes, pruneTasks, findTasks, stopOf, pollBody, pollOf, cleanLunch, lunchPhase, dishesOn, closedOn, dayKey, sweepTasks, indexFile, settleDrift, noteHead, headOf, driftOf, updateParts, doingOf, dayOf, noteSpan, parseNumstat, parseNameStatus, splitPatch, addedPatch, changesOf, patchStat, projectDir, parseWorktrees, worktreesFor, branchWhere, worktreeBases, prRefs, ensureWorktree, folderBack, putBack, linkModules, sweepWorktrees, switchGuard, worktreesMade, fold, newSession, summary, agentRunning, usageWindows, prChecks, ticketsIn, noteTickets, cleanSetup, notePr, notePrs, unlinkPr, unlinked, waiveTurn, unwaiveTurn, moveTurn, prEvents, ciEvent, logEvents, noteRounds, roundsOf, prLogs, pruneLogs, prActs, takeActs, forgetRef, ghRepoOf, prTitle, duePrs, prStatus, prTurn, prPeople, setPrInfo, doneMarks, forGoodMarks, mutedChats, favChats, prAlertChat, cleanPrompt, textOf, snippet, plain, summarizeToolInput, toolResultSnippet, projectInput, movePeacock, termSummary, isDone, sessions, terms, foreignTo, lidRuns, prTurns };
 export { handoffText };   // chats that talk (2026-10-31)
 export { agentFront, agentsFor };   // a new chat as an agent (2026-11-06)
 export { readerArgs };   // a reader reads, and does nothing else (2026-11-06)

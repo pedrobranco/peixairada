@@ -2,8 +2,296 @@
 
 What was decided, why, and what is still open, so the work can be picked up in another session.
 Newest at the top of each list. `CLAUDE.md` is the working notes (how things are built, what bit us);
-this file is the *why* and the *state*. Last updated 2026-11-07. The company, its repos and the people on its PRs go
+this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
+
+## Decisions of 2026-11-19 — bigger stars; planets and comets passing
+
+> "Add bigger stars and add planets /  comets passing by from now and then."
+
+* A fifth layer of stars, nine of them, 3–4.5 px with a soft glow, twinkling slowest (`.big`, 17 s): the same fixed seed,
+  the same sky every time.
+* A visitor now and then (`spVisit`, every 45–150 s, `SP_VISIT_MS`), one at a time: half the time a planet — 14–36 px,
+  one of five hues, lit from the top left, two in five ringed — crossing the sky in 28–48 s, else a comet with its tail
+  in 5–9 s, at a slant. Either way, edge to edge on a random line, by `transform` and `opacity` alone, gone once by.
+  Under the falling star's guards: never with Space hidden, the page hidden, a light theme or reduced motion.
+* Settings › Space › *Planets and comets* (`prefs.spVisits`, on), a row under the night sky's like its others.
+  `peix.spVisit()` brings one now, for the harness. → `space.mjs`.
+
+## Decisions of 2026-11-18, v12 — the star takes a hand's click; Space down to one column
+
+> "The favorite button does not work and i can't resize to one column in the space (you can see in the screenshot the bare minimum width that it allows)"
+
+* **The star.** The box's ping, `.spbox::after`, lies over the whole box — 6 px past it every way — after the star in
+  the paint, so a hand's click on the star landed on the box: the node opened, nothing starred. The scenario had pressed
+  the star by `.click()`, which asks no hit-test, and passed. The ping is `pointer-events: none` now, the star over it
+  (`z-index: 1`), and the scenario presses the mouse at the star's middle (`press`): it fails without the fix.
+* **One column.** The divider stopped at a quarter of the window — two of Pedro's tiles on a wide screen. Its floor is
+  now one tile at Space's zoom, with the field's padding and a scrollbar (`--sp-min`, set by `spZoomShow`: 340 px at
+  100 %, 168 at 50 %), and the chat keeps 360 px (`--chat-min`); the share runs .05 to .9, CSS holding the floors.
+  Space clips what is wider than it (`#space { overflow: hidden }`, `.spbody { min-width: 0 }`): a zoomed tile spilled
+  over the chat before. The scenario drags it all the way left: one column, one tile at its zoom wide, nothing past it.
+  → `space.mjs`.
+
+## Decisions of 2026-11-18, v11 — favourite nodes, first, with their own chip; Space's nodes stop flickering
+
+> "Add support for favorites nodes em Space (star in the left top corner of the rounded rectangle) which fix on top. Add also that category on the top bar to filter out or in."
+> "it is flickering again. Redo the all logic on top of 54674c4 instead of picking any commit."
+
+* A star in each node's top-left corner: shown under the pointer or with the keys on the node, filled in the amber ink
+  once starred and shown always then — shown, not faded: no transition, nothing new to composite. F with the keys on
+  a node does the same (`.spstar`, `setFav`). Its click is also read from under the pointer, should an engine hand the
+  click to the node's button; a server started before this, with no `/favorite`, says to restart it.
+* Kept by the server, as pins and mutes are (`favChats` in the state file, `POST /api/sessions/:id/favorite {on}`, the
+  summary's `fav`): the app and every browser see the same stars. A `/clear` is a new chat and starts unstarred.
+* A favourite is its own category, as each state is (`spCat`): first in the grid, a row of their own — the first chat
+  after them starts the next row (`.spfirst`, `grid-column-start: 1`). The ★ *Favorites* chip comes first on the top bar
+  once a chat is starred: on, every favourite shows whatever its state; off, none does; the state chips count the rest.
+  Starring a chat while it is off turns it back on.
+* **The flicker.** A node is kept while its markup is the same and made anew when it is not — an agent going quiet or
+  back to work, ending, a star. Space's pings (`spsonar`) and arcs (`spspin`) were on no clock, so a node made anew
+  started them over: the flicker, on every node whose agents moved. They now join the cards' on the document clock
+  (`PHASED`; `phaseAnims()` once `renderSpace` made a node), so a new node's pings and arcs carry on where the old one's
+  were. The scenario holds it: a node made anew, every ping and arc's start the clock's zero — and it fails without.
+  Built again from v10 (54674c4) by hand: the cost of the commits since is gone.
+  → `test/favorites.test.mjs`, `space.mjs`.
+
+## Decisions of 2026-11-18, v10 — a pod shows who works, the rest behind +N, folded again on its own
+
+> "For each subagents group (by category), just show by default the active ones / last one and add a button (with the count) to expand the list of agents done / idle."
+> "It should also fold after N seconds (suggest a value)"
+
+* A pod, folded, is its agents at work (running, waiting, joined); none at work, its newest by its last line. The rest
+  are behind a pill at the pod's end, `+N`, counted; open, it reads `−` and folds them back (`spPods`, `.spx`).
+* Open is the page's alone, per chat and type (`sp.open`, `<chat>:<type>` → its timer), never prefs: a reload folds all.
+* It folds again by itself `SP_OPEN_MS` (20 s) after it opened — long enough to point at each mark and read its card,
+  short enough that a board left alone goes back to who works. While the pointer is on that chat's tile it waits,
+  looking again every 3 s. `window.peixSpOpenMs` shortens it for the scenario.
+* *Only agents at work* (`prefs.spBusy`) still drops the rest outright; a pod with nothing behind it has no pill.
+  → `space.mjs`.
+
+## Decisions of 2026-11-18, v9 — every agent's category round the node, read from its own record; the node a box again
+
+Pedro, with `team-probe`'s output and a screenshot (an orchestrator chat whose node showed only an *Explorer* pod, the
+specifier that had just run gone): *"it is overriding the subagents subnode and not creating multiple agents categories
+around the main node in Space as the design tells. Here's the current team probe and a screen shot that shows the the
+specifier is not shown (it ran recently)"*; then *"make it again the main node a rounded rectangle to proper show the
+information."*
+
+* **What the probe showed**: a teammate's `.meta.json` carries `spawnedAgentType` and `customAgentType` — its category —
+  beside an `agentType` that is its own name; the spawns (`Agent`, `subagent_type`: specifier, explorer, developer,
+  evidence-reviewer, smart-rebase) run back days in a long chat, past what a restart reads of it.
+* **A teammate's category is its record's first** (`agentMetaOf`'s `spawned`; `mateType`: `spawnedAgentType` /
+  `customAgentType` unless it is the name, then the spawn call, then `agentType` unless the name, else `general-purpose`).
+  A sub-agent's too when it has one. No restart or tail can lose it now.
+* **Space shows every agent its claude ran, not the last round** (`s.agentAll` → the summary's `agentAll`, sent only when
+  there were rounds before the last; `spRows` reads it, the hover card finds its agent there): a round is the card's way
+  of saying what is at work now, and it dropped the specifier the moment the explorer started — Space's pods are the
+  chat's whole cast by category, round the node, four sides, the most first. The cards keep the last round.
+* **The node is a rounded box again** (`.spbox` 160 × 100, `border-radius: 16px`, the words still centred, the title three
+  lines; `SP_GEO` half sizes, the tile 304 × 216): the circle held too little of the title.
+* Checked here: `test/team.test.mjs` (the record's `spawnedAgentType` with no spawn in sight), `test/agent-rows.test.mjs`
+  (`agentAll` both rounds, `agentRows` the last), `space.mjs` (a specifier from a round before is its own pod, four pods
+  round the node; shots dark and light); `agent-rows`, `agent-tab`, `compositor-rules` pass. The probe prints the two new
+  fields too.
+
+## Decisions of 2026-11-18, v8 — an agent clicked is its transcript; the node names the chat's agent
+
+Pedro, with a screenshot of a chat run as `@orchestrator` and one teammate, `sp-…`, in a *General-purpose* pod: *"When
+clicking the agent, allow to jump in the chat to the chat with the agent. Also, it still shows General purpose on the
+subagents: in this case in the screenshot it should have named "specifier" in the group and show orchestrator as the main
+agent within the main node in Space (that started the chat and linked to the chat)."*
+
+* **A click on an agent's mark** in a node is its chat, open on that agent's tab — its own transcript (`agOpen`, as a lane
+  does); a teammate only the roster names yet, with no transcript, opens the chat. Claude Code's own teammate view (↑/↓ in
+  the drawer's footer) is keys, which the board never types.
+* **The node names the agent the chat runs as** (`.spra`, `@orchestrator` in its definition's colour, above the title; the
+  summary's `agent`: `--agent` or the folder's setting, `agent-setting` or the registry's).
+* **A teammate's category, read harder** (`SPAWN_TOOLS`: the spawn by `Agent` or by `Task`, its older name; `subagent_type`,
+  else `agent_type`/`agentType` in its input). Why the screenshot still said *General-purpose* is not known here: the server
+  may not have been restarted since v6 (a `server.mjs` change), or the spawn may be past what a restart reads of the
+  transcript, or written in a shape not seen yet. **`scripts/team-probe.mjs`** prints, for the chats written to in the
+  last hour, every call that names a teammate (its tool, `name`, `subagent_type`, its input's keys) and each teammate's
+  meta keys — keys and short names only, read-only — to settle it on the Mac.
+* Checked here: `test/team.test.mjs` (a spawn by `Task` as `specifier`), `space.mjs` (`@orchestrator` in its node; a mark
+  clicked with no chat open: its chat, on its agent's tab); the probe on a fixture.
+
+## Decisions of 2026-11-18, v7 — a node is a circle, its folder its last name
+
+Pedro, with a screenshot of Space beside the chat (one node a row, each the column's width): *"each node is taking more
+space than it needs, it should be a circle and try to center the text within it. Also, just show the last folder within
+it and not the full path."*
+
+* **Why one a row**: the grid was `repeat(auto-fill, minmax(320px, 1fr))` — Space beside the chat, 70 % zoom, about 600 px
+  of grid: one 320 px column, stretched to the whole width.
+* **A tile is its own size** (`--spw` 268 × `--sph` 240 on `#space`; `repeat(auto-fill, var(--spw))`, centred): never
+  stretched; two a row where one was. Fit (`spFit`) counts by the same numbers (`SP_TILE`).
+* **The node is a circle** (`.spbox`: 124 px, `border-radius: 50%`, its ping round too), the title and the folder centred
+  in it — the title 12 px, four lines at most, a long word wrapped only when it must (no hyphens: *in-voice* read badly).
+  **The pods sit round the circle** (`SP_GEO`: its centre, radius, a pod's thickness, a wire's length; pods 34 px thick).
+* **The folder is its last name** (`spFolder`): `billing-api`, not `~/acme/billing-api`; the whole path its tooltip.
+* Checked here: `space.mjs` passes as it stood (the folder ends in its name, more a row zoomed out, Fit with no scroll);
+  shots dark and light at 100 % and 140 %.
+
+## Decisions of 2026-11-18, v6 — a teammate's pod is its category
+
+Pedro: *"in the Space group the agents by Category, not by "Team mate" as is right now."*
+
+* **Why they were one pod**: a teammate's `.meta.json` names no `agentType` (the keys this Mac showed, 2026-10-31: `taskKind`,
+  `teamName`, `name`, `color`), so its row had no type and Space grouped every teammate as *teammate*.
+* **Its category is what the lead spawned it as** (`noteMateType`, from the lead's `Agent` call with a `name`: its
+  `subagent_type`, else `general-purpose`, the tool's own default; `s.mateTypes`, the newest spawn of a name winning, kept
+  across a tail re-read as the agents' ends are). `mateType` reads it, then the meta's or the roster's `agentType` when it is
+  not the teammate's own name (the fixture's guess), else `general-purpose` — never *teammate*. The roster's joined rows
+  get theirs too, and a row's colour is its category's definition's (`typeOf`), so a pod is one colour.
+* The page's own fallback for a teammate with no type is `general-purpose`. The *teammate* tag stays on the agent's card.
+* Checked here: `test/team.test.mjs` — two teammates spawned as `api` one pod, one spawned with no type and one never seen
+  spawned `general-purpose`, a roster name spawned as `docs` its own; the fixture writes the lead's spawn calls
+  (`teamFiles`' `spawned`). `space.mjs` passes. The first team test fails here as it did before this change (its explore
+  agent's row), to be seen on a Mac.
+
+## Decisions of 2026-11-18, v5 — Space has its own settings
+
+Pedro: *"Add to options menu some options for the Space feature."* Which options was left to the work; these, each
+something Space draws that one might want otherwise:
+
+* **A Space pane in Settings** (`#spSpace`, after Chat list; `spLook` sets the controls and what only looks — `#space.nosky`,
+  `.still`, `data-names` —, `spSet` keeps a pick and redraws what is drawn):
+  * **Sky**: *Night sky* (`prefs.spSky`, on), and under it *Twinkling* (`spTwinkle`, on) and *Falling stars*
+    (`spFalls`: never · rarely, 1–3 min · now and then, 20–60 s, the default · often, 5–20 s — `SP_FALLS`), both off with
+    their reason while the sky is.
+  * **Agents**: *Agent card* (`spCard`, on; off, `mxtShow` shows none in Space); *Only agents at work* (`spBusy`, off: the
+    pods leave out the ended, the lanes keep them); *Pod names* (`spNames`: always · not zoomed out, the default, under 75 % ·
+    never); *Lanes' span* (`spWin`, the strip's own 15 · 30 · 60 buttons, kept in step).
+* The sky and the card are the launcher's switches too (`SWITCHES`).
+* Checked here: `space.mjs` — the pane's rows; the sky off (the field its ground again, the two rows under it off, no
+  star falls), on without a twinkle; *Never* lets none fall; no card when off; pods of agents at work alone; no pod names;
+  the span. `settings-panes.mjs` walks the new pane; `launcher`, `reduced-motion`, `compositor-rules`, `themes`,
+  `agent-rows` pass.
+
+## Decisions of 2026-11-18, v4 — an agent's card in Space, its type for its name, a night sky
+
+Pedro, of the card proposed: *"I just want the hover on top to show: type, in the type's colour with its two letters, plus
+"teammate" when it's one. State and time … What it was asked … What it's doing now … Read when you hover: Model. Effort …
+Worktree, if it works in one. Do not show in the Space the name of the agent, only when hovering it. Instead of the naming in
+the space, show the agent type with capital letter"*; then *"add like background like space in the "Space" part with
+blinking stars in a very soft way"*, *"Also add some falling stars in a random timings"*; the board drawn for all three,
+*"I'm happy with it. lets go"*.
+
+* **An agent pointed at has a card** (`spCardHtml`, through `#mxtip` — `MX_AT` takes `#space .spa[data-ag]`, a mark naming
+  its chat by `data-sid`; `SP_CARD_W` 320): its type's letters and its type capitalised in its colour, *teammate* when one,
+  its state and time; its name, small, the only place Space shows it; what it was asked — the first line, the rest under it;
+  *Now* (its last tool call or sentence, `agNow`), *Last* once ended, *Error* in red when it failed; under a line what
+  `…/agents/:id` reads when pointed at — model, tool calls and tokens (*So far*, *In all* once ended), its worktree —
+  *reading…* till then. On a node's pods and the lanes under the chat; placed by `mxtShow`, over its mark or under it.
+* **Space names an agent by its type** (`spKind`: the type, a teammate's too, else *teammate* or *agent*; `spCap`): the
+  pods' labels capitalised, a team's pods by type rather than by name, a lane what it was asked with no name before it.
+* **A night sky behind the nodes, on a dark theme only** (`#spsky`, in `.spbody` under the field, which scrolls and zooms
+  over it; the field's ground transparent there): the theme's ground a shade darker, two faint glows, 100 stars in four
+  layers from fixed seeds — the same sky every time —, three of them breathing (`sptw`, opacity alone, 7 · 11 · 13 s, out of
+  phase). **A falling star now and then** (`spFall`): a wait drawn from 20–60 s (`SP_FALL_MS`, rarer than the drawing's
+  6 s, as said with it), a streak from a random place in the top half at a random angle, under 1.5 s by `transform` and
+  `opacity` (WAAPI, removed when done) — skipped while Space, the page or the sky is hidden, or motion is reduced, the wait
+  just drawn again. Reduced motion stills the twinkle. A light theme has no sky (none was chosen for it: the board's own
+  ground, as before).
+* Checked here: `space.mjs` — the pods' labels capitalised; the card's type, state, what it was asked, *Now*, then *Model*
+  and *So far* once read, clear of its mark, gone with the pointer; a lane with no name; the sky's four layers and 100 stars,
+  three twinkling, the field transparent over it; a falling star by transform and opacity, gone once fallen; no sky in light.
+  `reduced-motion`, `compositor-rules`, `agent-rows`, `card-pr-matrix`, `header-matrix`, `themes` pass. Still for a Mac:
+  `npm run perf` (the twinkle's cost in WebKit, expected nil: opacity on three layers) and the card over a pane page.
+
+## Decisions of 2026-11-18, v3 — Space zooms, the chat on its right, a × to close it
+
+Pedro: *"allow to zoom in and out in the nodes part. And also, move to the right side the panel with the chat when we
+click. Allow to close the chat panel with a cross button"*; the design drawn for it (the lanes a strip under the nodes, the
+nodes reflowing as they zoom), *"lgtm"*.
+
+* **The chat on the right, the whole height** (`main.space`, columns `--sp` · 8 px · the rest): Space on the left, `#chat`
+  on the right, its header at the window's top again — where the notch's layout and the pane's pages expect it, which the
+  bottom half did not give them. The divider is vertical, dragged 25–80 % (`prefs.spaceAt`, .52 at first).
+* **The lanes moved under the nodes** (`#spside`, now a strip; `spSide`): a third column would not fit beside the chat
+  under ~1600 px. The open chat's alone, hidden with none open; its head folds it to one line (`prefs.spLanes`), its span
+  buttons as before. A lane is four columns: the agent, what it was asked over its last step, the clock, how long.
+* **A × in the chat's header, in Space only** (`#spClose`, after ···; `spCloseChat` → `leaveChat`): the chat closed and
+  Space the whole width — never its claude, which runs on. **⌘W on the chat's tab does the same** (`hotClose`: nothing split
+  and in Space), where it would otherwise have nothing to close.
+* **The nodes zoom, and reflow** (`spZoom`, `prefs.spZoom`, 50–150 % by tens): CSS `zoom` on `#spgrid` alone, never the
+  root, so a smaller zoom fits more nodes a row and scrolling stays the way round the field — not a canvas dragged about,
+  which keeps the arrows and ⏎ simple. Under 75 % the pods' names go (`.small`), the letters and badges stay. **Fit**
+  (`spFit`) takes the largest zoom that shows every node with no scroll. The buttons sit over the field's corner
+  (`.spzoom`); **⌘+ ⌘− ⌘0 with the keys in Space** are its zoom, not the chat's (`chatZoomKey`); a pinch or a ⌘/⌃-wheel over
+  the nodes too (`wheel` with `ctrlKey` in Chrome, WebKit's `gesturestart`/`gesturechange` — the app's pinch to be seen on a
+  Mac, `npm run shell`).
+* Checked here: `space.mjs` — the zoom's buttons, ⌘+ in Space, Fit with no scroll left, its zoom across a reload; the chat
+  right of Space at its height, the strip under the nodes, its fold; × and ⌘W closing it with the claude alive; the divider
+  dragged across.
+
+## Decisions of 2026-11-18, later — Space becomes the board's other layout
+
+Pedro, trying the first Space: *"when i single-click the main node in Space, it opens the chat within the space screen
+(maybe half the bottom part of the screen). And the in the nodes itself, each node should render the 2 initials of each
+agent and it's corresponding color. Try to group each type of agents within a attached group in the main node"*; of three
+groupings drawn (pods on the core, arcs on the orbit, petals), *"Option A. The conversation name can be inside the main node
+up to 60 characters (then wrap text). If it has a associated folder, put it bellow the conversation name"*; then *"in the
+Space UI allow to still use the same shortcuts (like cmd+option+N to open new chats) as the normal home Peixairada screen.
+Add a toggle button to switch on and off to Space next to hide chat list on bottom left. This is to be an alternative visual
+UI for the Peixairada for Agents"*, *"the chats can be filtered on top with toggling each status on top"*, and *"The Space should
+be mutually exclusive to the chat list in the LEFT"*.
+
+* **Not a dialog any more: a layout** (`prefs.space`, `applySpace`, `main.space`, a grid of one column). A modal swallows
+  the ⌥⌘ keys; a layout has none to swallow. **Space takes the list's place, the chat below it** — the board's own
+  `#chat`, so every key, tab, drawer, picker and the pane's pages are what they are without it, and a terminal moves
+  nowhere (the plan's first idea, a drawer carried into a dialog, is gone with the dialog). With no chat open Space takes
+  the column (`spfull`). The divider between them (`#spdiv`) is dragged, 20–85 % (`prefs.spaceAt`).
+* **Space or the list, never both.** Space on hides the list and leaves `prefs.listHidden` as it was, for after; the
+  list's button, ⌥⌘B, the magnifier and the funnel leave Space for the list (`showList(true)`); a project picked (⌥⌘P) or a
+  face narrows Space as it does the list and leaves nothing. The status bar's **Space** (`#sbSpace`) sits beside the
+  list's button; ⌥⌘S, the launcher's row and its menu's do the same.
+* **The chats are the project in view's, by state, filtered on top** (`spChats`, `prefs.spOff`): a toggle per state
+  with its count — Asking you, Clauding, Watching, Ready, Idle, Done —, Idle and Done off at first, each at most
+  `SP_CAP` (30) of the newest, as a long lane holds back. In the lanes' order, then by the last word.
+* **A chat's node is its name and its folder** (`spNode`): the name cut at 60 characters and wrapped (three lines at
+  most), the folder under it as `~/…` beside the project's colour, none for a chat in no folder; its edge the chat's
+  state, pinging while it asks, works or watches; a done chat's desaturated.
+* **A pod per agent type, docked to the node** (`spPods`; option A): the most first, top, bottom, right, left — the sides a
+  column, so a pod of six fits —, a short line to the node, the type named under it; past four types the fourth says how
+  many more, past six agents of one type five and `+n`. A teammate's type is its name. **An agent is its type's two
+  letters in its type's colour**: the colour its definition gives (`color:` in its `.md`, as Claude Code draws it — the
+  server's `agentColor` on each row, with `type`, 2026-11-18), else a hue from its name, the same every time. Its state a
+  badge on the corner (a tick, a cross, a dashed ring, a square), an arc turning while it runs, still when quiet, an outline
+  when it has only joined.
+* **A click on a node opens the chat below** (`openSession`): its node lit, its agents the lanes on the right, as before.
+  Arrows move between nodes; ⏎ opens one.
+* Checked here (Chromium): `space.mjs` — off at first, the button, the nodes, the pods' letters and hues, the filters, the
+  chat below at Space's width, ⌥⌘N's picker over Space, a lane's tab, the divider and Space across a reload, the list's
+  button and ⌥⌘S trading places, and `ANIM_RULES` with Space on. Not here: `npm run perf` (Space's arcs run while it is on,
+  not only while a dialog is up), `npm run shell` (the pane's pages over a chat that is now in the lower half, and the notch's
+  padding on a header no longer at the top) — both want a Mac before this lands.
+
+## Decisions of 2026-11-18 — Space: every chat's agents at once (⌥⌘S)
+
+Pedro: *"I don't want to use [an outside visualiser], i want to see graphics showing the status of the agents"* — then, of
+the two boards drawn for it, the first. Not a node graph of tool calls: the board already reads every agent's state, and
+what was missing was one picture of all of them.
+
+* **Space is a modal dialog, as the overview is** (`#sp`, `spOpen`; ⌥⌘S, the launcher's *Space*, the actions' row): the
+  whole board's agents, not one chat's, so not a pane tab. ⌥⌘S again closes it (`runHotkey` lets it through, as lunch's).
+* **Each live chat an orbit**: its project's square ringed in its state — asking, clauding, watching, ready, the ring
+  pinging for the first three —, its agents round it, a mark each. **A state is a shape as well as a colour** (`.spg`):
+  running a turning arc, quiet the arc still, waiting a dashed ring, done a tick, failed a cross, stopped a square,
+  joined an outline — so it reads without colour and in either theme (every colour a token). Chats with agents come
+  first, then by what they want of you. Past 16 agents the orbit holds 16 and the tally says the rest.
+* **The chat picked shows its agents as lanes on one clock** (`spLane`): a bar from its start to its end — to now while it
+  works —, how long, how it ended, its last step (`agNow`, a failure's reason); the clock's span 15 m · 30 m · 1 h
+  (`prefs.spWin`, 30 m). A lane opens that agent's tab (`agOpen`); the picked chat's *Open the chat*, or a double-click on
+  an orbit, the chat. Arrows move the pick.
+* **Read from the summaries alone** (`agentRows`): no new route, no new server work; it is the last round, as the card's
+  rows are, so lanes show the agents out together, not the chat's whole past. Drawn on its chats' events (`spSoon`) and
+  every 5 s for the clock; an orbit keeps its node while its markup is the same, the pick a class set after, so a mark
+  keeps turning through a redraw.
+* **Motion on `transform` and `opacity` only** (the arc's turn, the ring's ping, a dot's breath), each with its line in the
+  reduced-motion block, which keeps the shapes still. Not yet run here: `npm run perf` and the shell (WebKit, a Mac).
+  → `scripts/scenarios/space.mjs`.
 
 ## Decisions of 2026-11-07 — the fill on two screens, and who brings an app forward
 
