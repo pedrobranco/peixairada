@@ -5,6 +5,19 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-18. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-19 — bigger stars; planets and comets passing
+
+> "Add bigger stars and add planets /  comets passing by from now and then."
+
+* A fifth layer of stars, nine of them, 3–4.5 px with a soft glow, twinkling slowest (`.big`, 17 s): the same fixed seed,
+  the same sky every time.
+* A visitor now and then (`spVisit`, every 45–150 s, `SP_VISIT_MS`), one at a time: half the time a planet — 14–36 px,
+  one of five hues, lit from the top left, two in five ringed — crossing the sky in 28–48 s, else a comet with its tail
+  in 5–9 s, at a slant. Either way, edge to edge on a random line, by `transform` and `opacity` alone, gone once by.
+  Under the falling star's guards: never with Space hidden, the page hidden, a light theme or reduced motion.
+* Settings › Space › *Planets and comets* (`prefs.spVisits`, on), a row under the night sky's like its others.
+  `peix.spVisit()` brings one now, for the harness. → `space.mjs`.
+
 ## Decisions of 2026-11-18, v12 — the star takes a hand's click; Space down to one column
 
 > "The favorite button does not work and i can't resize to one column in the space (you can see in the screenshot the bare minimum width that it allows)"

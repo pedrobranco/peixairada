@@ -92,10 +92,23 @@ export default async function (ctx) {
     // the sky behind the nodes, dark: four layers of stars, three twinkling by their opacity; a falling star, gone once fallen
     out.sky = await ctx.evaluate(`(() => { const k = document.querySelector('#spsky'); return { shown: getComputedStyle(k).display !== 'none', layers: k.querySelectorAll(':scope > b').length, stars: k.querySelectorAll('b > i').length,
       twinkle: document.getAnimations().filter(a => a.animationName === 'sptw').length, field: getComputedStyle(document.querySelector('#spfield')).backgroundColor }; })()`);
-    ctx.assert.deepEqual(out.sky, { shown: true, layers: 4, stars: 100, twinkle: 3, field: 'rgba(0, 0, 0, 0)' }, `a night sky behind the field: ${JSON.stringify(out.sky)}`);
+    ctx.assert.deepEqual(out.sky, { shown: true, layers: 5, stars: 109, twinkle: 4, field: 'rgba(0, 0, 0, 0)' }, `a night sky behind the field: ${JSON.stringify(out.sky)}`);
     ctx.assert.equal(await ctx.evaluate(`peix.spFall()`), 1, 'a falling star');
     ctx.assert.deepEqual(await ctx.evaluate(`document.getAnimations().filter(a => a.id === 'spfall').map(a => a.effect.getKeyframes().map(k => Object.keys(k).filter(p => !['offset', 'easing', 'composite', 'computedOffset'].includes(p)).sort().join()).join(' '))`), ['opacity,transform opacity opacity,transform'], 'it moves by transform and opacity alone');
     await ctx.waitFor(`!document.querySelector('#spsky .spfall')`, { what: 'fallen and gone', timeout: 3000 });
+    // bigger stars, glowing (2026-11-19); a planet or a comet passing: moved by transform and opacity alone, one at a time
+    ctx.assert.equal(await ctx.evaluate(`[...document.querySelectorAll('#spsky .big > i')].every(i => parseFloat(i.style.width) >= 3 && getComputedStyle(i).boxShadow !== 'none')`), true, 'the bigger stars, each with its glow');
+    out.visit = await ctx.evaluate(`peix.spVisit()`);
+    ctx.assert.match(out.visit, /^spvis (spcomet|spplanet( ringed)?)$/, 'a visitor in the sky');
+    ctx.assert.deepEqual(await ctx.evaluate(`document.getAnimations().filter(a => a.id === 'spvisit').map(a => [...new Set(a.effect.getKeyframes().flatMap(k => Object.keys(k).filter(p => !['offset', 'easing', 'composite', 'computedOffset'].includes(p))))].sort().join())`), ['opacity,transform'], 'one visitor, by transform and opacity');
+    ctx.assert.equal(await ctx.evaluate(`(peix.spVisit(), document.querySelectorAll('#spsky .spvis').length)`), 1, 'never two at once');
+    await ctx.sleep(1500);
+    await ctx.shot('space-visitor');
+    for (let i = 0; i < 8; i++) { await ctx.evaluate(`(document.querySelectorAll('#spsky .spvis').forEach(v => v.getAnimations().forEach(a => a.finish())), 0)`); await ctx.sleep(30); if ((await ctx.evaluate(`peix.spVisit()`)).includes(out.visit.includes('comet') ? 'spplanet' : 'spcomet')) break; }
+    await ctx.evaluate(`document.getAnimations().filter(a => a.id === 'spvisit').forEach(a => { a.pause(); a.currentTime = a.effect.getTiming().duration * .45; })`);
+    await ctx.shot('space-visitor-2');
+    await ctx.evaluate(`document.querySelectorAll('#spsky .spvis').forEach(v => v.getAnimations().forEach(a => a.finish()))`);
+    await ctx.waitFor(`!document.querySelector('#spsky .spvis')`, { what: 'the visitor gone once by', timeout: 3000 });
 
     // an agent pointed at: its card — type, state, what it was asked, what it does now; then its model and effort
     const mark = await ctx.evaluate(`(() => { const r = document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spa[data-ag="sec1"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
@@ -118,7 +131,7 @@ export default async function (ctx) {
     ctx.assert.equal(await ctx.evaluate(`peixKey('Comma', 'cmd')`), true, '⌘, the settings');
     await ctx.evaluate(`document.querySelector('#settings .stabs [data-tab="space"]').click()`);
     out.pane = await ctx.evaluate(`[...document.querySelectorAll('#spSpace .srow.set .sl b')].map(b => b.textContent)`);
-    ctx.assert.deepEqual(out.pane, ['Night sky', 'Twinkling', 'Falling stars', 'Agent card', 'Only agents at work', 'Pod names', 'Lanes’ span'.replace('’', "'")], 'its rows');
+    ctx.assert.deepEqual(out.pane, ['Night sky', 'Twinkling', 'Falling stars', 'Planets and comets', 'Agent card', 'Only agents at work', 'Pod names', 'Lanes’ span'.replace('’', "'")], 'its rows');
     await ctx.settle();
     await ctx.shot('space-settings-dark');
     await ctx.evaluate(`document.querySelector('#settingsClose').click()`);
@@ -131,6 +144,9 @@ export default async function (ctx) {
     await set('twinkleOn', true); await set('fallPick', 'off');
     ctx.assert.equal(await ctx.evaluate(`peix.spFall()`), 0, 'falling stars: never');
     await set('fallPick', 'some');
+    await set('visitOn', false);
+    ctx.assert.equal(await ctx.evaluate(`peix.spVisit()`), '', 'planets and comets: off');
+    await set('visitOn', true);
     await set('agCardOn', false);
     const sec = await ctx.evaluate(`(() => { const r = document.querySelector('#spgrid .spt[data-id="${infra.id}"] .spa[data-ag="sec1"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
     await ctx.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: sec.x, y: sec.y });
