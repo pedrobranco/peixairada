@@ -104,7 +104,7 @@ Each is a tab of the chat; the column splits in two halves when there's more tha
 
 | Key | Beside the chat |
 |---|---|
-| ⌥⌘C | 🖥️ **Claude Code itself** — the real terminal: resume any chat, or take over one running in iTerm or VS Code. One running in a terminal or VS Code says so on a bar under the chat, Take over beside it; one in the background (`/bg`, `/fork`, `claude --bg`) has Attach, which opens it here and leaves it running when the drawer closes. A chat whose Claude has ended resumes on a click (or ⌥⌘C), cloning its repo first when its folder isn't checked out, and making its worktree again when that was removed (on the chat's branch). It survives the board's restarts. |
+| ⌥⌘C | 🖥️ **Claude Code itself** — the real terminal: resume any chat, or take over one running in iTerm or VS Code. One running in a terminal or VS Code says so on a bar under the chat, Take over beside it; one in the background (`/bg`, `/fork`, `claude --bg`) has Attach, which opens it here and leaves it running when the drawer closes. A chat whose Claude has ended resumes on a click (or ⌥⌘C), cloning its repo first when its folder isn't checked out, and making its worktree again when that was removed (on the chat's branch). It survives the board's restarts. `/voice` works in it: the first time you talk, macOS asks for the microphone for *claude* — Claude Code's own, under System Settings › Privacy & Security › Microphone. |
 | ⌥⌘T · ⌘T | 🐚 **A shell** in the chat's folder, on a tab of its own — ⌘T opens another, or on a web page a blank tab, its address ready to type into. ⌘W closes the tab you are in. |
 | ⌥⌘G | 🐙 **The PR on GitHub** — its page on a tab (a square in the header opens it too); its state, its CI and whose move it is under the header. With several, ⌥⌘G again from one picks another. |
 | ⌥⌘E · ⌥⌘V | 🧩 **The in-app editor** on the chat's folder, on a tab: VS Code Web, or vim in a terminal (Settings › General › In-app editor) — or ⌥⌘V, the folder in the external editor: VS Code, or Zed (Settings › General › External editor), in its own window. A file path clicked in a chat opens there at its line. |
@@ -134,10 +134,10 @@ Every look is in Settings › Appearance and Chat list (⌘,), or a key: the cha
 (⌥⌘B, or the first button in the status bar, whose mark says which). A theme comes in two halves, dark and light, and
 *Appearance* — Auto (following macOS), Dark or Light — picks the half: pick Tokyo Night and it is Night after dark and
 Day by day. Beside the board's own are Tokyo Night, Catppuccin, Gruvbox, Rosé Pine, Everforest, Kanagawa, Flexoki and
-Nord, each with both halves, and three with one — Black, the board's own colours on true black; Matte Black; and
-Softened, the board's light with no white in it —, the board's own wearing the other half (⌥⌘Y shows them all on the
+Nord, each with both halves, and four with one — Black, the board's own colours on true black; Matte Black;
+Softened, the board's light with no white in it; and Flashbang, every ground white, the drawer in iTerm's Light colours —, the board's own wearing the other half (⌥⌘Y shows them all on the
 board as you move). Every theme lays the chat in a frame — the window, the list and the status bar — a step apart from it (in
-peixAIrada's dark, the grey of the settings' own sidebar),
+peixAIrada's dark, the grey of the settings' own sidebar; in Flashbang level with it, white too),
 and *Dark frame* makes that frame the theme's dark half round a light chat. Your projects keep their hue in the
 theme's shades, and in every theme the small text reads at 4.5:1 or better. The board is a Mac window: the chats a
 sidebar of rows, a ring of light round a chat at work and sonar round a question, the open chat solid in its
@@ -191,10 +191,8 @@ An optional reminder that it's lunch time, and the day's menus of the places you
 turns it on. Give it a time (the reminder's), the days, and each place with its Instagram account.
 
 - **Before lunch**, through the morning, the board reads each place's menu: its posts as anyone sees them — a week's
-  card, a month's dishes, a closure — and, with *Read the stories* on and an Instagram account logged in
-  (*Log in to Instagram…* opens a window; it closes itself once you're in), its stories, where most places post the
-  day's menu. A Slack channel where colleagues post the menus as screenshots is read too, if you name one. Claude reads
-  each picture once, on your plan (*Read by*: Haiku unless you pick Sonnet).
+  card, a month's dishes, a closure. A Slack channel where colleagues post the menus as screenshots is read too, if you
+  name one. Claude reads each picture once, on your plan (*Read by*: Haiku unless you pick Sonnet).
 - **⌥⌘M** shows them on a chalkboard, any time; home shows it too until lunch. A place's name opens its Instagram in
   your browser. *Read again* reads them now. With the chat on, *Ask the chat* asks who's going, and where, as a poll.
 - **At lunch time** a sign drops into the status bar's lane over the fish — *LUNCH* — and the day's dishes scroll under
@@ -202,8 +200,8 @@ turns it on. Give it a time (the reminder's), the days, and each place with its 
 - **Going**: the sign says *ENJOY* and the fish swims off the bar. Lock the Mac and it reads *BACK SOON*; come back
   (ten minutes on, at least) and the fish swims in fed, burps, and the sign says how long you were out.
 
-The stories need a login because Instagram shows a story to no one logged out. A second account just for this is wiser
-than your own: one that watches stories on a schedule can be challenged.
+Most places post the day's menu only as a story, and Instagram shows a story to no one logged out: the board never logs
+in, so a story reaches it through the Slack channel, as a colleague's screenshot. A place whose story went up says so.
 
 ## Zé's game
 
@@ -234,6 +232,7 @@ sky every three levels and fireworks at a level-up, wherever the Mac has WebGL2.
 | ⌥⌘B | hide the chat list, and show it again |
 | ⌥⌘L | the launcher: chats, projects, PRs, tickets, actions, switches |
 | ⌥⌘A · ⌥⌘D · ⌥⌘0 | the overview: every live chat at once · this chat's changes · home |
+| ⌥⌘S | Space, in the chat list's place: every chat as a node of its agents, filtered by state · ★ in a node's corner (or F) puts it first, with its own chip on top · ✓ in its other corner (or D) ticks it done · a pill on its edge counts its open PRs, pointed at their list, a click opens one beside the chat · ⌘F finds a chat by title, folder, agents or PRs · a node asking you has a pill: its question and answers open from it, a number or a click answers · right-click a node for the card's menu · its title, pointed at, its chat's card · a quiet one fades, its age beside its folder · tied chats joined by a line · State, Project or Last word on top lays the nodes out · in ⌘F, `is:ready`, `pr:changes`, `@security`, `#storefront` are filters · the arrows go by the grid · ⇧-click or ⇧-arrows choose several, a bar ticks, stars or mutes them · the pointer on an agent shows its card · Settings › Space: the sky, its falling stars, planets and comets, the card, the pods · a click opens the chat on the right, its × closes it · ⌘+ ⌘− zoom the nodes · the status bar's Space too, ⌥⌘B back to the list |
 | ⌥⌘M | lunch: today's menus, on a chalkboard |
 | ⌥⌘Z | Zé's game |
 | ⌥⌘Y | the theme |
@@ -325,6 +324,9 @@ or *key* to find a setting wherever it is):
 
 The sidebar's foot has the keyboard shortcuts and the tour.
 
+When the board learns something new, *What's new* shows it once, an example a page — Space's four the first time.
+*Later* brings it back the next day; ⌥⌘L › What's new and the keys' sheet (?) open it whenever.
+
 The setup is a file of yours, `~/.config/peixairada/config.json` (`$XDG_CONFIG_HOME` moves it) — edit it by hand or
 keep it with your dotfiles; the board picks up a change within seconds:
 
@@ -359,11 +361,12 @@ read: keep the server on `127.0.0.1` — past it, the key crosses your network u
 | `DRAWER_IDLE_MS` | 24 h | an unwatched idle Claude in the pane ends itself; `0` never |
 | `VSWEB_FRESH_MS` | 1 h | how often VS Code Web's newest build is fetched ahead of time; `0` never |
 | `CLAUDE_BIN` `GH_BIN` `CODE_BIN` `TASK_BIN` | from `PATH` | where the CLIs are |
+| `CHROME` | Google Chrome | the headless Chrome lunch's Instagram looks and the browser checks run — chrome-headless-shell where Google Chrome is blocked |
 | `CLAUDE_DIR` · `STATE_FILE` | `~/.claude` · `~/Library/Application Support/peixAIrada/state.json` | what it reads · keeps |
 | `CONFIG_FILE` | `~/.config/peixairada/config.json` (beside `STATE_FILE` when that is set) | the setup |
 | `KEY_MODE` | — | `lax`: requests without the key answered until the app's page first brings it (the default before 2026-11-06) |
 
-The login agent takes `PORT`, `NOTIFY` and your `PATH` at `scripts/launchd.sh install`.
+The login agent takes `PORT`, `NOTIFY`, `CHROME` and your `PATH` at `scripts/launchd.sh install`.
 
 </details>
 
@@ -373,7 +376,7 @@ The login agent takes `PORT`, `NOTIFY` and your `PATH` at `scripts/launchd.sh in
 (`scripts/readme-board.mjs`), never yours: `npm run scenario -- scripts/readme-shots.mjs` redraws the stills, and
 `npm run scenario -- scripts/readme-clips.mjs --timeout 900000 [-- <clip>…]` the README's clips (animated WebP, by
 libwebp's `img2webp` — `brew install webp`); VS Code Web's want the `code` CLI. The browser checks drive Google Chrome
-(`CHROME` points at another); `npm run webkit` runs the board in WebKit, the app's engine, and `npm run perf` measures
+(`CHROME` points at another; under chrome-headless-shell three scenarios that need Chrome's newer headless are skipped); `npm run webkit` runs the board in WebKit, the app's engine, and `npm run perf` measures
 what it costs there on a busy made-up board (`-- --against <commit>` beside an older one, `-- --app` the app as it
 runs). The API from a terminal wants the key too: `scripts/board.sh /api/terminals` sends it; `npm run verify` and
 `npm run webkit` hand the page the live board's (`KEY=` for another). [CLAUDE.md](../CLAUDE.md) holds the working

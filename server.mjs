@@ -166,6 +166,7 @@ let driftAcks = {};
 // `quiet` and `muted`: no banner, no sound, and nothing that calls you counts it. Questions too, till you unmute it. By
 // the chat's id, so a /clear or a branch starts loud: that is another chat.
 let mutedChats = {};
+let favChats = {};   // starred in Space, first in its grid (2026-11-18, v11): id → when starred
 // Custom projects: id -> { id, name, cwds, createdAt }. A name over one or more folders — multi-repo
 // work, an investigation. Folders themselves need no record: they come from the sessions' cwds.
 let projects = {};
@@ -256,6 +257,7 @@ function loadState() {
     seen = st.seen && typeof st.seen === 'object' ? st.seen : {}; seenSince = typeof st.seenSince === 'string' ? st.seenSince : null;
     driftAcks = st.driftAcks && typeof st.driftAcks === 'object' ? st.driftAcks : {};
     mutedChats = st.mutedChats && typeof st.mutedChats === 'object' ? st.mutedChats : {};
+    favChats = st.favChats && typeof st.favChats === 'object' ? st.favChats : {};
     projects = st.projects || {};
     titles = st.titles || {};
     pinned = Array.isArray(st.pinned) ? st.pinned.filter(k => typeof k === 'string') : [];
@@ -295,7 +297,7 @@ function saveState() {
   try {
     mkdirSync(dirname(STATE_FILE), { recursive: true });
     const tmp = `${STATE_FILE}.${process.pid}.tmp`;
-    const body = JSON.stringify({ done: doneMarks, forGood: forGoodMarks, removed: removedMarks, unlinked, seen, seenSince, driftAcks, mutedChats, projects, titles, pinned, hidden: hiddenProjects, envs, notifications: notificationsOn, prTurns, prLogs: {}, awake: awakeOn, selfUpdate: autoUpdate, updated: updateLast, updateHeld, appBuild, worktrees: worktreesMade, peacockMoved, keyEnforced, jiraTokenSite, chatSeen, chatQuiet, links: chatLinks, lunch: lunchDay }, null, 1);
+    const body = JSON.stringify({ done: doneMarks, forGood: forGoodMarks, removed: removedMarks, unlinked, seen, seenSince, driftAcks, mutedChats, favChats, projects, titles, pinned, hidden: hiddenProjects, envs, notifications: notificationsOn, prTurns, prLogs: {}, awake: awakeOn, selfUpdate: autoUpdate, updated: updateLast, updateHeld, appBuild, worktrees: worktreesMade, peacockMoved, keyEnforced, jiraTokenSite, chatSeen, chatQuiet, links: chatLinks, lunch: lunchDay }, null, 1);
     // a PR's ledger on one line (2026-10-17): up to LOG_EV_MAX events each, a quarter fewer bytes than laid out
     const logs = Object.entries(prLogs).map(([url, log]) => `  ${JSON.stringify(url)}: ${JSON.stringify(log)}`);
     writeFileSync(tmp, logs.length ? body.replace('\n "prLogs": {},', () => `\n "prLogs": {\n${logs.join(',\n')}\n },`) : body, { mode: 0o600 });
@@ -827,6 +829,9 @@ function summary(s, ti = null) {   // `ti`: termIndex(), when the whole board is
     tasks: runningTasks(s),         // monitors and background commands still running behind the turn
     peerIn: peerInOf(s), peerQueue: peerQueueOf(s),   // another chat's newest message to it, and those waiting for its turn's end (2026-10-31)
     agentRows: s.alive ? s.agentRows || null : null,   // a row per sub-agent of its last round, while its claude runs (noteAgents, 2026-11-02)
+    // every agent of its claude's when the rows are its last round only, a resume's past too (Space's pods, 2026-11-18);
+    // a chat with no claude, its past alone (pastAgents, 2026-11-24)
+    agentAll: s.agentAll || null,
     // the Watching lane's (2026-10-31): the turn at work was woken by the chat's own task notice, not by you; the next
     // wake-up it set itself; and how its last turn stopped short, while nothing runs
     woken: status === 'working' && !!s.woke, wake: nextWake(s), stopped: status === 'working' || status === 'needs-input' ? null : s.stopped,
@@ -844,6 +849,7 @@ function summary(s, ti = null) {   // `ti`: termIndex(), when the whole board is
     rivals: s.rivals, tailEntrypoint: s.entrypoint, tailEntrypointAt: s.entrypointAt,
     done: isDone(s), doneAt: doneMarks[s.id] || null, forGood: forgotten(s), removed: isRemoved(s),
     muted: !!mutedChats[s.id],   // no banner, sound or count from it, till you unmute it (2026-11-02)
+    fav: !!favChats[s.id],   // starred in Space (2026-11-18, v11)
     seenAt: seen[s.id] || seenSince,   // the board last showed it: a reply after is a new one (2026-10-12)
     ...linksShown(s.id) && { links: linksShown(s.id) },   // merged, folded, branched — by your hand (2026-10-31)
     // the branch moved under it (2026-10-13): what its checkout is on now and what the chat was on, and who else runs in
@@ -1002,7 +1008,7 @@ function notePr(s, url, ts, by, ref = null) {
   s.prsHeard.delete(clean);
   if (at < 0) {   // what GitHub has said of it since, a PR put aside included
     const i = prStatus.get(clean);
-    Object.assign(pr, { state: i?.state ?? null, title: i?.title ?? null, turn: i?.turn ?? null, people: i?.people ?? null, checks: i?.checks ?? null, refs: i?.refs ?? null, updated: i?.updated ?? null, rounds: roundsOf(clean), logged: loggedOf(clean) });
+    Object.assign(pr, { state: i?.state ?? null, title: i?.title ?? null, turn: i?.turn ?? null, people: i?.people ?? null, checks: i?.checks ?? null, refs: i?.refs ?? null, updated: i?.updated ?? null, review: i?.review ?? null, rounds: roundsOf(clean), logged: loggedOf(clean) });
   }
   if (!ref) pr.ref = null; else if (ref === 'repo' && pr.ref) pr.ref = 'repo';
   if (by) { pr.count++; pr.by = by; }
@@ -1254,7 +1260,7 @@ function queueSessionPrs(s) { for (const pr of s.prs) queuePr(pr.url); }
 /** What GitHub said of one PR: `found` is prTurn's answer, undefined for a PR it would not show us — `missing`, whose
  *  state and title are what was known before (2026-10-03: they were wiped, and the card's title fell back to Claude's
  *  over an SSO prompt or one field GitHub would not resolve), asked again an hour later. */
-function setPrInfo(url, state, title, found, now = Date.now(), people, missing = false, created = null, checks = null, refs = null, updated = null) {
+function setPrInfo(url, state, title, found, now = Date.now(), people, missing = false, created = null, checks = null, refs = null, updated = null, review = null) {
   const chats = [...sessions.values()].filter(s => s.prs.some(p => p.url === url));
   const ticked = chats.filter(isDone);
   const { turn, moved, from, released } = moveTurn(url, found, now);
@@ -1264,11 +1270,12 @@ function setPrInfo(url, state, title, found, now = Date.now(), people, missing =
   if (missing) { state = known?.state ?? null; title = known?.title ?? null; checks = known?.checks ?? null; }
   refs ??= known?.refs ?? null;   // a PR we could not see keeps the branches we knew
   updated ??= known?.updated ?? null;   // GitHub's updatedAt (2026-11-01): the card's matrix numbers the PR updated last
-  prStatus.set(url, { state, title, turn, people, checks, refs, updated, checkedAt: now, missing, created: created ?? known?.created ?? null });   // created: shownPr's
-  const rounds = roundsOf(url), logged = loggedOf(url), same = JSON.stringify(turn), faces = JSON.stringify(people), branches = JSON.stringify(refs), rs = JSON.stringify(rounds);
+  if (missing || !review) review = known?.review ?? null;   // where its review stands (2026-11-23), kept through a look that could not see it
+  prStatus.set(url, { state, title, turn, people, checks, refs, updated, review, checkedAt: now, missing, created: created ?? known?.created ?? null });   // created: shownPr's
+  const rounds = roundsOf(url), logged = loggedOf(url), said = JSON.stringify(review), same = JSON.stringify(turn), faces = JSON.stringify(people), branches = JSON.stringify(refs), rs = JSON.stringify(rounds);
   for (const s of chats) {
     const pr = s.prs.find(p => p.url === url);
-    if (pr.state !== state || pr.title !== title || pr.checks !== checks || pr.logged !== logged || (pr.updated ?? null) !== updated || JSON.stringify(pr.turn ?? null) !== same || JSON.stringify(pr.people ?? null) !== faces || JSON.stringify(pr.refs ?? null) !== branches || JSON.stringify(pr.rounds ?? null) !== rs) { pr.state = state; pr.title = title; pr.turn = turn; pr.people = people; pr.checks = checks; pr.refs = refs; pr.updated = updated; pr.rounds = rounds; pr.logged = logged; schedulePush(s); }
+    if (pr.state !== state || pr.title !== title || pr.checks !== checks || pr.logged !== logged || (pr.updated ?? null) !== updated || JSON.stringify(pr.turn ?? null) !== same || JSON.stringify(pr.people ?? null) !== faces || JSON.stringify(pr.refs ?? null) !== branches || JSON.stringify(pr.rounds ?? null) !== rs || JSON.stringify(pr.review ?? null) !== said) { pr.review = review; pr.state = state; pr.title = title; pr.turn = turn; pr.people = people; pr.checks = checks; pr.refs = refs; pr.updated = updated; pr.rounds = rounds; pr.logged = logged; schedulePush(s); }
   }
   for (const s of chats) if (s.prActs.some(a => !a.url)) takeActs(s);   // a push to its branch, now that GitHub has named the branch
   // Said once, as the ball comes back to you — or when a chat you had ticked comes back with it, or the next move after
@@ -1333,7 +1340,7 @@ function drainPrQueue() {
         const evs = prEvents(pr, me, url), ci = ciEvent(prStatus.get(url), prChecks(pr), pr.headRefOid);
         logEvents(url, ci ? [...evs, ci] : evs);
       }
-      setPrInfo(url, state, pr?.title || null, turn, Date.now(), pr ? prPeople(pr, me) : undefined, !pr, pr?.createdAt, prChecks(pr), prRefs(pr), pr?.updatedAt || null);
+      setPrInfo(url, state, pr?.title || null, turn, Date.now(), pr ? prPeople(pr, me) : undefined, !pr, pr?.createdAt, prChecks(pr), prRefs(pr), pr?.updatedAt || null, prReview(pr));
     });
     if (turnsDirty) { turnsDirty = false; pruneTurns(); saveState(); }
     if (prQueue.size || prSplit.length) drainPrQueue();
@@ -1362,10 +1369,16 @@ const PR_FIELDS = `title state isDraft createdAt updatedAt headRefOid author { $
   + ` marks: timelineItems(last: ${WINDOWS.marks}, itemTypes: [MERGED_EVENT, CLOSED_EVENT, REOPENED_EVENT, READY_FOR_REVIEW_EVENT]) { nodes { __typename`
   + ` ... on MergedEvent { createdAt url ${ACTOR} } ... on ClosedEvent { createdAt url ${ACTOR} } ... on ReopenedEvent { createdAt ${ACTOR} }`
   + ` ... on ReadyForReviewEvent { createdAt url ${ACTOR} } } }`
-  + ' commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }';   // CI on the head (2026-10-09): the rollup alone, a point's worth
+  + ' commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }'   // CI on the head (2026-10-09): the rollup alone, a point's worth
+  + ' reviewDecision reviewThreads(last: 50) { nodes { isResolved } }';   // where its review stands (2026-11-23): the decision, the threads left open
 /** The head commit's checks as the chat header says them: pass · fail · pending, or null for none (2026-10-09). */
 const CHECKS = { SUCCESS: 'pass', FAILURE: 'fail', ERROR: 'fail', PENDING: 'pending', EXPECTED: 'pending' };
 const prChecks = pr => CHECKS[pr?.commits?.nodes?.[0]?.commit?.statusCheckRollup?.state] ?? null;
+/** Where a PR's review stands (pure; 2026-11-23): GitHub's decision (approved · changes · required), the review threads
+ *  not resolved, the reviews asked and not given. Null for no answer. */
+const DECISIONS = { APPROVED: 'approved', CHANGES_REQUESTED: 'changes', REVIEW_REQUIRED: 'required' };
+const prReview = pr => pr ? { decision: DECISIONS[pr.reviewDecision] ?? null, open: (pr.reviewThreads?.nodes || []).filter(t => t && !t.isResolved).length,
+  asked: (pr.reviewRequests?.nodes || []).filter(n => n?.requestedReviewer).length } : null;
 /** A PR's branches as the changes tab and the editor want them (2026-10-13): its head's name and commit, its base's,
  *  and whether the head lives in a fork — whose branch name means nothing in this checkout. Null for no answer. */
 const prRefs = pr => pr?.headRefName ? { head: pr.headRefName, headOid: pr.headRefOid || null, base: pr.baseRefName || null, baseOid: pr.baseRefOid || null,
@@ -2427,6 +2440,7 @@ function fold(s, line) {
           const e = { role: 'assistant', kind: 'tool_use', name: b.name, text: summarizeToolInput(b.name, b.input), toolUseId: b.id, ts };
           if (b.name === 'SendMessage') noteSend(s, e, b);
           if (b.name === 'Agent' && pstr(b.input?.name)) e.who = b.input.name;
+          if (SPAWN_TOOLS.has(b.name) && pstr(b.input?.name)) noteMateType(s, b.input);
           if (b.name === 'Skill' && pstr(b.input?.args)) e.args = snippet(b.input.args, 140);   // a fork's words: which PR this review is of
           pushEntry(s, e);
           if (EDIT_TOOLS.has(b.name) && (b.input?.file_path || b.input?.notebook_path)) (s.turnFiles ||= new Set()).add(b.input.file_path || b.input.notebook_path);
@@ -2514,7 +2528,7 @@ function indexFile(file, { full = false } = {}) {
   const s = newSession(id, file);
   s.bornAt = st.birthtimeMs;
   if (prev) {
-    for (const k of ['live', 'rivals', 'alive', 'startedAt', 'openedAt', 'agentsRunning', 'agentRows', 'agentSig', 'agentSaid', 'headNow', 'headOk', 'peers', 'tasksGone', 'forkAt']) s[k] = prev[k];
+    for (const k of ['live', 'rivals', 'alive', 'startedAt', 'openedAt', 'agentsRunning', 'agentRows', 'agentAll', 'agentSig', 'agentSaid', 'headNow', 'headOk', 'peers', 'tasksGone', 'forkAt']) s[k] = prev[k];
     clearTimeout(prev.pushTimer); clearTimeout(prev.notifyTimer); clearTimeout(prev.driftTimer);
     s.silent = !!prev.file;
   }
@@ -2531,6 +2545,7 @@ function indexFile(file, { full = false } = {}) {
   s.newEntries = []; // initial load: nothing is "new"
   if (!s.cwd && prev?.cwd) s.cwd = prev.cwd;
   if (!s.tasks?.size && prev?.tasks?.size) s.tasks = prev.tasks;   // a tail re-read has not seen the calls that started them
+  if (prev?.mateTypes?.size) s.mateTypes = new Map([...prev.mateTypes, ...(s.mateTypes || [])]);   // nor the spawns that named its teammates' categories
   for (const [id, t] of s.tasks || []) { const p = prev?.tasks?.get(id); if (p) { t.heldAt = p.heldAt; t.askedAt = p.askedAt; } }   // …and lsof's word is the machine's, not the lines' (2026-11-04)
   if (!s.wakes && prev?.wakes?.size) s.wakes = prev.wakes;   // …nor the wake-ups it set (2026-10-31)
   if (prev?.agentEnds?.size) s.agentEnds = new Map([...prev.agentEnds, ...(s.agentEnds || [])]);   // …nor how its agents ended, past the tail (2026-11-02)
@@ -2712,6 +2727,24 @@ const peerQueueOf = s => s.alive && s.peerQueue?.length ? s.peerQueue.slice(-5).
 // holding the 'reply' one back until the agents are done.
 const AGENT_STALE_MS = Number(process.env.AGENT_STALE_MS || 15 * 60_000);
 const isHandback = (line, id) => line?.type === 'assistant' && Array.isArray(line.message?.content) && line.message.content.some(b => b?.type === 'tool_use' && b.name === 'SubagentHandback' && b.id === id);
+/** A chat with no claude, its agents as they were (2026-11-24): Space's pods, a resume's. Read again only when its folder of
+ *  agents changed, and only for a chat with a word in the last AGENT_PAST_DAYS — the rest wait for a look of their own. On
+ *  the poll alone, PAST_PER_POLL chats a poll (2026-11-24, review): a boot with a hundred such chats read them all before
+ *  it answered, and a backlog is spread out; the newest first (pastSweep). */
+const AGENT_PAST_DAYS = Number(process.env.AGENT_PAST_DAYS ?? 14), PAST_PER_POLL = Number(process.env.PAST_PER_POLL || 20);
+function pastAgents(s) {
+  if (s.alive || !s.file || !(Date.now() - Date.parse(s.lastActivity || 0) < AGENT_PAST_DAYS * 86_400_000)) return false;
+  let at; try { at = statSync(agentsDir(s)).mtimeMs; } catch { at = 0; }
+  if (at === s.agentDirAt) return false;
+  s.agentDirAt = at;
+  if (!at && !s.agentAll && !s.agentRows) return false;   // none, and none before: nothing read
+  scanAgents(s); return true;
+}
+function pastSweep() {
+  let left = PAST_PER_POLL;
+  const todo = [...sessions.values()].filter(s => !s.alive && s.file).sort((a, b) => String(b.lastActivity || '').localeCompare(String(a.lastActivity || '')));
+  for (const s of todo) { if (left <= 0) break; if (pastAgents(s)) left--; }
+}
 function agentRunning(file, now = Date.now(), since = 0) {
   let st; try { st = statSync(file); } catch { return false; }
   if (now - st.mtimeMs > AGENT_STALE_MS || st.mtimeMs < since || !st.size) return false;
@@ -2739,7 +2772,9 @@ function agentsSoon(s) {
 function scanAgents(s) {
   const dir = agentsDir(s); let names = [];
   if (dir) try { names = readdirSync(dir); } catch {}
-  const since = Math.min(...[s.live, ...(s.rivals || [])].map(l => Number(l?.startedAt) || 0));   // the oldest claude on the chat: an agent from before it died with the one before
+  // the oldest claude on the chat: an agent from before it died with the one before — the rows' and the count's; one with no
+  // claude, all of them before (its past alone: Space's pods, 2026-11-24)
+  const since = s.alive ? Math.min(...[s.live, ...(s.rivals || [])].map(l => Number(l?.startedAt) || 0)) : Infinity;
   const now = Date.now();
   const work = new Map(names.filter(n => n.endsWith('.jsonl')).map(n => [n, agentRunning(join(dir, n), now, since) && !agentFinished(dir, n)]));
   const running = [...work.values()].filter(Boolean).length;
@@ -2765,15 +2800,25 @@ function jsonOnce(file, shape) {
   jsonSeen.set(file, { mtimeMs: st.mtimeMs, size: st.size, v });
   return v;
 }
+/** A teammate's category (2026-11-18, v6): the `subagent_type` the lead spawned it with — its metadata names none, its
+ *  roster entry its own name. By name, the newest spawn winning; `general-purpose`, the Agent tool's own default, when none. */
+const SPAWN_TOOLS = new Set(['Agent', 'Task']);   // the spawning tool by either of its names (Task, before Agent; 2026-11-18, v8)
+function noteMateType(s, input) {
+  const t = s.mateTypes ||= new Map(); t.delete(input.name); t.set(input.name, pstr(input.subagent_type) || pstr(input.agent_type) || pstr(input.agentType) || 'general-purpose');
+  while (t.size > 64) t.delete(t.keys().next().value);
+}
+// first what its own metadata says it was spawned as (`spawnedAgentType`, `customAgentType`; its `agentType` is its name — 2026-11-18, v9)
+const typeSaid = (k, name) => k && k !== name && k !== 'team-lead' ? k : null;
+const mateType = (s, name, spawned, kind) => typeSaid(spawned, name) || s.mateTypes?.get(name) || typeSaid(kind, name) || 'general-purpose';
 const isLead = m => m.agentType === 'team-lead' || m.name === 'team-lead' || String(m.agentId || '').startsWith('team-lead@');
 /** The roster beyond its lead, as Claude Code keeps it while the chat runs: what a teammate with no file yet is known by. */
 const rosterOf = s => jsonOnce(join(TEAMS_DIR, `session-${s.id.slice(0, 8)}`, 'config.json'), c => (c?.leadSessionId && c.leadSessionId !== s.id) || !Array.isArray(c?.members) ? []
-  : c.members.filter(m => m && typeof m === 'object' && pstr(m.name) && !isLead(m)).map(m => ({ name: m.name }))) || [];
+  : c.members.filter(m => m && typeof m === 'object' && pstr(m.name) && !isLead(m)).map(m => ({ name: m.name, kind: pstr(m.agentType) }))) || [];
 const TM_SUMMARY = /^\s*<teammate-message\b[^>]*\bsummary="([^"]*)"/;
-const mateSeen = new Map();   // a teammate's transcript → { mtimeMs, size, last }
+const mateSeen = new Map(), SEEN_MAX = 2000;   // a teammate's transcript → { mtimeMs, size, last }; in the order used
 /** A teammate's last line: the last thing it said or called, else what the lead last asked of it. */
 function mateLast(file, st) {
-  const hit = mateSeen.get(file); if (hit && hit.mtimeMs === st.mtimeMs && hit.size === st.size) return hit.last;
+  const hit = mateSeen.get(file); if (hit && hit.mtimeMs === st.mtimeMs && hit.size === st.size) { mateSeen.delete(file); mateSeen.set(file, hit); return hit.last; }   // the newest last
   const len = Math.min(st.size, 65536), buf = Buffer.alloc(len);
   try { const fd = openSync(file, 'r'); try { readSync(fd, buf, 0, len, st.size - len); } finally { closeSync(fd); } } catch { return hit?.last ?? null; }
   let last = null;
@@ -2791,7 +2836,7 @@ function mateLast(file, st) {
     if (m) { last = { kind: 'asked', text: snippet(unXml(m[1]), 140) }; break; }
   }
   last ??= hit?.last ?? null;   // a tail that is one long tool result, cut: nothing to read in it (2026-11-02)
-  if (mateSeen.size > 2000) mateSeen.clear();
+  mateSeen.delete(file); if (mateSeen.size >= SEEN_MAX) mateSeen.delete(mateSeen.keys().next().value);   // the one used longest ago goes, never all (2026-11-24)
   mateSeen.set(file, { mtimeMs: st.mtimeMs, size: st.size, last });
   return last;
 }
@@ -2805,10 +2850,11 @@ function mateLast(file, st) {
 // Only the last round shows: the agents out at one time, a new round being one that starts after all before it ended. A failure
 // from a round before stays with it (`old`), for the page to keep until the chat is opened (seenAt). Words hold AGENT_WORDS_MS:
 // a tool call every 6.6 s here (the median over 247 agents) would flicker, and a new one must not push for each step.
+const typeOf = (s, type) => ({ type, color: agentColor(s.live?.cwd || s.cwd, type) });
 const AGENT_WORDS_MS = Number(process.env.AGENT_WORDS_MS ?? 15_000), AGENT_FILES = 40;
 /** The agent a tool's result names (2026-11-02): an Agent call's, a forked Skill's. How the transcript gets back to it, whatever became of its row. */
 const agentNamed = t => typeof t?.agentId === 'string' && /^[\w-]+$/.test(t.agentId) ? { agent: { id: t.agentId, name: pstr(t.name) || pstr(t.commandName), asked: pstr(t.description) } } : null;
-const agentMetaOf = m => !m || typeof m !== 'object' ? {} : { name: pstr(m.name), asked: pstr(m.description), kind: pstr(m.agentType), mate: m.taskKind === 'in_process_teammate' || !!pstr(m.teamName),
+const agentMetaOf = m => !m || typeof m !== 'object' ? {} : { name: pstr(m.name), asked: pstr(m.description), kind: pstr(m.agentType), spawned: pstr(m.spawnedAgentType) || pstr(m.customAgentType), mate: m.taskKind === 'in_process_teammate' || !!pstr(m.teamName),
   model: pstr(m.model), branch: pstr(m.worktreeBranch), tree: pstr(m.worktreePath), tool: pstr(m.toolUseId), finished: m.finished === true, stopped: m.stoppedByUser === true };
 const metaFile = (dir, n) => join(dir, n.slice(0, -'.jsonl'.length) + '.meta.json');
 /** Its meta says it finished, and nothing was written since: an agent ended by an API error writes no end of its own, and
@@ -2822,7 +2868,7 @@ const agentPrompt = text => { const t = cleanPrompt(String(text || '')); return 
 const bornSeen = new Map();   // an agent's transcript → { at, prompt }: its first line, read once
 /** When it began and what it was asked: its first line's. Past the first 64 KB, its file's birth. */
 function agentBorn(file, st) {
-  const hit = bornSeen.get(file); if (hit) return hit;
+  const hit = bornSeen.get(file); if (hit) { bornSeen.delete(file); bornSeen.set(file, hit); return hit; }
   let at = null, prompt = null;
   try {
     const fd = openSync(file, 'r'), buf = Buffer.alloc(Math.min(st.size, 65536));
@@ -2831,7 +2877,7 @@ function agentBorn(file, st) {
     at = pstr(l.timestamp); prompt = agentPrompt(textOf(l.message?.content));
   } catch {}
   const v = { at: at || new Date(st.birthtimeMs || st.mtimeMs).toISOString(), prompt };
-  if (bornSeen.size > 2000) bornSeen.clear();
+  if (bornSeen.size >= SEEN_MAX) bornSeen.delete(bornSeen.keys().next().value);
   bornSeen.set(file, v);
   return v;
 }
@@ -2853,35 +2899,48 @@ function noteAgentNotices(s, text, ts) {
 }
 /** The chat's rows as they stand; true when they changed. */
 function noteAgents(s, dir, work, since, now) {
-  const files = [];
-  for (const [n, on] of work) { let st; try { st = statSync(join(dir, n)); } catch { continue; } if (st.size && st.mtimeMs >= since) files.push({ n, on, st }); }
-  files.sort((a, b) => b.st.mtimeMs - a.st.mtimeMs);
+  const files = [], before = [];
+  for (const [n, on] of work) { let st; try { st = statSync(join(dir, n)); } catch { continue; } if (st.size) (st.mtimeMs >= since ? files : before).push({ n, on, st }); }
+  files.sort((a, b) => b.st.mtimeMs - a.st.mtimeMs); before.sort((a, b) => b.st.mtimeMs - a.st.mtimeMs);
   const had = new Map((s.agentRows || []).map(r => [r.id, r])), said = s.agentSaid ||= new Map(), names = new Set(), rows = [];
-  for (const { n, on, st } of files.slice(0, AGENT_FILES)) {
+  const row = ({ n, on, st }, names, past) => {
     const m = jsonOnce(metaFile(dir, n), agentMetaOf) || {}, file = join(dir, n), id = n.slice(0, -'.jsonl'.length).replace(/^agent-/, '');
-    if (m.mate && m.name) { if (names.has(m.name)) continue; names.add(m.name); }   // one name twice: the newest
+    if (m.mate && m.name) { if (names.has(m.name)) return null; names.add(m.name); }   // one name twice: the newest
     const end = m.tool ? s.agentEnds?.get(m.tool) : null, born = agentBorn(file, st);
     const state = on ? 'run' : end?.status === 'failed' ? 'fail' : m.stopped || end?.status === 'stopped' || end?.status === 'killed' ? 'stop'
-      : end?.waiting && now - st.mtimeMs < TASK_MAX_MS ? 'wait' : 'done';
+      : !past && end?.waiting && now - st.mtimeMs < TASK_MAX_MS ? 'wait' : 'done';   // one from a claude before this one waits on nothing
     let last = mateLast(file, st);
-    const was = had.get(id);
+    const was = past ? null : had.get(id);
     if (state === 'run' && was?.st === 'run' && was.last && now - (said.get(id) || 0) < AGENT_WORDS_MS) last = was.last;   // it holds its words
     else if (JSON.stringify(last) !== JSON.stringify(was?.last ?? null)) said.set(id, now);
-    rows.push({ id, name: m.name, asked: m.asked || snippet(born.prompt, 80) || null, kind: m.kind && m.kind !== 'general-purpose' ? m.kind : null, mate: !!m.mate, st: state, last,
+    return { id, name: m.name, asked: m.asked || snippet(born.prompt, 80) || null, kind: m.kind && m.kind !== 'general-purpose' ? m.kind : null, mate: !!m.mate, st: state, last,
+      // its type as Claude Code named it — a teammate's, the category it was spawned as (mateType, 2026-11-18, v6) — and the
+      // colour that type's definition gives (Space's pods): none for a built-in
+      ...typeOf(s, m.mate ? mateType(s, m.name, m.spawned, m.kind) : m.spawned || m.kind || null),
       // when it ended: not its last line alone — an API error writes none, and you may have opened the chat since that line (the page keeps a failure until then)
       at: born.at, end: state === 'run' || state === 'wait' ? null : new Date(Math.max(st.mtimeMs, Date.parse(end?.ts) || 0, m.finished ? jsonSeen.get(metaFile(dir, n))?.mtimeMs || 0 : 0)).toISOString(),
       lastAt: new Date(st.mtimeMs).toISOString(), why: state === 'fail' ? end?.why || null : null,
-      branch: m.branch, tree: m.tree, tool: m.tool });
-  }
+      branch: m.branch, tree: m.tree, tool: m.tool, ...past ? { past: true } : {} };
+  };
+  for (const f of files.slice(0, AGENT_FILES)) { const r = row(f, names, false); if (r) rows.push(r); }
+  // the agents of the claudes before this one (2026-11-24): a resume is a new claude, and its rows start over, but Space's pods
+  // are every agent the chat has run — ended, a step back; the newest, up to AGENT_FILES in all
+  const pastNames = new Set(), past = [];
+  for (const f of before.slice(0, Math.max(0, AGENT_FILES - rows.length))) { const r = row(f, pastNames, true); if (r) past.push(r); }
+  past.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
   rows.sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
   let cut = 0, far = -Infinity;   // the last round: where one starts after every one before it had ended
   rows.forEach((r, i) => { const from = Date.parse(r.at); if (i && from > far) cut = i; far = Math.max(far, r.end ? Date.parse(r.lastAt) : Infinity); });
-  const kept = [...rows.slice(0, cut).filter(r => r.st === 'fail').slice(-3).map(r => ({ ...r, old: true })), ...rows.slice(cut)];
-  for (const m of rosterOf(s)) if (!names.has(m.name)) kept.push({ id: `mate-${m.name}`, name: m.name, asked: null, kind: null, mate: true, st: 'joined', last: null, at: null, end: null, lastAt: null, why: null, branch: null, tree: null, tool: null });   // named, no file of its own yet
+  const kept = [...rows.slice(0, cut).filter(r => r.st === 'fail').slice(-3).map(r => ({ ...r, old: true })), ...rows.slice(cut)], joined = [];
+  for (const m of rosterOf(s)) if (!names.has(m.name)) joined.push({ id: `mate-${m.name}`, name: m.name, asked: null, kind: null, mate: true, ...typeOf(s, mateType(s, m.name, null, m.kind)), st: 'joined', last: null, at: null, end: null, lastAt: null, why: null, branch: null, tree: null, tool: null });   // named, no file of its own yet
+  kept.push(...joined);
+  // every agent its claude has run, rounds before the last too (2026-11-18, v9): Space's pods, which gather them by type
+  // round the chat; only when there were rounds before, else the same as the rows
+  const all = cut || past.length ? [...past, ...rows, ...joined] : null;
   // what changed: `lastAt` only by the minute, or every line of every agent would push the card
-  const sig = JSON.stringify(kept.map(({ lastAt, ...r }) => [r, Math.floor(Date.parse(lastAt) / 60_000)]));
-  if (sig === (s.agentSig ?? null) || (!kept.length && !s.agentRows)) return false;
-  s.agentRows = kept.length ? kept : null; s.agentSig = sig;
+  const sig = JSON.stringify([kept.map(({ lastAt, ...r }) => [r, Math.floor(Date.parse(lastAt) / 60_000)]), all && [...past, ...rows.slice(0, cut)].map(r => [r.id, r.st, r.type])]);
+  if (sig === (s.agentSig ?? null) || (!kept.length && !s.agentRows && !all && !s.agentAll)) return false;
+  s.agentRows = kept.length ? kept : null; s.agentAll = all; s.agentSig = sig;
   return true;
 }
 // What the page asks of one agent, on demand (2026-11-02): the hover card's totals and the tab's transcript, read a piece at a
@@ -4716,38 +4775,37 @@ async function chatRoute(req, res, what, url) {
 // ---------------------------------------------------------------------------------------------
 // Lunch: the reminder, and the menus of the places you go (2026-10-18)
 // ---------------------------------------------------------------------------------------------
-// Off until the setup names it (setup.lunch: {on, at, days, places: [{name, instagram, color}], stories, slack, model}).
+// Off until the setup names it (setup.lunch: {on, at, days, places: [{name, instagram, color}], slack, model}).
 // On a lunch day the board reads each place's menu through the morning and says when it is lunch time — the status
 // bar's sign, the dishes in the fish's lane, a notification with Menus · Going · In 15 minutes, ⌥⌘M's chalkboard. Where
 // a menu comes from (docs/DECISIONS.md, 2026-10-18, and the study behind it):
 //   · the place's Instagram profile, logged out (lib/instagram.mjs look, headless Chrome): its newest posts — a week's
 //     card, a month's dishes in a caption, a menu posted today, a closure — and when its newest story went up;
-//   · its stories, through the board's own Instagram login (`stories`; the Chrome profile in LUNCH_DIR/chrome): most
-//     places post the day's menu only there, and Instagram shows no story to anyone logged out;
-//   · the setup's Slack channel (`slack`), where colleagues post those stories as screenshots, read by claude -p with
-//     Claude's Slack connector and its read tools alone.
+//   · the setup's Slack channel (`slack`), where colleagues post the places' stories as screenshots, read by claude -p
+//     with Claude's Slack connector and its read tools alone.
+// No Instagram login (2026-11-23): most places post the day's menu only as a story, which Instagram shows to no one
+// logged out, and a login wants a browser window of the board's own — gone, its stories with it; the channel has them.
 // Every picture is read by claude -p (`model`, haiku unless the setup says) into the days and dishes it shows, once:
-// LUNCH_DIR/reads.json keeps each read by the post's or the story's id — a story's with its place and time, so a week's
-// card still says the day's dishes once Instagram has let the story go (lunchKept). A month's dishes are a place's
-// until something says which is today's: a story, a post, the channel (2026-10-20). A reader is a claude of its own in
+// LUNCH_DIR/reads.json keeps each read by the post's id. A month's dishes are a place's until something says which is
+// today's: a post, the channel (2026-10-20). A reader is a claude of its own in
 // LUNCH_DIR/work, with no transcript (--no-session-persistence); the registry lists it while it runs, and
 // loadRegistry passes over it (ownReader). The day — its menus, Going, In 15 min, back — is the state file's.
 const LUNCH_DIR = join(dirname(STATE_FILE), 'lunch');
-const LUNCH_WORK = join(LUNCH_DIR, 'work'), LUNCH_CHROME = join(LUNCH_DIR, 'chrome'), LUNCH_READS = join(LUNCH_DIR, 'reads.json');
+const LUNCH_WORK = join(LUNCH_DIR, 'work'), LUNCH_READS = join(LUNCH_DIR, 'reads.json');
 const LUNCH_TICK_MS = Number(process.env.LUNCH_TICK_MS || 30_000);
 const LUNCH_SPAN_MS = 90 * 60_000;        // lunch time: from `at`, this long — the sign, the dishes in the lane
 const LUNCH_SNOOZE_MS = 15 * 60_000;
 const LUNCH_LOOKS = [-75, -40, -10, 5];   // minutes from `at`: Instagram looked at for the places still without a menu
 const LUNCH_SLACKS = [-10, 10];           // …and the channel read
 const LUNCH_RECENT_MS = 35 * 86_400_000;  // a post older than this is no menu of today's
-const LUNCH_READ_MAX = 6, LUNCH_STORY_MAX = 5, LUNCH_AGAIN_MS = 6 * 3_600_000;   // posts read per place a look; stories; a failed read asked again after
+const LUNCH_READ_MAX = 6, LUNCH_AGAIN_MS = 6 * 3_600_000;   // posts read per place a look; a failed read asked again after
 const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 // a post worth reading though not posted today: a menu's words, a closure's, or a picture Instagram says is text
 const MENU_WORDS = /menu|ementa|almo[cç]o|prato|sugest|semana|di[aá]ria|executiv|buffet|encerrad|fechad|f[eé]rias|closed/i;
-const lunch = { busy: null, again: null, error: null, login: { state: 'unknown' }, loginRun: null, said: '', workReal: null, readers: new Set(), reads: null };
+const lunch = { busy: null, again: null, error: null, said: '', workReal: null, readers: new Set(), reads: null };
 const IG_HANDLE = /^[A-Za-z0-9._]{1,30}$/;
-/** The setup's lunch, shaped: {on, at 'HH:MM', days [0–6], places [{name, instagram?, color?}], stories, slack '#name'?,
- *  model?} — or why not. */
+/** The setup's lunch, shaped: {on, at 'HH:MM', days [0–6], places [{name, instagram?, color?}], slack '#name'?, model?}
+ *  — or why not. */
 function cleanLunch(v) {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return { error: 'expected {at, days, places}' };
   const at = typeof v.at === 'string' ? v.at.trim() : '12:00', hm = at.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
@@ -4768,7 +4826,7 @@ function cleanLunch(v) {
   if (slack && !/^#[\w.-]{1,80}$/.test(slack)) return { error: `"${v.slack}" is not a Slack channel — #lunch` };
   const model = typeof v.model === 'string' && v.model.trim() ? v.model.trim() : null;
   if (model && !/^[\w.[\]-]{1,60}$/.test(model)) return { error: `"${model}" is not a model — haiku, sonnet` };
-  return { lunch: { on: v.on !== false, at: `${hm[1].padStart(2, '0')}:${hm[2]}`, days, places, stories: v.stories === true, slack, model } };
+  return { lunch: { on: v.on !== false, at: `${hm[1].padStart(2, '0')}:${hm[2]}`, days, places, slack, model } };
 }
 const lunchCfg = () => setup.lunch || null;
 const dayKey = t => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -4823,10 +4881,10 @@ function setMenu(p, m) {
  *  from, or why there are none yet. In the snapshot and every `lunch` event. */
 function lunchSummary(t = Date.now()) {
   const cfg = lunchCfg();
-  if (!cfg) return { on: false, set: false, login: lunch.login };
+  if (!cfg) return { on: false, set: false };
   const st = lunchToday(t);
   return { on: cfg.on, set: true, at: cfg.at, days: cfg.days, phase: lunchPhase(cfg, st, t), day: st.day, went: st.went || null, snooze: st.snooze || null, back: st.back || null,
-    readAt: st.readAt || null, busy: lunch.busy, error: lunch.error, login: lunch.login, stories: cfg.stories, slack: cfg.slack, model: cfg.model || 'haiku',
+    readAt: st.readAt || null, busy: lunch.busy, error: lunch.error, slack: cfg.slack, model: cfg.model || 'haiku',
     places: cfg.places.map(p => {
       const m = st.menus[p.name] || {};
       const state = m.dishes?.length ? 'menu' : m.closed ? 'closed' : m.storyAt ? 'story' : !p.instagram && !cfg.slack ? 'none' : 'waiting';
@@ -4958,40 +5016,6 @@ async function lunchLook(places, today) {
     saveState(); lunchSay();
   });
 }
-/** The stories, through the board's login: of the places whose story went up today (or whose profile said nothing),
- *  each one's story page — today's, newest first, until one is the menu or a closure. */
-async function lunchStories(places, today) {
-  const want = places.filter(p => p.instagram && !settled(p) && (menuOf(p).storyAt || menuOf(p).error));
-  if (!lunchCfg()?.stories || !want.length || lunch.loginRun) return;
-  lunch.busy = 'stories'; lunchSay();
-  const r = await igRun(['stories', '--profile', LUNCH_CHROME, ...want.map(p => p.instagram)], 4 * 60_000);
-  lunch.login = r.loggedIn ? { state: 'in', user: r.user || null } : r.loggedIn === false ? { state: 'out' } : lunch.login;
-  if (!r.loggedIn) { if (r.error) lunch.error = `stories: ${r.error}`; return; }
-  if (r.error) lunch.error = `stories: ${r.error}`;
-  for (const [h, why] of Object.entries(r.errors || {})) { const p = want.find(q => q.instagram.toLowerCase() === h.toLowerCase()); if (p && !menuOf(p).storyAt) menuOf(p).error = `its stories: ${why}`; }
-  lunch.busy = 'reading'; lunchSay();
-  await pool(want, 3, async p => {
-    const items = (Object.entries(r.stories || {}).find(([h]) => h.toLowerCase() === p.instagram.toLowerCase())?.[1] || []).filter(s => dayKey(s.at) === today);
-    if (items.length) menuOf(p).storyAt = Math.max(menuOf(p).storyAt || 0, items[0].at);
-    for (const s of items.slice(0, LUNCH_STORY_MAX)) {
-      let read; try { read = await readPicture({ id: `s${s.pk}`, image: s.image, place: p, at: s.at, kind: 'story', url: s.url }); } catch (e) { menuOf(p).error = e.message; continue; }
-      const closed = closedOn(read, today); if (closed) { setMenu(p, { closed, src: 'story', at: s.at, url: s.url, dishes: [] }); return; }
-      const d = dishesOn(read, today, s.at); if (d) { setMenu(p, { ...d, src: 'story', at: s.at, url: s.url }); return; }
-    }
-  });
-}
-/** The stories read on the days before that still say today's: a week's card or a closure, gone from Instagram a day
- *  after it went up (2026-10-20) — the newest first, no network. */
-function lunchKept(places, today) {
-  const kept = [...lunchReads().values()].filter(v => v.kind === 'story' && v.r && v.posted).sort((a, b) => b.posted - a.posted);
-  for (const p of places) {
-    if (!p.instagram || settled(p)) continue;
-    for (const v of kept.filter(v => v.place === p.instagram.toLowerCase())) {
-      const closed = closedOn(v.r, today); if (closed) { setMenu(p, { closed, src: 'story', at: v.posted, url: v.url || null, dishes: [] }); break; }
-      const d = dishesOn(v.r, today, v.posted); if (d && !d.month) { setMenu(p, { ...d, src: 'story', at: v.posted, url: v.url || null }); break; }
-    }
-  }
-}
 /** The setup's Slack channel: the day's screenshots, read for the places still without a menu. */
 async function lunchSlack(places, today) {
   const ch = lunchCfg()?.slack, want = places.filter(p => !settled(p));
@@ -5012,20 +5036,18 @@ Copy each dish as written, one item per dish, in the order shown — starters, s
     if (p && Array.isArray(x.dishes) && x.dishes.length) setMenu(p, { dishes: x.dishes.map(String), price: x.price || null, src: 'slack', at: hm ? new Date().setHours(+hm[1], +hm[2], 0, 0) : Date.now(), url: null });
   }
 }
-/** One round: the stories kept, the profiles, the stories, the channel (`slack`) — for the places still without today's
+/** One round: the profiles, then the channel (`slack`) — for the places still without today's
  *  menu, or all of them (`all`, Read again). One at a time; asked while one runs, it runs again after. */
 async function lunchRun({ slack = false, all = false } = {}) {
   const cfg = lunchCfg();
   if (!cfg?.places.length) return;
   if (lunch.busy) { lunch.again = { slack: slack || !!lunch.again?.slack, all: all || !!lunch.again?.all }; return; }
   const today = lunchToday().day;
-  lunchKept(cfg.places, today);
   const places = all ? cfg.places : cfg.places.filter(p => !settled(p));
   if (all) for (const p of places) { const m = menuOf(p); if (!m.dishes?.length) delete m.error; }
   lunch.error = null; lunch.busy = 'starting'; lunchSay();
   try {
     await lunchLook(places, today);
-    await lunchStories(places, today);
     if (slack) await lunchSlack(places, today);
   } catch (e) { lunch.error = e.message; console.error('[peixairada] lunch:', e); }
   finally { lunch.busy = null; lunchToday().readAt = Date.now(); saveState(); lunchSay(); }
@@ -5060,37 +5082,17 @@ function lunchAlert(cfg) {
   broadcast('alert', evt);
   if (notificationsOn) nativeNotify(evt.heading, title, snippet);
 }
-/** The board's Instagram login: a window to log in with (lib/instagram.mjs login), the stories read once it is in. */
-function lunchLogin() {
-  if (lunch.loginRun) return;
-  mkdirSync(LUNCH_CHROME, { recursive: true, mode: 0o700 });
-  lunch.login = { state: 'opening' }; lunchSay();
-  lunch.loginRun = igRun(['login', '--profile', LUNCH_CHROME], 16 * 60_000).then(r => {
-    lunch.loginRun = null;
-    lunch.login = r.loggedIn ? { state: 'in', user: r.user || null } : { state: 'out', ...r.error && { error: r.error } };
-    lunchSay();
-    if (r.loggedIn) lunchRun();
-  });
-}
 async function lunchRoute(req, res, url) {
-  if (req.method === 'GET') {
-    if (url.searchParams.has('login') && lunch.login.state === 'unknown' && !lunch.loginRun && existsSync(LUNCH_CHROME)) {   // Settings › Lunch open: whether the profile is logged in
-      const r = await igRun(['check', '--profile', LUNCH_CHROME], 60_000);
-      if (typeof r.loggedIn === 'boolean') lunch.login = r.loggedIn ? { state: 'in', user: r.user || null } : { state: 'out' };
-    } else if (url.searchParams.has('login') && lunch.login.state === 'unknown' && !existsSync(LUNCH_CHROME)) lunch.login = { state: 'out' };
-    return json(res, 200, lunchSummary());
-  }
+  if (req.method === 'GET') return json(res, 200, lunchSummary());
   if (req.method !== 'POST') return json(res, 405, { error: 'GET or POST' });
   const body = await jsonBody(req), cfg = lunchCfg(), act = body.act, t = Date.now();
-  if (!cfg && act !== 'logout') return json(res, 409, { error: 'lunch is not set up — Settings › Lunch' });
+  if (!cfg) return json(res, 409, { error: 'lunch is not set up — Settings › Lunch' });
   const st = lunchToday(t);
   if (act === 'going') { st.went = t; st.snooze = 0; }
   else if (act === 'snooze') { st.snooze = t + LUNCH_SNOOZE_MS; st.went = 0; }
   else if (act === 'back') { st.back = t; }
   else if (act === 'read') lunchRun({ slack: !!cfg.slack, all: true });
-  else if (act === 'login') lunchLogin();
-  else if (act === 'logout') { if (lunch.loginRun) return json(res, 409, { error: 'the login window is open' }); rmSync(LUNCH_CHROME, { recursive: true, force: true }); lunch.login = { state: 'out' }; }
-  else return json(res, 400, { error: 'expected {act: going | snooze | back | read | login | logout}' });
+  else return json(res, 400, { error: 'expected {act: going | snooze | back | read}' });
   saveState(); lunchSay();
   return json(res, 200, lunchSummary());
 }
@@ -5676,8 +5678,8 @@ const BOARD_ENV = new Set(['WT_ASK_MS', 'PORT', 'HOST', 'NOTIFY', 'USAGE', 'STAT
   'MAX_ENTRIES', 'TAIL_BYTES', 'HEAD_BYTES', 'CHANGES_MAX', 'JIRA_TOKEN_FILE', 'JIRA_CONFIG_FILE', 'UPDATE_DIR', 'VSWEB_PORT', 'VSWEB_UPDATE_URL', 'CLAUDE_JSON', 'KEY_MODE',
   'AGENT_STALE_MS', 'AGENT_WORDS_MS', 'CLONE_MS', 'CONFIG_POLL_MS', 'POWER_POLL_MS', 'DRAWER_IDLE_MS', 'MONITOR_MS', 'PR_TTL_MS', 'PR_WATCH_MS', 'REGISTRY_POLL_MS', 'TASK_GRACE_MS', 'TASK_MAX_MS',
   'TICKET_TTL_MS', 'UPDATE_EVERY_MS', 'UPDATE_QUIET_MS', 'VSWEB_FRESH_MS', 'WT_SWEEP_MS', 'UPDATE_RESTART_BIN', 'UPDATE_BUILD_BIN', 'PEIX_TEST_PARENT',
-  'GITHUB_API', 'CHAT_FAST_MS', 'CHAT_SLOW_MS', 'CHAT_GAP_MS', 'CHAT_INVITES_MS', 'LUNCH_TICK_MS', 'INSTAGRAM_BIN', 'READER_BIN', 'VIM_BIN',
-  ...['claude', 'gh', 'git', 'task', 'code', 'npm', 'brew', 'caffeinate', 'pmset', 'lsregister', 'lsof', 'ps', 'osascript'].map(n => `${n.toUpperCase()}_BIN`)]);   // findBin's
+  'GITHUB_API', 'CHAT_FAST_MS', 'CHAT_SLOW_MS', 'CHAT_GAP_MS', 'CHAT_INVITES_MS', 'LUNCH_TICK_MS', 'INSTAGRAM_BIN', 'READER_BIN', 'VIM_BIN', 'DISCLAIM',
+  ...['claude', 'gh', 'git', 'task', 'code', 'npm', 'brew', 'caffeinate', 'pmset', 'lsregister', 'lsof', 'ps', 'osascript', 'cc'].map(n => `${n.toUpperCase()}_BIN`)]);   // findBin's
 const drawerEnv = () => Object.fromEntries(Object.entries(termEnv()).filter(([k]) => !BOARD_ENV.has(k)));
 
 // Take a chat over from wherever it runs — iTerm, VS Code: end that claude, then resume the chat here.
@@ -6098,6 +6100,37 @@ const RUN_SHELL = /\/(zsh|bash)$/.test(LOGIN_SHELL) ? LOGIN_SHELL : '/bin/zsh';
 // The in-app editor's other pick (2026-10-21): vim in the chat's folder, on a tab as a zsh is — run as claude is, through
 // the login shell, so the vim its PATH finds. VIM_BIN for another one, or the tests' stand-in.
 const VIM_BIN = process.env.VIM_BIN || 'vim';
+// A drawer's claude answers to macOS for itself (2026-11-23): the microphone, the camera and Automation are asked of the
+// *responsible* process, and a drawer's was this server's node — launchd's, a hardened binary with no audio-input
+// entitlement —, so tccd refused /voice without asking anyone. Claude Code carries the entitlement and the usage string:
+// through lib/disclaim.c (an exec, the same pid) it is its own, and macOS asks for "claude". Built with cc into the state
+// folder, once per source; no developer tools, none — a drawer starts as before. DISCLAIM=off for none.
+const DISCLAIM_SRC = join(__dirname, 'lib', 'disclaim.c');
+let disclaimAt = null;
+function disclaimBin() {
+  if (process.platform !== 'darwin' || process.env.DISCLAIM === 'off') return Promise.resolve(null);
+  return disclaimAt ??= buildDisclaim().catch(e => { console.error(`[peixairada] a drawer's claude cannot ask macOS for the microphone: ${errText(e)}`); return null; });
+}
+async function buildDisclaim() {
+  const src = readFileSync(DISCLAIM_SRC);
+  const dir = privateDir(join(dirname(STATE_FILE), 'bin'));
+  const out = join(dir, `disclaim-${createHash('sha256').update(src).digest('hex').slice(0, 12)}`);
+  if (!canRun(out)) {
+    const cc = findBin('cc', "a drawer's claude cannot ask macOS for the microphone");
+    if (!cc) return null;
+    // /usr/bin/cc with no developer tools asks to install them, in a dialog: not a server's to raise, unasked
+    if (cc === '/usr/bin/cc') {
+      const dev = await execFileP('/usr/bin/xcode-select', ['-p'], { timeout: 10_000 }).then(r => r.stdout.trim(), () => '');
+      if (!dev || !existsSync(dev)) throw new Error('no developer tools to build lib/disclaim.c (xcode-select --install)');
+    }
+    const tmp = `${out}.${process.pid}`;
+    await execFileP(cc, ['-O2', '-o', tmp, DISCLAIM_SRC], { timeout: 120_000 });
+    renameSync(tmp, out);
+  }
+  // the build an older source made: a claude it started has exec'd past it
+  for (const f of readdirSync(dir)) if (/^disclaim-[0-9a-f]{12}$/.test(f) && join(dir, f) !== out) try { unlinkSync(join(dir, f)); } catch {}
+  return out;
+}
 
 /**
  * Start `claude` (or `claude --resume <id>`, or `task <name>` — a launcher, see above) in `cwd`: write the spec, spawn
@@ -6151,7 +6184,9 @@ async function spawnTerm({ cwd, sessionId = null, cols = 120, rows = 30, shell =
   const sock = join(TERMS_DIR, `${id}.sock`);
   if (Buffer.byteLength(sock) > SOCK_MAX) return { code: 500, error: `the drawers' folder is too deep for a socket: ${sock} is ${Buffer.byteLength(sock)} bytes, macOS takes ${SOCK_MAX} — set TERMS_DIR to a shorter folder` };
   try { privateDir(TERMS_DIR); } catch (e) { return { code: 500, error: e.message }; }
-  const spec = { id, sessionId: sessionId || (!shell && !editor && !task && newId) || null, cwd, bin, args, shell, editor, sh: shell && !editor ? LOGIN_SHELL : RUN_SHELL, task, cols: Math.min(500, Math.max(20, cols | 0)), rows: Math.min(200, Math.max(5, rows | 0)), resume: !shell && !!(sessionId || fork), ...fork && { fork }, ...attach && { attach, claudePid }, startedAt: new Date().toISOString() };
+  // claude itself, never a zsh, vim or a launcher: what they run answers to this server as before (see disclaimBin)
+  const disclaim = !shell && !editor && !task ? await disclaimBin() : null;
+  const spec = { id, sessionId: sessionId || (!shell && !editor && !task && newId) || null, cwd, bin, args, shell, editor, sh: shell && !editor ? LOGIN_SHELL : RUN_SHELL, task, cols: Math.min(500, Math.max(20, cols | 0)), rows: Math.min(200, Math.max(5, rows | 0)), resume: !shell && !!(sessionId || fork), ...fork && { fork }, ...attach && { attach, claudePid }, ...disclaim && { disclaim }, startedAt: new Date().toISOString() };
   const logFile = join(TERMS_DIR, `${id}.log`);
   let child;
   try {
@@ -6813,6 +6848,16 @@ const server = createServer(async (req, res) => {
       saveState(); schedulePush(s);
       return json(res, 200, { ok: true, acked: driftAcks[s.id] });
     }
+    if (req.method === 'POST' && (m = p.match(/^\/api\/sessions\/([\w-]+)\/favorite$/))) {   // starred in Space, or not (2026-11-18, v11)
+      const s = sessions.get(m[1]);
+      if (!s) return json(res, 404, { error: 'unknown session' });
+      const body = await jsonBody(req);
+      if (typeof body.on !== 'boolean') return json(res, 400, { error: 'expected {on: true|false}' });
+      if (body.on) favChats[s.id] = new Date().toISOString(); else delete favChats[s.id];
+      for (const id of Object.keys(favChats)) if (!sessions.has(id)) delete favChats[id];
+      saveState(); schedulePush(s);
+      return json(res, 200, { ok: true, fav: !!favChats[s.id] });
+    }
     if (req.method === 'POST' && (m = p.match(/^\/api\/sessions\/([\w-]+)\/mute$/))) {   // this chat's alerts silent, or back (2026-11-02)
       const s = sessions.get(m[1]);
       if (!s) return json(res, 404, { error: 'unknown session' });
@@ -7050,7 +7095,7 @@ server.on('upgrade', (req, socket, head) => { socket.on('error', () => socket.de
 // ---------------------------------------------------------------------------------------------
 // Boot — only when run as the program. Imported (the tests), the module exposes its pure parts and does nothing.
 // ---------------------------------------------------------------------------------------------
-export { cronNext, nextWake, pruneWakes, pruneTasks, findTasks, stopOf, pollBody, pollOf, cleanLunch, lunchPhase, dishesOn, closedOn, dayKey, sweepTasks, indexFile, settleDrift, noteHead, headOf, driftOf, updateParts, doingOf, dayOf, noteSpan, parseNumstat, parseNameStatus, splitPatch, addedPatch, changesOf, patchStat, projectDir, parseWorktrees, worktreesFor, branchWhere, worktreeBases, prRefs, ensureWorktree, folderBack, putBack, linkModules, sweepWorktrees, switchGuard, worktreesMade, fold, newSession, summary, agentRunning, usageWindows, prChecks, ticketsIn, noteTickets, cleanSetup, notePr, notePrs, unlinkPr, unlinked, waiveTurn, unwaiveTurn, moveTurn, prEvents, ciEvent, logEvents, noteRounds, roundsOf, prLogs, pruneLogs, prActs, takeActs, forgetRef, ghRepoOf, prTitle, duePrs, prStatus, prTurn, prPeople, setPrInfo, doneMarks, forGoodMarks, mutedChats, prAlertChat, cleanPrompt, textOf, snippet, plain, summarizeToolInput, toolResultSnippet, projectInput, movePeacock, termSummary, isDone, sessions, terms, foreignTo, lidRuns, prTurns };
+export { cronNext, nextWake, pruneWakes, pruneTasks, findTasks, stopOf, pollBody, pollOf, cleanLunch, lunchPhase, dishesOn, closedOn, dayKey, sweepTasks, indexFile, settleDrift, noteHead, headOf, driftOf, updateParts, doingOf, dayOf, noteSpan, parseNumstat, parseNameStatus, splitPatch, addedPatch, changesOf, patchStat, projectDir, parseWorktrees, worktreesFor, branchWhere, worktreeBases, prRefs, ensureWorktree, folderBack, putBack, linkModules, sweepWorktrees, switchGuard, worktreesMade, fold, newSession, summary, agentRunning, usageWindows, prChecks, prReview, ticketsIn, noteTickets, cleanSetup, notePr, notePrs, unlinkPr, unlinked, waiveTurn, unwaiveTurn, moveTurn, prEvents, ciEvent, logEvents, noteRounds, roundsOf, prLogs, pruneLogs, prActs, takeActs, forgetRef, ghRepoOf, prTitle, duePrs, prStatus, prTurn, prPeople, setPrInfo, doneMarks, forGoodMarks, mutedChats, favChats, prAlertChat, cleanPrompt, textOf, snippet, plain, summarizeToolInput, toolResultSnippet, projectInput, movePeacock, termSummary, isDone, sessions, terms, foreignTo, lidRuns, prTurns };
 export { handoffText };   // chats that talk (2026-10-31)
 export { agentFront, agentsFor };   // a new chat as an agent (2026-11-06)
 export { readerArgs };   // a reader reads, and does nothing else (2026-11-06)
@@ -7085,6 +7130,7 @@ if (!keyRequired() && !existsSync(APP_DIR)) requireKey(`no app at ${APP_DIR} to 
 const t0 = Date.now();
 if (!seenSince) { seenSince = new Date().toISOString(); saveState(); }   // a reply before the board kept what it showed is no new one (2026-10-12)
 loadConfig();
+rmSync(join(LUNCH_DIR, 'chrome'), { recursive: true, force: true });   // lunch's Instagram login, a Chrome profile, gone with the login (2026-11-23)
 // The transcripts are watched before they are read (2026-10-14): FSEvents tells only of what comes after the watch
 // starts, and a reply written while the scan or the adoption ran stayed unread until the file's next line.
 const pendingFiles = new Map();
@@ -7137,7 +7183,7 @@ readCheckout().then(async co => { Object.assign(upd, co); if (co.checkout) { upd
 setInterval(lookApp, APP_LOOK_MS);
 watchBuild();   // an app's rebuild that outlived the restart it came with   // where the checkout stands, for the settings, before the first look
 if (UPDATE_EVERY_MS > 0) { setTimeout(checkUpdate, Math.min(60_000, UPDATE_EVERY_MS)); setInterval(checkUpdate, UPDATE_EVERY_MS); }   // the board's own new commits (checkUpdate)
-for (const s of sessions.values()) if (s.alive) scanAgents(s);
+for (const s of sessions.values()) if (s.alive) scanAgents(s);   // the past agents of the chats with no claude: the poll's, a few at a time (pastSweep)
 // An agent gone quiet stops counting; a task past its expiry stops running. Both are only visible on a push, and
 // a chat whose last word was "monitor started" has nothing else to push.
 setInterval(() => {
@@ -7147,9 +7193,10 @@ setInterval(() => {
   try { findTasks(); } catch (e) { console.error('[peixairada] findTasks', e); }
   for (const s of sessions.values()) {
     if (pruneTasks(s) + pruneWakes(s)) schedulePush(s);   // both asked, each its own pruning
-    if (s.alive) scanAgents(s);
+    if (s.alive) { scanAgents(s); s.agentDirAt = null; }
     else if (s.agentsRunning) { s.agentsRunning = 0; schedulePush(s); }   // its claude is gone, and its agents with it — a stale card read "2 agents" until a restart
   }
+  pastSweep();
   sweepTasks();
   sweepDrawers();
   sweepHeads();

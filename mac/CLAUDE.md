@@ -61,6 +61,13 @@ under the title bar (2026-11-04; `paneTop`, a KVO on `contentLayoutRect`, by its
 (`PaneOverlay.hitTest`). A rect from the page is in the overlay's terms: anything placed by one hangs from it. A
   page's new window is a tab beside it (`PaneDelegate.open` → `peixPaneOpen`), a link to another host the page's to
   judge (`PaneDelegate.linkOut` → `peixLinkOut`). → `shell-checks/pane-place.mjs`.
+* **The board starts under every title bar** (2026-11-16; `webTopC` from `paneTop`, as the overlay does): WebKit insets
+  no clear bar, and a theme turning the bar moves nothing.
+  **A theme's bar** (Flashbang; the page's `{type: 'titlebar', color}`, `wearBar`): clear over that colour, the window's
+  ground and WebKit's; null puts back macOS's bar and `ground`. Kept as `peixairada.titlebar` beside `peixairada.dark`, worn
+  in `buildWindow` before the window shows, a light launch only (2026-11-24); opaque in macOS's full screen, where the bar
+  slides down over the head row (`wearBar(full:)` from the full-screen delegate calls). → `shell-checks/titlebar-theme.mjs`,
+  `titlebar-full-screen.mjs` (`--space`), `scenarios/titlebar-posts.mjs`.
 * **The badge and the Dock**: the page's `{type: 'state'}` is their number; `refreshBadges` redraws only on a change
   (`badged`); a newly asking chat, the app behind, bounces the Dock once.
 * **The fish in the menu bar** (2026-11-01, round XIX; `drawFish`, `fishFace`): dim, nothing wants you (`appearsDisabled`);
