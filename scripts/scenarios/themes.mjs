@@ -128,7 +128,7 @@ export default async function (ctx) {
   await ctx.key('KeyY');
 
   await ctx.waitFor(
-    `document.querySelector('#themes').open && document.querySelectorAll('#themegrid .tt').length === 13`,
+    `document.querySelector('#themes').open && document.querySelectorAll('#themegrid .tt').length === 14`,
     { what: 'the grid of families' },
   );
 
@@ -335,6 +335,7 @@ export default async function (ctx) {
       'Nord',
       'Black',
       'Matte Black',
+      'Luna',
       'Softened',
       'Flashbang',
     ],

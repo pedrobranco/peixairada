@@ -1,0 +1,344 @@
+/* Luna (2026-11-27): the look of Windows XP, both its halves (Luna, and Luna Noir for the dark). Its colours are SKINS.luna's
+     (themes.js); what a colour cannot say is here, by data-skin — Tahoma for the words (Trebuchet bold on the bars), the
+     chat's header XP's title bar, the status bar its taskbar with a green start (the list's switch) and the clock's tray,
+     the lanes its task panes, the open row its selection blue, a question its yellow balloon, work its progress bar's
+     green blocks (in the ring's place: one box moved by transform, phased as `lunaprog`), and Space a sky over a green
+     hill with its nodes as little windows, its agents square icons in a toolbar. Nothing of Microsoft's own is drawn. */
+:root[data-skin='luna'] {
+  --xp-tb: linear-gradient(180deg, #3a93ff 0, #0058ee 12%, #0058ee 70%, #0050e0 100%);
+  --xp-tb-edge: #0042c8;
+  --xp-task: linear-gradient(180deg, #3c7ef0 0, #245edc 12%, #245edc 85%, #1941a5 100%);
+  --xp-tray: linear-gradient(180deg, #139ee9, #0c59b9);
+  --xp-pane: linear-gradient(90deg, #ffffff, #c6d3f7);
+  --xp-pane-ink: #215dc6;
+  --xp-side: linear-gradient(180deg, #d6dff7, #c3d0f0);
+  --xp-ready-tb: linear-gradient(180deg, #9db9eb, #7a96df 20%, #7a96df 70%, #6a86cf);
+  --xp-sky: linear-gradient(180deg, #2a6fd6 0, #5d9ff0 45%, #a9d0ff 72%);
+  --xp-hill: radial-gradient(120% 80% at 40% 20%, #7ad13f, #3f9a1f 55%, #2b7414);
+  --xp-pod: linear-gradient(180deg, #ffffff, #d6dff7);
+  --xp-pod-edge: #7f9db9;
+}
+:root[data-skin='luna-noir'] {
+  --xp-tb: linear-gradient(180deg, #5a5a5a 0, #3a3a3a 12%, #2b2b2b 70%, #1a1a1a 100%);
+  --xp-tb-edge: #111;
+  --xp-task: linear-gradient(180deg, #4a4a4a 0, #2a2a2a 12%, #2a2a2a 85%, #0f0f0f 100%);
+  --xp-tray: linear-gradient(180deg, #2c5aa0, #1f3a66);
+  --xp-pane: linear-gradient(90deg, #3a3f4a, #2a3a5c);
+  --xp-pane-ink: #9cc0ff;
+  --xp-side: linear-gradient(180deg, #262a33, #1f2229);
+  --xp-ready-tb: linear-gradient(180deg, #5a5a5a, #3a3a3a);
+  --xp-sky: linear-gradient(180deg, #0b1830 0, #1b3566 55%, #2d4e86 78%);
+  --xp-hill: radial-gradient(120% 80% at 40% 20%, #2f5f22, #1d4214 55%, #122b0c);
+  --xp-pod: linear-gradient(180deg, #4a4f5a, #2e323b);
+  --xp-pod-edge: #5a6170;
+}
+:root[data-skin^='luna'] body {
+  font-family: Tahoma, Verdana, 'Segoe UI', sans-serif;
+}
+/* the list: XP's task panes on their ground, each lane a pane's head, the open row XP's selection */
+:root[data-skin^='luna'][data-layout='sidebar'] #sessions {
+  background: var(--xp-side);
+}
+:root[data-skin^='luna'][data-layout='sidebar'] #slist .gsep.lane {
+  background: var(--xp-pane);
+  color: var(--xp-pane-ink);
+  border-radius: 4px 4px 0 0;
+  font-weight: 700;
+}
+:root[data-skin^='luna'][data-layout='sidebar'] #slist .gsep.lane :is(.ln, b, .lc) {
+  color: var(--xp-pane-ink);
+}
+:root[data-skin^='luna'][data-layout='sidebar'] #slist .card {
+  --selc: #316ac5;
+  border-radius: 0 0 3px 3px;
+}
+/* a question: XP's yellow balloon, its tail up to the card's title */
+:root[data-skin^='luna'] .card .state.needs-input {
+  position: relative;
+  margin-top: 8px;
+  padding: 4px 8px;
+  color: #000;
+  background: #ffffe1;
+  border: 1px solid #000;
+  border-radius: 6px;
+  box-shadow: 2px 2px 0 rgb(0 0 0 / 0.2);
+}
+:root[data-skin^='luna'] .card .state.needs-input::before,
+:root[data-skin^='luna'] .card .state.needs-input::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  border: 7px solid transparent;
+  border-top: 0;
+}
+:root[data-skin^='luna'] .card .state.needs-input::before {
+  top: -7px;
+  border-bottom-color: #000;
+}
+:root[data-skin^='luna'] .card .state.needs-input::after {
+  top: -5.5px;
+  left: 15px;
+  border-width: 6px;
+  border-top: 0;
+  border-bottom-color: #ffffe1;
+}
+:root[data-skin^='luna'] .card .state.needs-input :is(.q, .opts),
+:root[data-skin^='luna'][data-layout='sidebar'] #slist .card.active .state.needs-input :is(.q, .opts) {
+  color: #000;
+}
+:root[data-skin^='luna'] .card .state.needs-input .ic,
+:root[data-skin^='luna'][data-layout='sidebar'] #slist .card.active .state.needs-input .ic {
+  color: #c00000;
+}
+/* work: XP's progress bar, its green blocks marching across, in the ring's place */
+:root[data-skin^='luna'][data-layout='sidebar'] #sessions #slist .card.working:not(.asking) {
+  padding-bottom: 20px;
+}
+:root[data-skin^='luna'][data-layout='sidebar'] #sessions #slist .card.working:not(.asking) > .rg {
+  display: block;
+  position: absolute;
+  z-index: 1;
+  inset: auto auto 7px 10px;
+  width: 90px;
+  height: 9px;
+  padding: 0;
+  opacity: 1;
+  overflow: hidden;
+  border: 1px solid #7f9db9;
+  border-radius: 2px;
+  background: #fff;
+  -webkit-mask: none;
+  mask: none;
+}
+:root[data-skin^='luna'][data-layout='sidebar'] #sessions #slist .card.working:not(.asking) > .rg::before {
+  content: '';
+  position: absolute;
+  inset: 1px auto 1px 0;
+  width: 30px;
+  height: auto;
+  margin: 0;
+  aspect-ratio: auto;
+  background: repeating-linear-gradient(90deg, #2fb32f 0 6px, transparent 6px 8px);
+  animation: lunaprog 2.2s linear infinite;
+}
+@keyframes lunaprog {
+  from {
+    transform: translateX(-32px);
+  }
+  to {
+    transform: translateX(92px);
+  }
+}
+/* the chat's header: a window's title bar */
+:root[data-skin^='luna'][data-layout='sidebar'] #chat > #shead {
+  background: var(--xp-tb);
+  border-bottom: 1px solid var(--xp-tb-edge);
+  color: #fff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  --rink: #fff;
+  --hd-ink: #fff;
+  --hd-muted: rgb(255 255 255 / 0.85);
+  --hd-line: rgb(255 255 255 / 0.35);
+  --muted: rgb(255 255 255 / 0.85);
+  --ink: #fff;
+}
+:root[data-skin^='luna'] #shead h2 {
+  font-family: 'Trebuchet MS', Tahoma, sans-serif;
+  font-weight: 700;
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.45);
+}
+:root[data-skin^='luna'][data-layout='sidebar'][data-theme] #chat .shead h2 .repo {
+  color: #fff;
+  background: #1846c4;
+}
+:root[data-skin='luna-noir'][data-layout='sidebar'][data-theme] #chat .shead h2 .repo {
+  background: #444;
+}
+/* the status bar: the taskbar, the list's switch its green start, the machine its tray */
+:root[data-skin^='luna'][data-layout='sidebar'] main.tiles ~ #sbar {
+  background: var(--xp-task);
+  border-top: 0;
+  color: #fff;
+  --ink: #fff;
+  --muted: rgb(255 255 255 / 0.85);
+  --idle: #fff;
+  --bar: #245edc;
+  --line: rgb(0 0 0 / 0.3);
+}
+:root[data-skin^='luna'] #sbFind {
+  padding-left: 0;
+}
+:root[data-skin^='luna'] #sbar #sbFind #sbList {
+  align-self: stretch;
+  height: auto;
+  margin: 0 6px 0 0;
+  padding: 0 16px 0 10px;
+  gap: 6px;
+  border-radius: 0 12px 12px 0;
+  color: #fff;
+  background: linear-gradient(180deg, #4fb83a, #3c8d2e 40%, #3c8d2e 80%, #2a6a1f);
+  box-shadow: 2px 0 3px rgb(0 0 0 / 0.3);
+  font:
+    italic 700 14px 'Trebuchet MS',
+    Tahoma,
+    sans-serif;
+  text-shadow: 1px 1px 1px rgb(0 0 0 / 0.5);
+}
+:root[data-skin^='luna'] #sbar #sbList::after {
+  content: 'start';
+}
+:root[data-skin^='luna'] #sbar .fsearch[aria-pressed='true'] {
+  color: #fff;
+  background: rgb(0 0 0 / 0.25);
+  box-shadow: inset 1px 1px 2px rgb(0 0 0 / 0.4);
+}
+:root[data-skin^='luna'] #sbar #sbLeft .seg.ask {
+  color: #c00000;
+  background: #ffffe1;
+  border: 1px solid #000;
+  border-radius: 6px;
+}
+:root[data-skin^='luna'] #sbRight {
+  align-self: stretch;
+  background: var(--xp-tray);
+  border-left: 1px solid #092e8a;
+  box-shadow: inset 1px 0 0 rgb(24 179 248 / 0.6);
+}
+/* Space: a sky over a green hill, the nodes little windows, the agents square icons in a toolbar */
+:root[data-skin^='luna'] #space:not(.nosky) .spsky {
+  display: block;
+  background: var(--xp-sky);
+}
+:root[data-skin^='luna'] #space:not(.nosky) .spfield {
+  background: transparent;
+}
+:root[data-skin^='luna'] #space .spsky > b,
+:root[data-skin^='luna'] #space .spsky .spvis {
+  display: none;
+}
+:root[data-skin^='luna'] #space:not(.nosky) .spsky::after {
+  content: '';
+  position: absolute;
+  left: -15%;
+  right: -15%;
+  bottom: -46vh;
+  height: 70vh;
+  border-radius: 50% / 60%;
+  background: var(--xp-hill);
+}
+:root[data-skin^='luna'] #space .spbox {
+  border-radius: 7px 7px 0 0;
+  border: 3px solid var(--xp-tb-edge);
+  border-top: 0;
+  padding: 26px 8px 6px;
+  justify-content: flex-start;
+  background:
+    var(--xp-ready-tb) top / 100% 22px no-repeat,
+    var(--crust);
+  box-shadow: 3px 3px 6px rgb(0 0 0 / 0.3);
+}
+:root[data-skin^='luna'] #space .spbox[data-st='work'] {
+  background:
+    var(--xp-tb) top / 100% 22px no-repeat,
+    var(--crust);
+}
+:root[data-skin^='luna'] #space .spbox[data-st='ask'] {
+  border-color: var(--needs);
+  box-shadow:
+    0 0 0 2px var(--needs),
+    3px 3px 6px rgb(0 0 0 / 0.3);
+}
+:root[data-skin^='luna'] #space .spbt {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 22px;
+  padding: 0 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: left;
+  line-height: 22px;
+  color: #fff;
+  font:
+    700 11px/22px 'Trebuchet MS',
+    Tahoma,
+    sans-serif;
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.45);
+}
+:root[data-skin^='luna'] #space .sphl {
+  display: none;
+}
+/* a node at work: its light the same progress bar, at the window's foot */
+:root[data-skin^='luna'] #space .sprg {
+  inset: auto auto 8px 10px;
+  width: 90px;
+  height: 9px;
+  padding: 0;
+  z-index: 1;
+  border: 1px solid #7f9db9;
+  border-radius: 2px;
+  background: #fff;
+  -webkit-mask: none;
+  mask: none;
+}
+:root[data-skin^='luna'] #space .sprg::before {
+  inset: 1px auto 1px 0;
+  left: 0;
+  top: 1px;
+  width: 30px;
+  height: auto;
+  margin: 0;
+  aspect-ratio: auto;
+  background: repeating-linear-gradient(90deg, #2fb32f 0 6px, transparent 6px 8px);
+  animation: lunaprog 2.2s linear infinite;
+}
+:root[data-skin^='luna'] #space .spt.on {
+  background: rgb(255 255 255 / 0.22);
+  border-color: rgb(255 255 255 / 0.5);
+}
+:root[data-skin^='luna'] #space .sppod {
+  border-radius: 3px;
+  background: var(--xp-pod);
+  border: 1px solid var(--xp-pod-edge);
+  box-shadow: 1px 1px 2px rgb(0 0 0 / 0.25);
+}
+:root[data-skin^='luna'] #space .spwire {
+  background: #fff;
+  opacity: 0.8;
+}
+:root[data-skin^='luna'] #space .spa {
+  border-radius: 2px;
+  color: #fff;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 0.5);
+  background: linear-gradient(
+    180deg,
+    oklch(0.85 0.1 var(--h)),
+    oklch(0.66 0.15 var(--h)) 45%,
+    oklch(0.5 0.15 var(--h))
+  );
+  box-shadow:
+    0 0 0 1px oklch(0.38 0.12 var(--h)),
+    inset 0 1px 0 rgb(255 255 255 / 0.6);
+}
+:root[data-skin^='luna'] #space .spa:is([data-st='run'], [data-st='quiet'])::before {
+  inset: -3px;
+  border-radius: 3px;
+  border: 2px solid #2fb32f;
+  animation: none;
+}
+:root[data-skin^='luna'] #space .spa > i {
+  border-radius: 1px;
+}
+:root[data-skin^='luna'] #space .spask {
+  color: #000;
+  background: #ffffe1;
+  border: 1px solid #000;
+  border-radius: 6px;
+}
+:root[data-skin^='luna'] #space .spl {
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.6);
+}

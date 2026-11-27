@@ -159,6 +159,12 @@
     animation: none;
     background: var(--lit);
   } /* the sidebar's ring, or its edge's light: its light, still, all round */
+  :root[data-skin^='luna'][data-layout='sidebar'] #sessions #slist .card.working:not(.asking) > .rg::before,
+  :root[data-skin^='luna'] #space .sprg::before {
+    animation: none;
+    transform: translateX(28px);
+    background: repeating-linear-gradient(90deg, #2fb32f 0 6px, transparent 6px 8px);
+  } /* Luna's progress bar (2026-11-27): its blocks standing */
   .card.asking {
     border-color: var(--needs);
     box-shadow:

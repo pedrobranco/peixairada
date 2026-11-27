@@ -354,7 +354,7 @@ CLAUDE_DIR or above). A chat's folder in it is refused where the board would wri
   in a frame** (2026-11-01): `--frame` (a theme's `crust`) the window's ground, the sidebar (`--side`), the status bar.
   **`data-frame` is the frame's appearance** — dark round a light chat under *Dark frame* (`prefs.darkFrame`; skinCss's
   `[data-frame="dark"]`) —, read by `#sessions` and `#sbar`, never `data-theme`. **Every small ink holds 4.5:1** (a
-  theme's by `themeInks`; amber text is `--working-ink`). → `themes.mjs`, `frame-themes.mjs`, `inks.test.mjs`.
+  theme's by `themeInks`; amber text is `--working-ink`). Luna: `luna.css`. → `themes.mjs`, `luna.mjs`, `inks.test.mjs`.
 * **The header floats** (2026-10-09; `<html data-head="float">` in the markup, never toggled): `#shead` and
   `#prlist` inset and rounded, **over the chat** — `#groups` spans the header's rows (`grid-row: 1 / 5`, every row of
   `#chat` placed in column 1). A half with a strip pads down by `--float-h` (`floatH`); one without

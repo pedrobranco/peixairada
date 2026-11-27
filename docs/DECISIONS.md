@@ -5,6 +5,23 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-27. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-27, last — Luna, the look of Windows XP
+
+* **Luna** (its halves Luna and Luna Noir; `luna` in the code): Windows XP's look — a beige frame, white panes, XP's
+  selection blue, Tahoma; its dark half XP's black edition, graphite with the same blue and the green start. Its
+  projects are XP's few inks.
+* **What a colour cannot say is `luna.css`'s**, by `data-skin`: the chat's header a window's title bar (its project
+  tab opaque, so the tab's inks are measured against a ground they sit on); the status bar the taskbar — the list's
+  switch its green *start*, the machine its tray, the asking count a balloon; the lanes XP's task panes on their blue
+  ground; the open row XP's selection blue; **a question XP's yellow balloon**, its tail up to the card's title, black
+  on yellow even on the open row; **work XP's progress bar**, in the ring's place on a card and on a Space node — one
+  box of green blocks moved by `transform`, `lunaprog`, phased, its blocks standing under reduced motion.
+* **Space** a sky over a drawn green hill, the stars and visitors gone; each node a little window — the title in a blue
+  bar at work, a pale one at rest, a red frame when it asks; **its sub-agents stay round it**, each pod an XP toolbar
+  of square glossy icons, a green frame on one at work. Nothing of Microsoft's own is drawn or shipped: no logo, no
+  photograph, no sound.
+* → `scripts/scenarios/luna.mjs`; `themes.mjs` counts its swatch; `frame-themes.mjs` and `inks.test.mjs` hold its inks.
+
 ## Decisions of 2026-11-27, latest — the house rules: names in words, a blank line round a block
 
 Ricardo: *"pull latest main and work on linting errors, best code pratices, etc. e.g, seach for linting/rules that

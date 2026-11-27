@@ -730,7 +730,7 @@ function openRun(list, lane, lr, gap) {
 // animationName, so it is left alone. getAnimations() is the document's running animations, a few dozen at most, and
 // the style flush it forces is the one the frame was about to do. (Each card at a start of its own, hashed from the
 // chat's id, was a switch from 2026-09-27 to 2026-10-14.)
-const PHASED = new Set(['ring', 'sonar', 'pulse', 'pix', 'pixhop', 'shimw', 'shimi', 'spsonar', 'spspin']); // Space's pings and arcs too (2026-11-18, v11)
+const PHASED = new Set(['ring', 'lunaprog', 'sonar', 'pulse', 'pix', 'pixhop', 'shimw', 'shimi', 'spsonar', 'spspin']); // Space's pings and arcs too (2026-11-18, v11)
 
 // Once a frame, before it paints: the list and the header both ask after a render, and getAnimations() flushes style
 // each time. `now`: at once, and read at once.
