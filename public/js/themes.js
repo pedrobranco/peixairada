@@ -399,6 +399,90 @@ const SKINS = {
     ],
     tok: { '--page-sel': 'rgba(255, 184, 77, .28)' },
   },
+  // Casa do Professor (2026-11-27; `professor` in the code): a constructivist poster — a warm charcoal ground, cream ink like
+  // old paper, red the board's own voice, gold for work, olive for ready; its projects in the poster's few inks, so the
+  // chat's header and the open row come out red. Its light half Casa do Professor Cartaz: the poster's paper, black and
+  // red. What a colour cannot say — square corners, condensed capitals, the red bands, the hammer and sickle, Space's
+  // rays, the fanfare when it is picked — is professor.css's and themes.js's, by data-skin.
+  professor: {
+    name: 'Casa do Professor',
+    dark: true,
+    bg: '#161210',
+    panel: '#1f1915',
+    raise: '#2a211b',
+    crust: '#0e0b0a',
+    ink: '#efe4cc',
+    muted: '#b3a38a',
+    line: '#3d2f26',
+    accent: '#e03a2f',
+    working: '#e6b23a',
+    idle: '#9aa86a',
+    needs: '#ff4a3a',
+    watch: '#d9c08a',
+    spend: '#e6b23a',
+    code: '#0b0908',
+    hl: ['#8a7c68', '#e03a2f', '#9aa86a', '#e6b23a', '#d9c08a', '#efe4cc', '#ff7a5c', '#c9a66b'],
+    proj: ['#e03a2f', '#e6b23a', '#9aa86a', '#d9c08a', '#b8231b'],
+    ansi: [
+      '#1f1915',
+      '#e03a2f',
+      '#9aa86a',
+      '#e6b23a',
+      '#c9a66b',
+      '#d0605a',
+      '#d9c08a',
+      '#efe4cc',
+      '#5a4a3c',
+      '#ff6a55',
+      '#b8c48a',
+      '#f2c75c',
+      '#dcbc8a',
+      '#e8857c',
+      '#ead6a8',
+      '#fbf4e4',
+    ],
+    tok: { '--page-sel': 'rgba(224, 58, 47, .32)' },
+  },
+  // …and its other half (2026-11-27): the poster's paper, black type and the same red.
+  'professor-poster': {
+    name: 'Casa do Professor Cartaz',
+    dark: false,
+    bg: '#efe6d2',
+    panel: '#f6efdf',
+    raise: '#e6dbc3',
+    crust: '#e2d6bd',
+    ink: '#1a1614',
+    muted: '#5a4e42',
+    line: '#cdbd9c',
+    accent: '#b8231b',
+    working: '#8a5a00',
+    idle: '#3f5a1c',
+    needs: '#c41e14',
+    watch: '#5a4e42',
+    spend: '#8a5a00',
+    code: '#e6dbc3',
+    hl: ['#7a6c5c', '#b8231b', '#3f5a1c', '#8a5a00', '#6b3a10', '#1a1614', '#c41e14', '#5a4e42'],
+    proj: ['#b8231b', '#8a5a00', '#3f5a1c', '#1a1614', '#7a1a14'],
+    ansi: [
+      '#1a1614',
+      '#b8231b',
+      '#3f5a1c',
+      '#8a5a00',
+      '#6b3a10',
+      '#7a1a14',
+      '#5a4e42',
+      '#cdbd9c',
+      '#5a4e42',
+      '#c41e14',
+      '#4f6e24',
+      '#a06a00',
+      '#8a4a18',
+      '#9a2a20',
+      '#7a6c5c',
+      '#efe6d2',
+    ],
+    tok: { '--page-sel': 'rgba(184, 35, 27, .22)' },
+  },
   'matte-black': {
     name: 'Matte Black',
     dark: true,
@@ -912,6 +996,7 @@ const FAMILIES = {
   black: { name: 'Black', dark: 'black', light: 'own-light' },
   'matte-black': { name: 'Matte Black', dark: 'matte-black', light: 'own-light' },
   phosphor: { name: 'Rapaz da Pipa', dark: 'phosphor', light: 'phosphor-amber' },
+  professor: { name: 'Casa do Professor', dark: 'professor', light: 'professor-poster' },
   softened: { name: 'Softened', dark: 'own-dark', light: 'softened' },
   flashbang: { name: 'Flashbang', dark: 'own-dark', light: 'flashbang' },
 };
@@ -1322,9 +1407,109 @@ function setLook(mode, from = null) {
     reskin();
   });
 }
+// Casa do Professor's fanfare (2026-11-27): picked by a click or ⏎ — never at load, nor Auto's flip, nor the arrows'
+// preview in ⌥⌘Y — the theme plays eight seconds of brass of the board's own (an original tune, no anthem's): a
+// bugle's call rising, a turn, the call again, the tonic held; trombones on the chords, a timpani on the strong beats.
+// Web Audio of its own, made by that press and closed when it ends or another theme is picked (no sound outlives it);
+// Settings › Appearance › Fanfare turns it off. `peix.motion()` notes `sound:fanfare`.
+const FANFARE_BEAT = 0.36;
+// [note, beats] — the tune; null a rest. Notes as MIDI numbers: 55 G3, 60 C4, 64 E4, 67 G4, 72 C5.
+// prettier-ignore
+const FANFARE_TUNE = [
+  [55, 0.5], [55, 0.5], [60, 1.5], [64, 0.5], [67, 1],
+  [69, 1], [67, 1], [64, 1], [60, 1],
+  [62, 1.5], [64, 0.5], [65, 1], [69, 1],
+  [67, 3], [null, 1],
+  [67, 0.5], [67, 0.5], [72, 1.5], [71, 0.5], [69, 1], [71, 1],
+  [72, 4],
+];
+// [chord's notes, beats] under it, a bar each but the turn into the last
+// prettier-ignore
+const FANFARE_CHORDS = [
+  [[48, 55, 64], 4], [[45, 52, 60], 4], [[41, 53, 57], 4], [[43, 50, 59], 4], [[41, 53, 57], 2], [[43, 50, 59], 2], [[36, 48, 55, 64], 4],
+];
+let fanfareCtx = null;
+const midiHz = n => 440 * 2 ** ((n - 69) / 12);
+function fanfareStop() {
+  const c = fanfareCtx;
+  fanfareCtx = null;
+  if (c && c.state !== 'closed') c.close().catch(() => {});
+}
+function fanfare() {
+  if (prefs.fanfare === false) return;
+  fanfareStop();
+  let c;
+  try {
+    c = fanfareCtx = new (window.AudioContext || window.webkitAudioContext)();
+  } catch {
+    return;
+  }
+  noteMotion(null, 'sound:fanfare');
+  const out = c.createGain(),
+    t0 = c.currentTime + 0.05,
+    b = FANFARE_BEAT;
+  out.gain.value = 0.22;
+  out.connect(c.destination);
+  // a brass voice: two saws a little apart through a filter that opens with the attack — the bite of a horn
+  const brass = (n, at, dur, vol, bright) => {
+    const f = c.createBiquadFilter(),
+      g = c.createGain();
+    f.type = 'lowpass';
+    f.Q.value = 1.2;
+    f.frequency.setValueAtTime(midiHz(n) * 1.5, at);
+    f.frequency.linearRampToValueAtTime(midiHz(n) * bright, at + 0.06);
+    f.frequency.exponentialRampToValueAtTime(midiHz(n) * (bright * 0.6), at + dur);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(vol, at + 0.04);
+    g.gain.setValueAtTime(vol * 0.8, at + Math.max(0.05, dur - 0.08));
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    f.connect(g).connect(out);
+    for (const d of [-6, 6]) {
+      const o = c.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.value = midiHz(n);
+      o.detune.value = d;
+      o.connect(f);
+      o.start(at);
+      o.stop(at + dur + 0.05);
+    }
+  };
+  // a timpani: a low sine falling a little, struck
+  const drum = (n, at, vol) => {
+    const o = c.createOscillator(),
+      g = c.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(midiHz(n) * 1.06, at);
+    o.frequency.exponentialRampToValueAtTime(midiHz(n), at + 0.08);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(vol, at + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.9);
+    o.connect(g).connect(out);
+    o.start(at);
+    o.stop(at + 1);
+  };
+  let t = t0;
+  for (const [n, beats] of FANFARE_TUNE) {
+    if (n != null) brass(n, t, beats * b * 0.94, 0.5, 6);
+    t += beats * b;
+  }
+  t = t0 + b; // the chords come in under the call's first long note
+  for (const [notes, beats] of FANFARE_CHORDS) {
+    for (const n of notes) brass(n, t, beats * b * 0.97, 0.16, 3.5);
+    drum(notes[0] < 40 ? notes[0] + 12 : notes[0], t, 0.7);
+    t += beats * b;
+  }
+  drum(48, t - 2 * b, 0.5); // the last chord struck again
+  const end = t + 0.6,
+    mine = c;
+  setTimeout(() => fanfareCtx === mine && fanfareStop(), (end - c.currentTime) * 1000 + 300);
+}
+/** A theme picked by hand: Casa do Professor's fanfare, or the end of one still playing. */
+const themePicked = f => (f === 'professor' ? fanfare() : fanfareStop());
 /** A family worn, spreading from where it was picked (a swatch, a tile; none from a key). */
 function setTheme(f, from = null) {
   if (!FAMILIES[f] || f === prefs.theme) return;
+  themePicked(f);
   revealFrom(from, () => {
     prefs.theme = f;
     savePrefs();
@@ -1351,6 +1536,12 @@ $('#crtOn').addEventListener('change', e => {
   prefs.crt = e.target.checked;
   savePrefs();
   applySkin();
+});
+$('#fanfareOn').checked = prefs.fanfare !== false;
+$('#fanfareOn').addEventListener('change', e => {
+  prefs.fanfare = e.target.checked;
+  savePrefs();
+  if (!e.target.checked) fanfareStop();
 });
 $('#glowOn').addEventListener('change', e => {
   prefs.crtGlow = e.target.checked;
@@ -1416,6 +1607,7 @@ function themesOpen() {
 function themeKeep(i = themePick.sel, from = null) {
   const [f] = themePick.list[i] || [];
   if (!f) return;
+  if (f !== prefs.theme) themePicked(f);
   prefs.theme = f;
   savePrefs();
   themePick.kept = true;

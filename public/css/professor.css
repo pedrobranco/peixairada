@@ -1,0 +1,119 @@
+/* Casa do Professor (2026-11-27; `professor` in the code): a constructivist poster, both its halves (the night's charcoal and the
+     poster's paper). Its colours are SKINS.professor's (themes.js), its projects the poster's inks — so the chat's
+     header and the open row come out red; what a colour cannot say is here, by data-skin: square corners, the headings
+     and labels in a bold condensed face in capitals (the reading text stays the system's), a red wedge before each lane,
+     the status bar a red band, the hammer and sickle — small on the bands, large and faint behind the chat, the sun
+     Space's rays rise from. Nothing here moves. */
+:root[data-skin^='professor'] {
+  --r-1: 0px;
+  --r-2: 0px;
+  --r-3: 0px;
+  --r-4: 0px;
+  --r-5: 0px;
+  --cond: 'Avenir Next Condensed', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  --hs: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M58 12C84 18 96 46 84 70C76 86 56 92 40 86L33 93C31 95 28 95 26 93L23 90C21 88 21 85 23 83L30 76C42 82 58 80 68 70C80 56 78 32 58 12Z'/%3E%3Cg transform='rotate(-45 50 50)'%3E%3Crect x='46' y='30' width='8' height='66' rx='1.5'/%3E%3Crect x='30' y='16' width='40' height='16' rx='1.5'/%3E%3C/g%3E%3C/svg%3E");
+  --band: var(--accent);
+  --band-ink: #f6efdf;
+}
+/* every corner square: a poster is cut, not rounded — but the faces, which stay round */
+:root[data-skin^='professor'] body *:not(img),
+:root[data-skin^='professor'] body *::before,
+:root[data-skin^='professor'] body *::after {
+  border-radius: 0 !important;
+}
+/* the poster's type: headings, lane heads, the project's tab, the title, the status bar, Space's names */
+:root[data-skin^='professor']
+  :is(#slist .gsep.lane .ln, #slist .card .top .repo, #shead h2, .sphd h1, #space .spbt, #sbar .seg) {
+  font-family: var(--cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+:root[data-skin^='professor'] #slist .gsep.lane .ln {
+  letter-spacing: 0.16em;
+}
+/* a red wedge before each lane's name, in its mark's place */
+:root[data-skin^='professor'] #slist .gsep.lane > i {
+  display: none;
+}
+:root[data-skin^='professor'] #slist .gsep.lane .ln::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 7px;
+  margin-right: 6px;
+  vertical-align: 1px;
+  background: linear-gradient(135deg, var(--accent) 0 50%, transparent 50%);
+}
+/* the status bar, a red band in cream */
+:root[data-skin^='professor'][data-layout='sidebar'] main.tiles ~ #sbar {
+  background: var(--band);
+  color: var(--band-ink);
+  --muted: color-mix(in srgb, var(--band-ink) 82%, transparent);
+  --ink: var(--band-ink);
+  --idle: var(--band-ink); /* the fish, connected, in cream; its eye the band's */
+  --bar: var(--band);
+}
+:root[data-skin^='professor'] #sbar .seg.ask {
+  background: var(--band-ink);
+  color: var(--band);
+}
+/* the hammer and sickle, small on the bands */
+:root[data-skin^='professor'] #sbLeft::before,
+:root[data-skin^='professor'] #space .sphd h1::before {
+  content: '';
+  flex: none;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin: 0 6px 0 2px;
+  vertical-align: -1px;
+  background: currentColor;
+  mask: var(--hs) center / contain no-repeat;
+}
+:root[data-skin^='professor'] #sbLeft {
+  align-items: center;
+}
+/* …large and faint behind the chat, in the red: under the transcript's words, over its half's ground */
+:root[data-skin^='professor'] .gbody.haslog {
+  position: relative;
+  isolation: isolate;
+}
+:root[data-skin^='professor'] .gbody.haslog::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--accent);
+  opacity: 0.08;
+  mask: var(--hs) right -40px bottom -50px / 300px 300px no-repeat;
+}
+/* Space: the night sky gives way to rays rising from the foot, the emblem their sun — all still */
+:root[data-skin^='professor'] #space:not(.nosky) .spsky {
+  background:
+    radial-gradient(70% 55% at 50% 108%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    repeating-conic-gradient(
+      from -90deg at 50% 104%,
+      color-mix(in srgb, var(--accent) 9%, transparent) 0deg 4deg,
+      transparent 4deg 13deg
+    ),
+    var(--bg);
+}
+:root[data-skin^='professor'] #space .spsky > b,
+:root[data-skin^='professor'] #space .spsky .spvis {
+  display: none;
+}
+:root[data-skin^='professor'] #space:not(.nosky) .spsky::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -40px;
+  width: 160px;
+  height: 160px;
+  margin-left: -80px;
+  pointer-events: none;
+  background: var(--accent);
+  opacity: 0.32;
+  mask: var(--hs) center / contain no-repeat;
+}

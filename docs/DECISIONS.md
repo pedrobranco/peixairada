@@ -5,7 +5,27 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-27. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
-## Decisions of 2026-11-27, last — Rapaz da Pipa, an old green screen
+## Decisions of 2026-11-27, last — Casa do Professor, a constructivist poster
+
+* **Casa do Professor** (its halves Casa do Professor and Casa do Professor Cartaz; `professor` in the code): a warm
+  charcoal ground, cream ink like old paper, red the board's own voice, gold for work, olive for ready; the light half
+  the poster's paper, black type and the same red. Its projects are the poster's few inks, so the chat's header and the
+  open row come out red — no rule of its own paints them. A question keeps a brighter red than the bands.
+* **What a colour cannot say is `professor.css`'s**, by `data-skin`: square corners but the faces; the lane heads, the
+  project's tab, the chat's title, Space's names and the status bar in a bold condensed face in capitals (Avenir Next
+  Condensed, on every Mac), the reading text the system's; a red wedge in place of each lane's mark; the status bar a
+  red band in cream (the fish cream, the asking count inverse). **The hammer and sickle**, drawn for the board (one
+  path and two rects, a CSS mask, so it takes any colour): small on the status bar and Space's title, large and faint
+  (8 %) at the foot of the chat under its words, and in Space the sun its still rays rise from, in place of the stars.
+  Never on a card or a node. Nothing moves.
+* **A fanfare when it is picked**: eight seconds of brass, an original tune — a bugle's call rising, a turn, the call
+  again, the tonic held, trombones on the chords and a timpani on the strong beats — synthesized by Web Audio (two
+  detuned saws through an opening filter a voice). Only on a pick by hand (a swatch, ⌥⌘Y's ⏎ or click), never at load,
+  Auto's flip or the arrows' preview; its own context, made by that press and closed when it ends or another theme is
+  picked. Settings › Appearance › Fanfare, on.
+* → `scripts/scenarios/professor.mjs` (`sound:fanfare` in `peix.motion()`); `themes.mjs` counts its swatch; `inks.test.mjs`.
+
+## Decisions of 2026-11-27, later — Rapaz da Pipa, an old green screen
 
 * **Named Rapaz da Pipa** (its halves Rapaz da Pipa and Rapaz da Pipa Âmbar); `phosphor` stays its name in the code,
   its files and the prefs. **A refresh**: a band of light passing down the screen every 8 s, then a rest —

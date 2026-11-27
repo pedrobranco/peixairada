@@ -105,7 +105,7 @@ export default async function (ctx) {
   // colours as set; then Tokyo Night, the board behind wearing its dark half
   await ctx.key('KeyY');
   await ctx.waitFor(
-    `document.querySelector('#themes').open && document.querySelectorAll('#themegrid .tt').length === 14`,
+    `document.querySelector('#themes').open && document.querySelectorAll('#themegrid .tt').length === 15`,
     { what: 'the grid of families' },
   );
   ctx.assert.match(
@@ -277,6 +277,7 @@ export default async function (ctx) {
       'Black',
       'Matte Black',
       'Rapaz da Pipa',
+      'Casa do Professor',
       'Softened',
       'Flashbang',
     ],
