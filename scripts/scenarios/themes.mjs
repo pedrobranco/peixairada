@@ -276,7 +276,7 @@ export default async function (ctx) {
       'Nord',
       'Black',
       'Matte Black',
-      'Phosphor',
+      'Rapaz da Pipa',
       'Softened',
       'Flashbang',
     ],

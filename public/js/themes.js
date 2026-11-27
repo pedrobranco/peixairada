@@ -316,11 +316,11 @@ const SKINS = {
       '#eceff4',
     ],
   },
-  // Phosphor (2026-11-27): an old green screen — every ground a dark green, one bright green ink, labels and code in
+  // Rapaz da Pipa (2026-11-27; `phosphor` in the code): an old green screen — every ground a dark green, one bright green ink, labels and code in
   // the system's monospace; only the two states that call you keep a colour of their own, the question red and the
-  // work amber; its light half Phosphor Amber. Its screen (scanlines, a vignette, a glow) and Space's radar are phosphor.css's, by data-skin.
+  // work amber; its light half Rapaz da Pipa Âmbar. Its screen (scanlines, a vignette, a glow) and Space's radar are phosphor.css's, by data-skin.
   phosphor: {
-    name: 'Phosphor',
+    name: 'Rapaz da Pipa',
     dark: true,
     bg: '#06110a',
     panel: '#0a1a10',
@@ -361,7 +361,7 @@ const SKINS = {
   // …and its other half (2026-11-27): the same screen in amber, worn while the appearance is light — the old
   // terminals' second phosphor. A dark screen still: the board wears it dark (skinDarkOf), whatever half it is.
   'phosphor-amber': {
-    name: 'Phosphor Amber',
+    name: 'Rapaz da Pipa Âmbar',
     dark: true,
     bg: '#120b03',
     panel: '#1b1206',
@@ -911,7 +911,7 @@ const FAMILIES = {
   nord: { name: 'Nord', dark: 'nord', light: 'nord-light' },
   black: { name: 'Black', dark: 'black', light: 'own-light' },
   'matte-black': { name: 'Matte Black', dark: 'matte-black', light: 'own-light' },
-  phosphor: { name: 'Phosphor', dark: 'phosphor', light: 'phosphor-amber' },
+  phosphor: { name: 'Rapaz da Pipa', dark: 'phosphor', light: 'phosphor-amber' },
   softened: { name: 'Softened', dark: 'own-dark', light: 'softened' },
   flashbang: { name: 'Flashbang', dark: 'own-dark', light: 'flashbang' },
 };

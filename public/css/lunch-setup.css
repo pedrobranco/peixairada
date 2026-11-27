@@ -116,7 +116,11 @@
   #space .spsky .spsweep {
     animation: none !important;
     opacity: 0;
-  } /* Phosphor's radar: no sweep */
+  } /* Rapaz da Pipa's radar: no sweep */
+  :root[data-skin^='phosphor'] body::before {
+    animation: none !important;
+    display: none;
+  } /* Rapaz da Pipa's refresh: none */
   #news .nwbody.in {
     animation: none;
   } /* what's new: a page comes in at once */

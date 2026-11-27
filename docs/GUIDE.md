@@ -152,8 +152,8 @@ Every look is in Settings › Appearance and Chat list (⌘,), or a key: the cha
 (⌥⌘B, or the first button in the status bar, whose mark says which). A theme comes in two halves, dark and light, and
 *Appearance* — Auto (following macOS), Dark or Light — picks the half: pick Tokyo Night and it is Night after dark and
 Day by day. Beside the board's own are Tokyo Night, Catppuccin, Gruvbox, Rosé Pine, Everforest, Kanagawa, Flexoki and
-Nord, each with both halves; Phosphor, an old green screen by dark and the same screen in amber by day — monospace,
-square corners, a question still red, and in Space a radar screen, its scanlines and glow two switches of their own
+Nord, each with both halves; Rapaz da Pipa, an old green screen by dark and the same screen in amber by day — monospace,
+square corners, a question still red, and in Space a radar screen, its scanlines (a refresh passing down too) and glow two switches of their own
 under Appearance —; and four with one — Black, the board's own colours on true black; Matte Black;
 Softened, the board's light with no white in it; and Flashbang, every ground white, the drawer in iTerm's Light colours —, the board's own wearing the other half (⌥⌘Y shows them all on the
 board as you move). Every theme lays the chat in a frame — the window, the list and the status bar — a step apart from it (in

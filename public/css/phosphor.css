@@ -1,4 +1,4 @@
-/* Phosphor (2026-11-27): the theme's screen, both its halves (green, and amber for the light). Its colours are SKINS.phosphor's (themes.js); what a colour cannot say is
+/* Rapaz da Pipa (2026-11-27; `phosphor` in the code): the theme's screen, both its halves (green, and amber for the light). Its colours are SKINS.phosphor's (themes.js); what a colour cannot say is
      here, by data-skin — the system's monospace for every word (the terminals' own already: one stack, no exception — a
      `:not(.xterm *)` was never restyled when the theme went, a complex :not's invalidation), square corners, and the
      screen: scanlines and a vignette over the window (Settings › Appearance › Scanlines, data-crt; a still overlay, never in
@@ -38,6 +38,37 @@
   background:
     repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
     radial-gradient(120% 90% at 50% 50%, transparent 62%, rgb(0 0 0 / 0.42) 100%);
+}
+/* the refresh (2026-11-27): a band of light passing down the screen, then a rest — one still gradient moved by transform
+     alone, under the Scanlines switch; none under reduced motion */
+:root[data-skin^='phosphor']:not([data-crt='off']) body::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 22vh;
+  z-index: 2147483001;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgb(var(--scr) / 0.025) 55%,
+    rgb(var(--scr) / 0.07) 92%,
+    rgb(var(--scr) / 0.12) 97%,
+    transparent
+  );
+  will-change: transform;
+  animation: scrrefresh 8s linear infinite;
+}
+@keyframes scrrefresh {
+  0% {
+    transform: translateY(-24vh);
+  }
+  70%,
+  100% {
+    transform: translateY(102vh);
+  }
 }
 :root[data-skin^='phosphor'][data-glow='on'] body {
   text-shadow: 0 0 4px rgb(var(--scr) / 0.35);

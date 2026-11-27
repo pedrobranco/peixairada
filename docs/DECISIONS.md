@@ -5,7 +5,12 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-27. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
-## Decisions of 2026-11-27, last — Phosphor, an old green screen
+## Decisions of 2026-11-27, last — Rapaz da Pipa, an old green screen
+
+* **Named Rapaz da Pipa** (its halves Rapaz da Pipa and Rapaz da Pipa Âmbar); `phosphor` stays its name in the code,
+  its files and the prefs. **A refresh**: a band of light passing down the screen every 8 s, then a rest —
+  `body::before`, one still gradient moved by `transform`, under the Scanlines switch, gone under reduced motion and
+  Reduce Transparency.
 
 * **Of three studies** (all green with states told by brightness and shape; green with its alarms; amber), **green with
   its alarms**: every ground a dark green and one bright green ink, but a question red and work amber — the two states
