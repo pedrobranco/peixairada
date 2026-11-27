@@ -155,7 +155,7 @@ Day by day. Beside the board's own are Tokyo Night, Catppuccin, Gruvbox, Rosé P
 Nord, each with both halves; Rapaz da Pipa, an old green screen by dark and the same screen in amber by day — monospace,
 square corners, a question still red, and in Space a radar screen, its scanlines (a refresh passing down too) and glow two switches of their own
 under Appearance —; Casa do Professor, a constructivist poster in charcoal and red by dark and on cream paper by day —
-condensed capitals, red bands, the hammer and sickle, and a short brass fanfare when you pick it (Fanfare turns it off) —;
+condensed capitals, red bands, the hammer and sickle, and a short fanfare of brass, choir and timpani when you pick it (Fanfare turns it off) —;
 and four with one — Black, the board's own colours on true black; Matte Black;
 Softened, the board's light with no white in it; and Flashbang, every ground white, the drawer in iTerm's Light colours —, the board's own wearing the other half (⌥⌘Y shows them all on the
 board as you move). Every theme lays the chat in a frame — the window, the list and the status bar — a step apart from it (in

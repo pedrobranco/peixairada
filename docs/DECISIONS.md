@@ -18,11 +18,12 @@ by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-1
   path and two rects, a CSS mask, so it takes any colour): small on the status bar and Space's title, large and faint
   (8 %) at the foot of the chat under its words, and in Space the sun its still rays rise from, in place of the stars.
   Never on a card or a node. Nothing moves.
-* **A fanfare when it is picked**: eight seconds of brass, an original tune — a bugle's call rising, a turn, the call
-  again, the tonic held, trombones on the chords and a timpani on the strong beats — synthesized by Web Audio (two
-  detuned saws through an opening filter a voice). Only on a pick by hand (a swatch, ⌥⌘Y's ⏎ or click), never at load,
-  Auto's flip or the arrows' preview; its own context, made by that press and closed when it ends or another theme is
-  picked. Settings › Appearance › Fanfare, on.
+* **A fanfare when it is picked**: ten seconds of an original tune in D minor, a victory march's mood — brass on the
+  tune (two detuned saws through an opening filter), a low choir on "ah" on the chords (saws through the vowel's
+  formants, a slow vibrato), the timpani struck on the bars and rolled into the last, which turns to D major —, all
+  synthesized by Web Audio. Only on a pick by hand (a swatch, ⌥⌘Y's ⏎ or click), never at load, Auto's flip or the
+  arrows' preview; its own context, made by that press and closed when it ends or another theme is picked. Settings ›
+  Appearance › Fanfare, on. No recording and no one else's tune: the repository is public.
 * → `scripts/scenarios/professor.mjs` (`sound:fanfare` in `peix.motion()`); `themes.mjs` counts its swatch; `inks.test.mjs`.
 
 ## Decisions of 2026-11-27, later — Rapaz da Pipa, an old green screen
