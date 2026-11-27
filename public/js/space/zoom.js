@@ -139,23 +139,24 @@ const SP_FALLS = { rare: [60_000, 180_000], some: [20_000, 60_000], often: [5_00
 {
   const rand = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   // the fifth layer (2026-11-19): a few bigger stars, 3–4.5 px, each with a soft glow, slow to twinkle
-  $('#spsky').innerHTML = [
-    ['', 11, 46, 0.28],
-    ['tw1', 23, 22, 0.55],
-    ['tw2', 37, 18, 0.5],
-    ['tw3', 51, 14, 0.6],
-    ['big', 67, 9, 0.8],
-  ]
-    .map(([cls, seed, n, o]) => {
-      const r = rand(seed * 7919);
-      return `<b class="${cls}">${Array.from({ length: n }, () => {
-        const x = (r() * 100).toFixed(2),
-          y = (r() * 100).toFixed(2),
-          d = cls === 'big' ? (3 + r() * 1.5).toFixed(1) : r() < 0.85 ? 1 : r() < 0.7 ? 1.5 : 2;
-        return `<i style="left:${x}%;top:${y}%;width:${d}px;height:${d}px;opacity:${(o * (0.6 + r() * 0.4)).toFixed(2)}"></i>`;
-      }).join('')}</b>`;
-    })
-    .join('');
+  $('#spsky').innerHTML =
+    [
+      ['', 11, 46, 0.28],
+      ['tw1', 23, 22, 0.55],
+      ['tw2', 37, 18, 0.5],
+      ['tw3', 51, 14, 0.6],
+      ['big', 67, 9, 0.8],
+    ]
+      .map(([cls, seed, n, o]) => {
+        const r = rand(seed * 7919);
+        return `<b class="${cls}">${Array.from({ length: n }, () => {
+          const x = (r() * 100).toFixed(2),
+            y = (r() * 100).toFixed(2),
+            d = cls === 'big' ? (3 + r() * 1.5).toFixed(1) : r() < 0.85 ? 1 : r() < 0.7 ? 1.5 : 2;
+          return `<i style="left:${x}%;top:${y}%;width:${d}px;height:${d}px;opacity:${(o * (0.6 + r() * 0.4)).toFixed(2)}"></i>`;
+        }).join('')}</b>`;
+      })
+      .join('') + '<span class="spsweep"></span>'; // Phosphor's radar sweep (2026-11-27), its CSS's alone
 }
 function spFall(now = false) {
   clearTimeout(sp.fall);

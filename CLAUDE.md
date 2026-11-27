@@ -344,16 +344,16 @@ CLAUDE_DIR or above). A chat's folder in it is refused where the board would wri
 * **A theme is every surface at once** (2026-10-10; ⌥⌘Y, `SKINS`, `skinCss`, `applySkin`): tokens under
   `:root:root[data-skin=…]`, beside its own appearance; **a family of two halves** (2026-11-01; `FAMILIES`,
   `#themePick`, `setTheme`), one with a single half the board's own for the other. **The appearance is the board's,
-  whatever macOS shows** (2026-10-12): `<html data-theme="dark|light">`, set before the first paint, read by every dark
-  rule — **never `prefers-color-scheme`**. Worn (`wornKey()`, `skinOn()`): the family's half of `darkNow()` — Auto
-  (`prefs.skinFollow`, the default; `setLook`) the system's, else `prefs.look`; the app's window and the pane's pages
+  whatever macOS shows** (2026-10-12): `<html data-theme="dark|light">`, read by every
+  dark rule — **never `prefers-color-scheme`**. Worn (`wornKey()`, `skinOn()`): the family's half of `darkNow()` — Auto
+  (`prefs.skinFollow`; `setLook`) the system's, else `prefs.look`; the app's window and its pages
   wear it (`appearance`); a theme's `titlebar` paints its bar (2026-11-16, `titlebar-posts.mjs`). The blacks read
   `--crust`, `--bar`, `--hd-*`; a project's colour moves to the theme's nearest hue (`skinColor` in `repoColor`; not
   under the board's own, `asSet`); the drawer's sixteen are the theme's (`xtTheme`, `ANSI`). **Every theme lays the chat
   in a frame** (2026-11-01): `--frame` (a theme's `crust`) the window's ground, the sidebar (`--side`), the status bar.
   **`data-frame` is the frame's appearance** — dark round a light chat under *Dark frame* (`prefs.darkFrame`; skinCss's
   `[data-frame="dark"]`) —, read by `#sessions` and `#sbar`, never `data-theme`. **Every small ink holds 4.5:1** (a
-  theme's by `themeInks`; amber text is `--working-ink`). → `themes.mjs`, `frame-themes.mjs`, `inks.test.mjs`.
+  theme's by `themeInks`; amber text is `--working-ink`). Phosphor: `phosphor.css`. → `themes.mjs`, `phosphor.mjs`, `frame-themes.mjs`, `inks.test.mjs`.
 * **The header floats** (2026-10-09; `<html data-head="float">` in the markup, never toggled): `#shead` and
   `#prlist` inset and rounded, **over the chat** — `#groups` spans the header's rows (`grid-row: 1 / 5`, every row of
   `#chat` placed in column 1). A half with a strip pads down by `--float-h` (`floatH`); one without

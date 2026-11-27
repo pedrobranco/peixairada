@@ -5,6 +5,24 @@ Newest at the top of each list. `CLAUDE.md` is the working notes (how things are
 this file is the *why* and the *state*. Last updated 2026-11-27. The company, its repos and the people on its PRs go
 by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-10-01; keep it so.
 
+## Decisions of 2026-11-27, last — Phosphor, an old green screen
+
+* **Of three studies** (all green with states told by brightness and shape; green with its alarms; amber), **green with
+  its alarms**: every ground a dark green and one bright green ink, but a question red and work amber — the two states
+  that call you keep a colour, so the board reads at a glance. Its light half is the board's own (as Black's). The name
+  is the board's own, no game's.
+* **What a colour cannot say is `phosphor.css`'s**, by `data-skin`: the system's monospace for every word (the terminals'
+  stack already) and square corners everywhere, on `body *` with `!important`. A first cut excluded the terminals with
+  `:not(.xterm, .xterm *)`: switching theme away left a card in monospace (a complex `:not` the engine did not restyle on
+  the root's attribute); the stack is the same, so there is no exception.
+* **The screen**: scanlines and a vignette, one still overlay on `body::after`, never in a click's way, gone under
+  Reduce Transparency — Settings › Appearance › Scanlines, on; and Glow, a faint text-shadow, off by default (painted,
+  not composited). Both off, saying why, under any other theme.
+* **Space is a radar screen**: a map grid for the night sky, no stars, one sweep turning (a square by `transform`, 9 s,
+  stopped by Twinkling off and reduced motion), the visitors blips; nodes square, their titles in capitals. Home's sea
+  through a green filter; the open row in inverse video (white on the green read at 2:1).
+* → `scripts/scenarios/phosphor.mjs`; `themes.mjs` counts its swatch; `inks.test.mjs` holds its inks.
+
 ## Decisions of 2026-11-27, latest — releases, with notes people can read (round XXXII)
 
 Ricardo: *"I want to explore having releases with clear update notes vs just updating from main. the update on the app

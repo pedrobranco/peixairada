@@ -316,6 +316,48 @@ const SKINS = {
       '#eceff4',
     ],
   },
+  // Phosphor (2026-11-27): an old green screen — every ground a dark green, one bright green ink, labels and code in
+  // the system's monospace; only the two states that call you keep a colour of their own, the question red and the
+  // work amber. Its screen (scanlines, a vignette, a glow) and Space's radar are phosphor.css's, by data-skin.
+  phosphor: {
+    name: 'Phosphor',
+    dark: true,
+    bg: '#06110a',
+    panel: '#0a1a10',
+    raise: '#0f2617',
+    crust: '#030904',
+    ink: '#5cff93',
+    muted: '#2fb562',
+    line: '#174d2a',
+    accent: '#b6ffd0',
+    working: '#ffc84a',
+    idle: '#5cff93',
+    needs: '#ff6a55',
+    watch: '#5cffd6',
+    spend: '#ffc84a',
+    code: '#041008',
+    hl: ['#2fb562', '#b6ffd0', '#5cff93', '#ffc84a', '#8dffb5', '#d8ffe6', '#a8ff5c', '#3fcf78'],
+    proj: ['#5cff93', '#a8ff5c', '#5cffd6', '#3be06b', '#c9ff9e'],
+    ansi: [
+      '#0a1a10',
+      '#ff6a55',
+      '#5cff93',
+      '#ffc84a',
+      '#5cd6b0',
+      '#a8ff5c',
+      '#5cffd6',
+      '#b6ffd0',
+      '#2f6b45',
+      '#ff8a78',
+      '#8dffb5',
+      '#ffd97a',
+      '#7fe8c8',
+      '#c9ff9e',
+      '#8dffe6',
+      '#e8fff0',
+    ],
+    tok: { '--page-sel': 'rgba(92, 255, 147, .28)' },
+  },
   'matte-black': {
     name: 'Matte Black',
     dark: true,
@@ -828,6 +870,7 @@ const FAMILIES = {
   nord: { name: 'Nord', dark: 'nord', light: 'nord-light' },
   black: { name: 'Black', dark: 'black', light: 'own-light' },
   'matte-black': { name: 'Matte Black', dark: 'matte-black', light: 'own-light' },
+  phosphor: { name: 'Phosphor', dark: 'phosphor', light: 'own-light' },
   softened: { name: 'Softened', dark: 'own-dark', light: 'softened' },
   flashbang: { name: 'Flashbang', dark: 'own-dark', light: 'flashbang' },
 };
@@ -1157,6 +1200,8 @@ function applySkin() {
   if (SKINS[k]) root.dataset.skin = k;
   else delete root.dataset.skin;
   root.dataset.frame = look === 'light' && prefs.darkFrame ? 'dark' : look;
+  root.dataset.crt = prefs.crt === false ? 'off' : 'on'; // Phosphor's screen (2026-11-27): phosphor.css reads them
+  root.dataset.glow = prefs.crtGlow ? 'on' : 'off';
   const want = prefs.skinFollow ? null : prefs.look === 'dark';
   if (want !== lookPosted) {
     lookPosted = want;
@@ -1205,6 +1250,19 @@ function showLook() {
   $('#darkFrame').disabled = off;
   $('#darkFrame').checked = !!prefs.darkFrame;
   say.textContent = off ? say.dataset.off : say.dataset.d;
+  // Phosphor's screen (2026-11-27): its switches, off with why under any other theme
+  const phos = wornKey() === 'phosphor';
+  for (const [row, box, on] of [
+    ['#crtRow', '#crtOn', prefs.crt !== false],
+    ['#glowRow', '#glowOn', !!prefs.crtGlow],
+  ]) {
+    const el = $(row),
+      s = el.querySelector('small');
+    el.classList.toggle('off', !phos);
+    $(box).disabled = !phos;
+    $(box).checked = on;
+    s.textContent = phos ? s.dataset.d : s.dataset.off;
+  }
 }
 applySkin();
 const reskin = () => {
@@ -1247,6 +1305,16 @@ $('#darkFrame').addEventListener('change', e => {
     savePrefs();
     applySkin();
   });
+});
+$('#crtOn').addEventListener('change', e => {
+  prefs.crt = e.target.checked;
+  savePrefs();
+  applySkin();
+});
+$('#glowOn').addEventListener('change', e => {
+  prefs.crtGlow = e.target.checked;
+  savePrefs();
+  applySkin();
 });
 $('#themeBtn').addEventListener('click', () => {
   settingsOpen(false);

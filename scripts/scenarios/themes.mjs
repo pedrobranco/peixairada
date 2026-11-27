@@ -105,7 +105,7 @@ export default async function (ctx) {
   // colours as set; then Tokyo Night, the board behind wearing its dark half
   await ctx.key('KeyY');
   await ctx.waitFor(
-    `document.querySelector('#themes').open && document.querySelectorAll('#themegrid .tt').length === 13`,
+    `document.querySelector('#themes').open && document.querySelectorAll('#themegrid .tt').length === 14`,
     { what: 'the grid of families' },
   );
   ctx.assert.match(
@@ -276,6 +276,7 @@ export default async function (ctx) {
       'Nord',
       'Black',
       'Matte Black',
+      'Phosphor',
       'Softened',
       'Flashbang',
     ],

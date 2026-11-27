@@ -65,6 +65,9 @@
 }
 /* Reduce transparency: the blurs behind the overview and the list's ends go solid */
 @media (prefers-reduced-transparency: reduce) {
+  :root[data-skin='phosphor'] body::after {
+    content: none;
+  } /* Phosphor's scanlines and vignette */
   #ov,
   .sedge,
   .tl-glass {

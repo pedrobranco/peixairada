@@ -131,6 +131,8 @@ const prefs = {
   skinFollow: true,
   look: null,
   darkFrame: false,
+  crt: true, // Phosphor's scanlines and vignette (2026-11-27)
+  crtGlow: false, // …and its glow
   fillHints: 0,
   tvSeen: false,
   tvHints: 0,

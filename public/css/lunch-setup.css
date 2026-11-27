@@ -113,6 +113,10 @@
   #space .spsky > b {
     animation: none !important;
   } /* its sky: the stars still, none falls (spFall) */
+  #space .spsky .spsweep {
+    animation: none !important;
+    opacity: 0;
+  } /* Phosphor's radar: no sweep */
   #news .nwbody.in {
     animation: none;
   } /* what's new: a page comes in at once */
