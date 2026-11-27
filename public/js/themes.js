@@ -318,7 +318,7 @@ const SKINS = {
   },
   // Phosphor (2026-11-27): an old green screen — every ground a dark green, one bright green ink, labels and code in
   // the system's monospace; only the two states that call you keep a colour of their own, the question red and the
-  // work amber. Its screen (scanlines, a vignette, a glow) and Space's radar are phosphor.css's, by data-skin.
+  // work amber; its light half Phosphor Amber. Its screen (scanlines, a vignette, a glow) and Space's radar are phosphor.css's, by data-skin.
   phosphor: {
     name: 'Phosphor',
     dark: true,
@@ -357,6 +357,47 @@ const SKINS = {
       '#e8fff0',
     ],
     tok: { '--page-sel': 'rgba(92, 255, 147, .28)' },
+  },
+  // …and its other half (2026-11-27): the same screen in amber, worn while the appearance is light — the old
+  // terminals' second phosphor. A dark screen still: the board wears it dark (skinDarkOf), whatever half it is.
+  'phosphor-amber': {
+    name: 'Phosphor Amber',
+    dark: true,
+    bg: '#120b03',
+    panel: '#1b1206',
+    raise: '#26190a',
+    crust: '#0b0702',
+    ink: '#ffb84d',
+    muted: '#b67c26',
+    line: '#5a3a10',
+    accent: '#ffe0a8',
+    working: '#ffe08a',
+    idle: '#ffb84d',
+    needs: '#ff6a55',
+    watch: '#ffd27a',
+    spend: '#ffe08a',
+    code: '#0e0802',
+    hl: ['#b67c26', '#ffe0a8', '#ffb84d', '#ffe08a', '#ffc978', '#fff1d6', '#ffa62b', '#d9952e'],
+    proj: ['#ffb84d', '#ffd27a', '#ff9a3c', '#e8a33a', '#ffe0a8'],
+    ansi: [
+      '#1b1206',
+      '#ff6a55',
+      '#ffb84d',
+      '#ffe08a',
+      '#d9952e',
+      '#ffa62b',
+      '#ffd27a',
+      '#ffe0a8',
+      '#6b4a1a',
+      '#ff8a78',
+      '#ffc978',
+      '#fff0b0',
+      '#e8b45a',
+      '#ffc070',
+      '#ffe5a8',
+      '#fff6e6',
+    ],
+    tok: { '--page-sel': 'rgba(255, 184, 77, .28)' },
   },
   'matte-black': {
     name: 'Matte Black',
@@ -870,7 +911,7 @@ const FAMILIES = {
   nord: { name: 'Nord', dark: 'nord', light: 'nord-light' },
   black: { name: 'Black', dark: 'black', light: 'own-light' },
   'matte-black': { name: 'Matte Black', dark: 'matte-black', light: 'own-light' },
-  phosphor: { name: 'Phosphor', dark: 'phosphor', light: 'own-light' },
+  phosphor: { name: 'Phosphor', dark: 'phosphor', light: 'phosphor-amber' },
   softened: { name: 'Softened', dark: 'own-dark', light: 'softened' },
   flashbang: { name: 'Flashbang', dark: 'own-dark', light: 'flashbang' },
 };
@@ -1251,7 +1292,7 @@ function showLook() {
   $('#darkFrame').checked = !!prefs.darkFrame;
   say.textContent = off ? say.dataset.off : say.dataset.d;
   // Phosphor's screen (2026-11-27): its switches, off with why under any other theme
-  const phos = wornKey() === 'phosphor';
+  const phos = /^phosphor/.test(wornKey());
   for (const [row, box, on] of [
     ['#crtRow', '#crtOn', prefs.crt !== false],
     ['#glowRow', '#glowOn', !!prefs.crtGlow],

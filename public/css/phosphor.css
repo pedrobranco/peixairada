@@ -1,10 +1,18 @@
-/* Phosphor (2026-11-27): the theme's screen. Its colours are SKINS.phosphor's (themes.js); what a colour cannot say is
+/* Phosphor (2026-11-27): the theme's screen, both its halves (green, and amber for the light). Its colours are SKINS.phosphor's (themes.js); what a colour cannot say is
      here, by data-skin — the system's monospace for every word (the terminals' own already: one stack, no exception — a
      `:not(.xterm *)` was never restyled when the theme went, a complex :not's invalidation), square corners, and the
      screen: scanlines and a vignette over the window (Settings › Appearance › Scanlines, data-crt; a still overlay, never in
      a click's way) and a faint glow on the letters (Glow, data-glow, off: a text-shadow is painted, not composited).
      Space is a radar screen: a map grid for the night sky, a sweep turning over it, its visitors blips. */
 :root[data-skin='phosphor'] {
+  --scr: 92 255 147;
+  --scr-deep: #0f2617;
+} /* the screen's own colour, as rgb() reads it: green… */
+:root[data-skin='phosphor-amber'] {
+  --scr: 255 184 77;
+  --scr-deep: #26190a;
+} /* …or amber, the light half's */
+:root[data-skin^='phosphor'] {
   --r-1: 0px;
   --r-2: 0px;
   --r-3: 0px;
@@ -12,16 +20,16 @@
   --r-5: 0px;
 }
 /* every corner square — the faces, the dots, the pies too: an old screen draws no curve */
-:root[data-skin='phosphor'] body *,
-:root[data-skin='phosphor'] body *::before,
-:root[data-skin='phosphor'] body *::after {
+:root[data-skin^='phosphor'] body *,
+:root[data-skin^='phosphor'] body *::before,
+:root[data-skin^='phosphor'] body *::after {
   border-radius: 0 !important;
 }
-:root[data-skin='phosphor'] body,
-:root[data-skin='phosphor'] body * {
+:root[data-skin^='phosphor'] body,
+:root[data-skin^='phosphor'] body * {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
 }
-:root[data-skin='phosphor']:not([data-crt='off']) body::after {
+:root[data-skin^='phosphor']:not([data-crt='off']) body::after {
   content: '';
   position: fixed;
   inset: 0;
@@ -31,30 +39,30 @@
     repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
     radial-gradient(120% 90% at 50% 50%, transparent 62%, rgb(0 0 0 / 0.42) 100%);
 }
-:root[data-skin='phosphor'][data-glow='on'] body {
-  text-shadow: 0 0 4px rgb(92 255 147 / 0.35);
+:root[data-skin^='phosphor'][data-glow='on'] body {
+  text-shadow: 0 0 4px rgb(var(--scr) / 0.35);
 }
 /* Space, a radar screen */
-:root[data-skin='phosphor'] #space {
+:root[data-skin^='phosphor'] #space {
   --spr: 0px;
 }
-:root[data-skin='phosphor'] #space .spbt {
+:root[data-skin^='phosphor'] #space .spbt {
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
-:root[data-skin='phosphor'] #space:not(.nosky) .spsky {
+:root[data-skin^='phosphor'] #space:not(.nosky) .spsky {
   background:
-    linear-gradient(rgb(92 255 147 / 0.07) 1px, transparent 1px) 0 0 / 40px 40px,
-    linear-gradient(90deg, rgb(92 255 147 / 0.07) 1px, transparent 1px) 0 0 / 40px 40px,
-    radial-gradient(70% 60% at 50% 45%, #0f2617, var(--bg));
+    linear-gradient(rgb(var(--scr) / 0.07) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, rgb(var(--scr) / 0.07) 1px, transparent 1px) 0 0 / 40px 40px,
+    radial-gradient(70% 60% at 50% 45%, var(--scr-deep), var(--bg));
 }
-:root[data-skin='phosphor'] #space .spsky > b {
+:root[data-skin^='phosphor'] #space .spsky > b {
   display: none;
 }
 #space .spsky .spsweep {
   display: none;
 }
-:root[data-skin='phosphor'] #space .spsky .spsweep {
+:root[data-skin^='phosphor'] #space .spsky .spsweep {
   display: block;
   position: absolute;
   left: 50%;
@@ -65,8 +73,8 @@
   background: conic-gradient(
     from 0deg,
     transparent 0 88%,
-    rgb(92 255 147 / 0.05) 96%,
-    rgb(92 255 147 / 0.16) 99.6%,
+    rgb(var(--scr) / 0.05) 96%,
+    rgb(var(--scr) / 0.16) 99.6%,
     transparent 100%
   );
   will-change: transform;
@@ -81,35 +89,35 @@
     transform: rotate(360deg);
   }
 }
-:root[data-skin='phosphor'] #space .spsky .spvis s {
+:root[data-skin^='phosphor'] #space .spsky .spvis s {
   width: 5px;
   height: 5px;
   border-radius: 0;
   background: var(--ink);
   box-shadow: 0 0 8px var(--ink);
 } /* a planet or a comet: a blip */
-:root[data-skin='phosphor'] #space .spsky .spvis s::before,
-:root[data-skin='phosphor'] #space .spsky .spvis s::after {
+:root[data-skin^='phosphor'] #space .spsky .spvis s::before,
+:root[data-skin^='phosphor'] #space .spsky .spvis s::after {
   display: none;
 }
 /* home's sea, its own palette, seen through the screen: in its greens */
-:root[data-skin='phosphor'] .home .hsea {
+:root[data-skin^='phosphor'] .home .hsea {
   filter: grayscale(1) sepia(1) hue-rotate(78deg) saturate(2.4);
 }
 /* the open row in inverse video: the ink its ground, the screen's dark its letters (white on a green reads at 2:1) */
-:root[data-skin='phosphor'][data-layout='sidebar'] #slist .card {
+:root[data-skin^='phosphor'][data-layout='sidebar'] #slist .card {
   --selc: var(--ink);
 }
-:root[data-skin='phosphor'][data-layout='sidebar'] #slist .card.active :is(*, .top .repo) {
+:root[data-skin^='phosphor'][data-layout='sidebar'] #slist .card.active :is(*, .top .repo) {
   color: var(--crust);
 }
-:root[data-skin='phosphor'][data-layout='sidebar']
+:root[data-skin^='phosphor'][data-layout='sidebar']
   #slist
   .card.active
   :is(.snip, .state.live, .agt, .agn, .agn b, .agr[data-k^='_']) {
   color: color-mix(in srgb, var(--crust) 84%, transparent);
 }
-:root[data-skin='phosphor'][data-layout='sidebar'] #slist .card.active .agl {
+:root[data-skin^='phosphor'][data-layout='sidebar'] #slist .card.active .agl {
   --lift: var(--crust);
   --glow: var(--crust);
   --working-ink: var(--crust);

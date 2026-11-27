@@ -1,7 +1,7 @@
 // Phosphor (2026-11-27): an old green screen. Worn, every word but a terminal's is the system's monospace, every corner
 // square, scanlines and a vignette lie over the window — Settings › Appearance › Scanlines takes them off, Glow lights
 // the letters — and Space is a radar screen: a map grid for the sky, no stars, a sweep turning; Twinkling off stops it.
-// A question still red, work still amber. Another theme: the two switches off, saying why.
+// A question still red, work still amber. Its light half the same screen in amber. Another theme: the two switches off, saying why.
 import { spawn } from 'node:child_process';
 import { makeFixture, toolLines } from '../fixture.mjs';
 
@@ -88,6 +88,21 @@ export default async function (ctx) {
     ctx.assert.doesNotMatch(out.other[3], /monospace/, 'its own type: ' + out.other.slice(3).join(' | '));
     await ctx.evaluate(`document.querySelector('#themePick [data-fam="phosphor"]').click()`);
     await ctx.waitFor(`document.documentElement.dataset.skin === 'phosphor'`, { what: 'Phosphor again' });
+
+    // the light half: the same screen in amber, a dark one still
+    await ctx.evaluate(`document.querySelector('#lookPick [data-look="light"]').click()`);
+    await ctx.waitFor(`document.documentElement.dataset.skin === 'phosphor-amber'`, {
+      what: 'Phosphor Amber in the light',
+    });
+    out.amber = await ctx.evaluate(
+      `[document.documentElement.dataset.theme, getComputedStyle(document.documentElement).getPropertyValue('--ink').trim(), getComputedStyle(document.documentElement).getPropertyValue('--scr').trim(), getComputedStyle(document.querySelector('#slist > .card')).fontFamily]`,
+    );
+    ctx.assert.deepEqual(out.amber.slice(0, 3), ['dark', '#ffb84d', '255 184 77'], 'amber, on a dark screen');
+    ctx.assert.match(out.amber[3], /monospace/);
+    await ctx.settle();
+    await ctx.shot('amber');
+    await ctx.evaluate(`document.querySelector('#lookPick [data-look="dark"]').click()`);
+    await ctx.waitFor(`document.documentElement.dataset.skin === 'phosphor'`, { what: 'green again in the dark' });
 
     // Space: a radar screen
     await ctx.evaluate(`peix.prefs().space || document.querySelector('#sbSpace').click()`);

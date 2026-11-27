@@ -9,8 +9,9 @@ by stand-ins here — `acme`, made-up repo names and PR numbers — since 2026-1
 
 * **Of three studies** (all green with states told by brightness and shape; green with its alarms; amber), **green with
   its alarms**: every ground a dark green and one bright green ink, but a question red and work amber — the two states
-  that call you keep a colour, so the board reads at a glance. Its light half is the board's own (as Black's). The name
-  is the board's own, no game's.
+  that call you keep a colour, so the board reads at a glance. Its light half is **the same screen in amber**
+  (`phosphor-amber`), a dark screen still, worn while the appearance is light; its work a paler yellow beside the amber
+  ink, its question red. The screen's colour is `--scr` per half. The name is the board's own, no game's.
 * **What a colour cannot say is `phosphor.css`'s**, by `data-skin`: the system's monospace for every word (the terminals'
   stack already) and square corners everywhere, on `body *` with `!important`. A first cut excluded the terminals with
   `:not(.xterm, .xterm *)`: switching theme away left a card in monospace (a complex `:not` the engine did not restyle on
