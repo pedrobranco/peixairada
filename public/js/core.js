@@ -133,7 +133,6 @@ const prefs = {
   darkFrame: false,
   crt: true, // Phosphor's scanlines and vignette (2026-11-27)
   crtGlow: false, // …and its glow
-  fanfare: true, // Casa do Professor's fanfare when it is picked (2026-11-27)
   fillHints: 0,
   tvSeen: false,
   tvHints: 0,

@@ -1,7 +1,6 @@
 // Casa do Professor (2026-11-27; `professor` in the code): a constructivist poster. Worn, every corner square, the lane heads,
 // the project's tab, the title and the status bar in condensed capitals, a red wedge before each lane, the status bar a
 // red band with the hammer and sickle, the emblem large and faint behind the chat, and Space's sky rays rising from it.
-// Picked by hand it plays its fanfare (`sound:fanfare`) — never at load, nor by the arrows in ⌥⌘Y; Fanfare off, none.
 // Its light half the poster's paper. A question still its own red.
 import { spawn } from 'node:child_process';
 import { makeFixture, toolLines } from '../fixture.mjs';
@@ -17,7 +16,6 @@ export default async function (ctx) {
     now = Date.now(),
     cwd = ctx.fixture.chats[0].cwd,
     ps = [0, 1].map(() => spawn('sleep', ['300'], { stdio: 'ignore' }));
-  const sounds = () => ctx.evaluate(`peix.motion().filter(m => m.kind === 'sound:fanfare').length`);
   try {
     const {
       chats: [work],
@@ -44,8 +42,6 @@ export default async function (ctx) {
       `document.documentElement.dataset.skin === 'professor' && document.querySelector('#slist > .card.asking')`,
       { what: 'Casa do Professor worn, a chat asking', timeout: 20000 },
     );
-    out.atLoad = await sounds();
-    ctx.assert.equal(out.atLoad, 0, 'no fanfare at load');
     out.look = await ctx.evaluate(`({
       radius: getComputedStyle(document.querySelector('#slist > .card')).borderTopLeftRadius,
       lane: (e => [getComputedStyle(e).textTransform, getComputedStyle(e).fontFamily, getComputedStyle(e, '::before').backgroundImage.slice(0, 15)])(document.querySelector('#slist .gsep.lane .ln')),
@@ -69,21 +65,6 @@ export default async function (ctx) {
     );
     ctx.assert.match(out.watermark, /svg/, 'the emblem behind the chat');
     await ctx.shot('chat');
-
-    // picked by hand: the fanfare; Fanfare off, none
-    await ctx.evaluate(`document.querySelector('#themePick [data-fam="nord"]').click()`);
-    await ctx.waitFor(`document.documentElement.dataset.skin === 'nord'`, { what: 'nord' });
-    ctx.assert.equal(await sounds(), 0, 'no fanfare for another theme');
-    await ctx.evaluate(`document.querySelector('#themePick [data-fam="professor"]').click()`);
-    await ctx.waitFor(`document.documentElement.dataset.skin === 'professor'`, { what: 'picked again' });
-    out.picked = await sounds();
-    ctx.assert.equal(out.picked, 1, 'the fanfare when picked');
-    await ctx.evaluate(`document.querySelector('#fanfareOn').click()`);
-    ctx.assert.equal(await ctx.evaluate(`peix.prefs().fanfare`), false);
-    await ctx.evaluate(`document.querySelector('#themePick [data-fam="nord"]').click()`);
-    await ctx.evaluate(`document.querySelector('#themePick [data-fam="professor"]').click()`);
-    await ctx.waitFor(`document.documentElement.dataset.skin === 'professor'`, { what: 'picked once more' });
-    ctx.assert.equal(await sounds(), 1, 'Fanfare off: none');
 
     // the light half: the poster's paper
     await ctx.evaluate(`document.querySelector('#lookPick [data-look="light"]').click()`);

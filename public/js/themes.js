@@ -403,7 +403,7 @@ const SKINS = {
   // old paper, red the board's own voice, gold for work, olive for ready; its projects in the poster's few inks, so the
   // chat's header and the open row come out red. Its light half Casa do Professor Cartaz: the poster's paper, black and
   // red. What a colour cannot say — square corners, condensed capitals, the red bands, the hammer and sickle, Space's
-  // rays, the fanfare when it is picked — is professor.css's and themes.js's, by data-skin.
+  // rays — is professor.css's, by data-skin.
   professor: {
     name: 'Casa do Professor',
     dark: true,
@@ -1407,155 +1407,9 @@ function setLook(mode, from = null) {
     reskin();
   });
 }
-// Casa do Professor's fanfare (2026-11-27): picked by a click or ⏎ — never at load, nor Auto's flip, nor the arrows'
-// preview in ⌥⌘Y — the theme plays ten seconds of the board's own: an original tune in D minor, a victory march's
-// mood — brass on the tune, a low choir on the chords, the timpani struck on the bars and rolled into the last, which
-// turns to D major. Web Audio of its own, made by that press and closed when it ends or another theme is picked (no
-// sound outlives it); Settings › Appearance › Fanfare turns it off. `peix.motion()` notes `sound:fanfare`.
-const FANFARE_BEAT = 0.42;
-// [note, beats] — the tune; MIDI numbers (62 D4, 65 F4, 69 A4, 74 D5).
-// prettier-ignore
-const FANFARE_TUNE = [
-  [62, 1], [65, 1], [69, 2],
-  [67, 1], [65, 0.5], [64, 0.5], [62, 2],
-  [58, 1], [62, 1], [65, 1], [67, 1],
-  [69, 3], [61, 1],
-  [62, 0.5], [65, 0.5], [69, 1], [74, 2],
-  [74, 4],
-];
-// [chord's notes, beats] — the choir, a bar each: Dm · Gm · B♭ · A · Dm · D
-// prettier-ignore
-const FANFARE_CHORDS = [
-  [[50, 57, 62], 4], [[43, 55, 58, 62], 4], [[46, 53, 58, 62], 4], [[45, 52, 57, 61], 4], [[50, 57, 62, 65], 4], [[38, 50, 57, 62, 66], 4],
-];
-let fanfareCtx = null;
-const midiHz = n => 440 * 2 ** ((n - 69) / 12);
-function fanfareStop() {
-  const c = fanfareCtx;
-  fanfareCtx = null;
-  if (c && c.state !== 'closed') c.close().catch(() => {});
-}
-function fanfare() {
-  if (prefs.fanfare === false) return;
-  fanfareStop();
-  let c;
-  try {
-    c = fanfareCtx = new (window.AudioContext || window.webkitAudioContext)();
-  } catch {
-    return;
-  }
-  noteMotion(null, 'sound:fanfare');
-  const out = c.createGain(),
-    t0 = c.currentTime + 0.05,
-    b = FANFARE_BEAT;
-  out.gain.value = 0.24;
-  out.connect(c.destination);
-  const env = (g, at, dur, vol, attack) => {
-    g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(vol, at + attack);
-    g.gain.setValueAtTime(vol * 0.85, at + Math.max(attack + 0.01, dur - 0.12));
-    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-  };
-  const saws = (n, at, dur, into, cents) => {
-    for (const d of cents) {
-      const o = c.createOscillator();
-      o.type = 'sawtooth';
-      o.frequency.value = midiHz(n);
-      o.detune.value = d;
-      o.connect(into);
-      o.start(at);
-      o.stop(at + dur + 0.05);
-    }
-  };
-  // brass: two saws a little apart through a filter that opens with the attack — a horn's bite
-  const brass = (n, at, dur, vol) => {
-    const f = c.createBiquadFilter(),
-      g = c.createGain();
-    f.type = 'lowpass';
-    f.Q.value = 1.4;
-    f.frequency.setValueAtTime(midiHz(n) * 1.5, at);
-    f.frequency.linearRampToValueAtTime(midiHz(n) * 6, at + 0.07);
-    f.frequency.exponentialRampToValueAtTime(midiHz(n) * 3.5, at + dur);
-    env(g, at, dur, vol, 0.04);
-    f.connect(g).connect(out);
-    saws(n, at, dur, f, [-6, 6]);
-  };
-  // a low choir on "ah": three saws through the vowel's two formants, slow to swell, a slow vibrato
-  const choir = (n, at, dur, vol) => {
-    const g = c.createGain(),
-      sum = c.createGain(),
-      lfo = c.createOscillator(),
-      depth = c.createGain();
-    env(g, at, dur, vol, 0.35);
-    for (const [hz, q, v] of [
-      [700, 6, 1],
-      [1150, 8, 0.55],
-      [2600, 10, 0.12],
-    ]) {
-      const f = c.createBiquadFilter(),
-        fv = c.createGain();
-      f.type = 'bandpass';
-      f.frequency.value = hz;
-      f.Q.value = q;
-      fv.gain.value = v;
-      sum.connect(f).connect(fv).connect(g);
-    }
-    g.connect(out);
-    lfo.frequency.value = 5.2;
-    depth.gain.value = 9;
-    lfo.connect(depth);
-    for (const d of [-9, 0, 9]) {
-      const o = c.createOscillator();
-      o.type = 'sawtooth';
-      o.frequency.value = midiHz(n);
-      o.detune.value = d;
-      depth.connect(o.detune);
-      o.connect(sum);
-      o.start(at);
-      o.stop(at + dur + 0.05);
-    }
-    lfo.start(at);
-    lfo.stop(at + dur + 0.05);
-  };
-  // a timpani: a low sine falling a little, struck
-  const drum = (n, at, vol) => {
-    const o = c.createOscillator(),
-      g = c.createGain();
-    o.type = 'sine';
-    o.frequency.setValueAtTime(midiHz(n) * 1.06, at);
-    o.frequency.exponentialRampToValueAtTime(midiHz(n), at + 0.08);
-    g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(vol, at + 0.008);
-    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.9);
-    o.connect(g).connect(out);
-    o.start(at);
-    o.stop(at + 1);
-  };
-  let t = t0;
-  for (const [n, beats] of FANFARE_TUNE) {
-    brass(n, t, beats * b * 0.94, 0.42);
-    t += beats * b;
-  }
-  t = t0;
-  for (const [notes, beats] of FANFARE_CHORDS) {
-    for (const n of notes) choir(n, t, beats * b * 1.02, 0.5);
-    drum(((notes[0] - 38) % 12) + 38, t, 0.8); // the chord's root, in the drums' octave
-    t += beats * b;
-  }
-  // the roll into the last bar: the fourth's second half, swelling
-  for (let i = 0, at = t0 + 14 * b; at < t0 + 16 * b; i++, at += b / 6) drum(i % 2 ? 45 : 38, at, 0.15 + i * 0.035);
-  drum(38, t - 4 * b, 1); // the last bar struck hard…
-  drum(38, t - 2 * b, 0.6); // …and again
-  const end = t + 0.8,
-    mine = c;
-  setTimeout(() => fanfareCtx === mine && fanfareStop(), (end - c.currentTime) * 1000 + 300);
-}
-/** A theme picked by hand: Casa do Professor's fanfare, or the end of one still playing. */
-const themePicked = f => (f === 'professor' ? fanfare() : fanfareStop());
 /** A family worn, spreading from where it was picked (a swatch, a tile; none from a key). */
 function setTheme(f, from = null) {
   if (!FAMILIES[f] || f === prefs.theme) return;
-  themePicked(f);
   revealFrom(from, () => {
     prefs.theme = f;
     savePrefs();
@@ -1582,12 +1436,6 @@ $('#crtOn').addEventListener('change', e => {
   prefs.crt = e.target.checked;
   savePrefs();
   applySkin();
-});
-$('#fanfareOn').checked = prefs.fanfare !== false;
-$('#fanfareOn').addEventListener('change', e => {
-  prefs.fanfare = e.target.checked;
-  savePrefs();
-  if (!e.target.checked) fanfareStop();
 });
 $('#glowOn').addEventListener('change', e => {
   prefs.crtGlow = e.target.checked;
@@ -1653,7 +1501,6 @@ function themesOpen() {
 function themeKeep(i = themePick.sel, from = null) {
   const [f] = themePick.list[i] || [];
   if (!f) return;
-  if (f !== prefs.theme) themePicked(f);
   prefs.theme = f;
   savePrefs();
   themePick.kept = true;
